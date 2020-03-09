@@ -38,18 +38,27 @@ dtype='str', header=0)
 # Filter for rows where the summary level is 155.
 places_df = places_df.loc[places_df.iloc[:,2] == '155']
 
+# Declare an array to hold instances of PlaceCounty.
 places = []
+
+# Get population data.
+pop_df = pd.read_csv('../data/e20185ca0002000.txt', dtype='str', header=None)
 
 # Iterate through the DataFrame and convert each row to a Place model.
 for index, data in places_df.iterrows():
     # Assign our data to temporary variables.
+
+    # LOGRECNO matches a geo entry with its data.
+    _logrecno = data[4]
     _state = 'California'
     _name = get_place(data[49])
     _key = key_hash(_name)
     _county = get_county(data[49])
+    # For now, look up the population using pandas.
+    _pop = int(pop_df.loc[pop_df.iloc[:,5] == _logrecno][6])
     # Create the models.
-    places.append(PlaceCounty(key=_key, state=_state, county=_county, \
-    name=_name))
+    places.append(PlaceCounty(logrecno=_logrecno, key=_key, state=_state, \
+    county=_county, name=_name, pop=_pop))
 
 # Add the places to our SQLite database.
 for place in places:
@@ -59,5 +68,5 @@ for place in places:
 session.commit()
 
 # Print the five largest places in California for debugging purposes.
-for instance in session.query(PlaceCounty).limit(5):
+for instance in session.query(PlaceCounty).order_by(PlaceCounty.pop.desc()).limit(5):
     print(instance)

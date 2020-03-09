@@ -19,11 +19,13 @@ class PlaceCounty(Base):
     __tablename__ = 'place_counties'
 
     id = Column(Integer, primary_key=True)
+    logrecno = Column(String)
     key = Column(String)
     state = Column(String)
     county = Column(String)
     name = Column(String)
+    pop = Column(Integer)
 
     def __repr__(self):
-            return "<PlaceCounty(key='%s', state='%s', county='%s', name='%s')>" % (
-                self.key, self.state, self.county, self.name)
+            return "<PlaceCounty(key='%s', state='%s', county='%s', name='%s', pop=%s)>" % (
+                self.key, self.state, self.county, self.name, self.pop)
