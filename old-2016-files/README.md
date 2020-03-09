@@ -1,8 +1,8 @@
 # My old project from 2016
 
 ## `Place`
-`Place` is a class that organizes organizes information regarding places in California into namedtuple
-objects. The fields for the Place objects are as follows:
+`Place` is a class that organizes organizes information regarding places in California into `namedtuple`
+objects. The fields for the `Place` objects are as follows:
 
 * `id` – Specifies a numeric ID for a geography.
 * `key` – A unique string with no spaces that identifies a geography. The idea for `key` is to be able to
@@ -44,6 +44,6 @@ and `vr_other`.
 ### `PlaceVectorApp`
 
 A smaller `PlaceVector`; its primary goal is to model the *appearance* of a city, and so it contains mostly fields that
-affect a geography's appearance. It is a three-dimensional vector, and theorectically can be models in 3D space. The fields
+affect a geography's appearance. It is a three-dimensional vector, and theorectically can be modeled in 3D space. The fields
 are `pop_density`, `inc_pci`, and `hs_mysb`.
 			
