@@ -8,16 +8,19 @@
 from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Index
 
 class Place(Base):
     __tablename__ = 'place'
 
-    id = Column(String, primary_key=True)
+    id = Column(Integer, primary_key=True)
+    geo_id = Column(String)
     key = Column(String)
     name = Column(String)
     pop = Column(Integer)
 
+    Index('idx_geo_id', geo_id, unique=True)
+
     def __repr__(self):
-            return "<Place(key='%s', name='%s', pop=%s)>" % (
-                self.key, self.name, self.pop)
+            return "<Place(geo_id='%s', key='%s', name='%s', pop=%s)>" % (
+                self.geo_id, self.key, self.name, self.pop)
