@@ -11,7 +11,7 @@ Base = declarative_base()
 from sqlalchemy import Column, Integer, String
 
 class Place(Base):
-    __tablename__ = 'base'
+    __tablename__ = 'place'
 
     id = Column(String, primary_key=True)
     key = Column(String)
