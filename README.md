@@ -16,7 +16,7 @@ is in.
 
 ## Next steps
 
-Enable `PlaceCounties` to access data about the geographies they represent.
+Improve the link between `PlaceCounties` and their data.
 
 ## Grouping places within California by counties
 
