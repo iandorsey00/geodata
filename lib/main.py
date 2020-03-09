@@ -20,7 +20,8 @@ Place.metadata.create_all(engine)
 
 # First, put all places into a pandas DataFrame.
 places_dataframe = \
-    pd.read_csv('ACSDT5Y2018.B01003_data_with_overlays_2020-03-09T011028.csv',\
+    pd.read_csv(
+        '../data/ACSDT5Y2018.B01003_data_with_overlays_2020-03-09T011028.csv',\
         skiprows=[1])
 
 places = []
