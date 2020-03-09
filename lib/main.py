@@ -26,4 +26,4 @@ for index, data in places_dataframe.iterrows():
     places.append(Place(id=_id, key=_key, name=_name, pop=_pop))
 
 # Print for debugging purposes.
-print(places[0].pop)
+print(places[:10])
