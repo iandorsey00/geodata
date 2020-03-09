@@ -3,6 +3,21 @@ A program for getting information about and comparing geographies
 
 This project currently supports places in California.
 
+## Current project status
+
+Upon executing
+
+    python3 main.py
+
+in the `lib` directory, we're able to query the SQLite database for all
+places in California. The ORM models used for California is `PlaceCounties`
+instead of `Place`s so that it is easier to find out which county a place
+is in.
+
+## Next steps
+
+Enable `PlaceCounties` to access data about the geographies they represent.
+
 ## Grouping places within California by counties
 
 States can be quite large, and sometimes it is difficult to group places inside
