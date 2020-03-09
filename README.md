@@ -3,7 +3,7 @@ A program for getting information about and comparing geographies
 
 This project currently supports places in California.
 
-## The third-order subdivision problem
+## Grouping places within California by counties
 
 States can be quite large, and sometimes it is difficult to group places inside
 of them. California is divided up into 58 counties. Cities are not allowed to
