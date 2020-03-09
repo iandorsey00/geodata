@@ -1,6 +1,7 @@
 # My old project from 2016
 
 ## `Place`
+
 `Place` is a class that organizes organizes information regarding places in California into `namedtuple`
 objects. The fields for the `Place` objects are as follows:
 
@@ -25,10 +26,11 @@ Information for more fields will be added in the future.
 
 ## `PlaceVectors`
 
-`PlaceVectors` use normalized data to model places as multi-dimensional vectors. The purpose is to be able to find similar
-places by calculating the Euclidean distance between it and other `PlaceVector`s. It is a use of the [k-nearest neighbors
-algorithm](https://en.wikipedia.org/wiki/K-nearest_neighbors_algorithm). `PlaceVector`, `PlaceVectorFull` and `PlaceVectorApp`
-differ in the amount of and what type of fields (represented as coordinates) are used to model the vectors.
+`PlaceVectors` use normalized data to model places as multi-dimensional vectors. They're inside the `Place` package.
+The purpose of `PlaceVectors` is to be able to find similar places by calculating the Euclidean distance between it and other
+`PlaceVector`s. It is a use of the [k-nearest neighbors algorithm](https://en.wikipedia.org/wiki/K-nearest_neighbors_algorithm).
+`PlaceVector`, `PlaceVectorFull` and `PlaceVectorApp` differ in the amount of and what type of fields (represented as coordinates)
+are used to model the vectors.
 
 ### `PlaceVector`
 
@@ -46,4 +48,12 @@ and `vr_other`.
 A smaller `PlaceVector`; its primary goal is to model the *appearance* of a city, and so it contains mostly fields that
 affect a geography's appearance. It is a three-dimensional vector, and theorectically can be modeled in 3D space. The fields
 are `pop_density`, `inc_pci`, and `hs_mysb`.
-			
+
+## WikipediaTools.py
+
+This script contains methods to assist with the posting of data on Wikipedia.
+
+## ctools.py
+
+Contains methods for writing and reading data files and transforming place name strings into `key`s for joining.
+
