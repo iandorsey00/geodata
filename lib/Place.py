@@ -17,10 +17,12 @@ class Place(Base):
     geo_id = Column(String)
     key = Column(String)
     name = Column(String)
+    county = Column(String)
     pop = Column(Integer)
 
     Index('idx_geo_id', geo_id, unique=True)
 
     def __repr__(self):
-            return "<Place(geo_id='%s', key='%s', name='%s', pop=%s)>" % (
+            return "<Place(geo_id='%s', key='%s', name='%s', county='%s' " + \
+            "pop=%s)>" % (
                 self.geo_id, self.key, self.name, self.pop)

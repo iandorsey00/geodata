@@ -4,7 +4,7 @@
 # The main project file.
 #
 
-from Place import Place
+from PlaceCounty import PlaceCounty
 from key_hash import key_hash
 import pandas as pd
 
@@ -15,26 +15,41 @@ from sqlalchemy.orm import sessionmaker
 Session = sessionmaker(bind=engine)
 session = Session()
 
+# Get the county given a name string from summary level 155.
+def get_county(sl_155_geo_name_string):
+    # Split the name string by ", "
+    split_geo_name_string = sl_155_geo_name_string.split(", ")
+    # Get the first part, which will be of format XXX County (part)
+    county_part = split_geo_name_string[0]
+    # Return only the part before " (part)"
+    return county_part[:-7]
+
+def get_place(sl_155_geo_name_string):
+    # Split the name string by ", "
+    split_geo_name_string = sl_155_geo_name_string.split(", ")
+    return ", ".join(split_geo_name_string[1:])
+
 # Create the table
-Place.metadata.create_all(engine)
+PlaceCounty.metadata.create_all(engine)
 
 # First, put all places into a pandas DataFrame.
-places_dataframe = \
-    pd.read_csv(
-        '../data/ACSDT5Y2018.B01003_data_with_overlays_2020-03-09T011028.csv',\
-        skiprows=[1])
+places_df = pd.read_csv('../data/g20185ca.csv', encoding='iso-8859-1', \
+dtype='str', header=0)
+# Filter for rows where the summary level is 155.
+places_df = places_df.loc[places_df.iloc[:,2] == '155']
 
 places = []
 
 # Iterate through the DataFrame and convert each row to a Place model.
-for index, data in places_dataframe.iterrows():
+for index, data in places_df.iterrows():
     # Assign our data to temporary variables.
-    _geo_id = data['GEO_ID']
-    _name = data['NAME']
+    _state = 'California'
+    _name = get_place(data[49])
     _key = key_hash(_name)
-    _pop = data['B01003_001E']
+    _county = get_county(data[49])
     # Create the models.
-    places.append(Place(geo_id=_geo_id, key=_key, name=_name, pop=_pop))
+    places.append(PlaceCounty(key=_key, state=_state, county=_county, \
+    name=_name))
 
 # Add the places to our SQLite database.
 for place in places:
@@ -44,5 +59,5 @@ for place in places:
 session.commit()
 
 # Print the five largest places in California for debugging purposes.
-for instance in session.query(Place).order_by(Place.pop.desc()).limit(5):
+for instance in session.query(PlaceCounty).limit(5):
     print(instance)
