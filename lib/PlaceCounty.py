@@ -24,8 +24,7 @@ class PlaceCounty(Base):
     state = Column(String)
     county = Column(String)
     name = Column(String)
-    pop = Column(Integer)
 
     def __repr__(self):
-            return "<PlaceCounty(key='%s', state='%s', county='%s', name='%s', pop=%s)>" % (
-                self.key, self.state, self.county, self.name, self.pop)
+            return "<PlaceCounty(key='%s', state='%s', county='%s', name='%s'>" % (
+                self.key, self.state, self.county, self.name)
