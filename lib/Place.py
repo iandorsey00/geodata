@@ -14,15 +14,11 @@ class Place(Base):
     __tablename__ = 'place'
 
     id = Column(Integer, primary_key=True)
-    geo_id = Column(String)
+    logrecno = Column(String)
     key = Column(String)
+    state = Column(String)
     name = Column(String)
-    county = Column(String)
-    pop = Column(Integer)
-
-    Index('idx_geo_id', geo_id, unique=True)
 
     def __repr__(self):
-            return "<Place(geo_id='%s', key='%s', name='%s', county='%s' " + \
-            "pop=%s)>" % (
-                self.geo_id, self.key, self.name, self.pop)
+            return "<PlaceCounty(key='%s', state='%s', name='%s'>" % (
+                self.key, self.state, self.name)
