@@ -14,6 +14,7 @@ from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 
 from sqlalchemy import Column, Integer, String, Index
+from sqlalchemy.orm import relationship
 
 class PlaceCounty(Base):
     __tablename__ = 'place_counties'

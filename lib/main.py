@@ -216,7 +216,8 @@ print(merged_df.head())
 from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 
-from sqlalchemy import Column, Integer, String, Index
+from sqlalchemy import Column, Integer, String, Index, ForeignKey
+from sqlalchemy.orm import relationship
 
 # Dynamic table creation: Create an attr_dict to store table attributes
 attr_dict = {}
@@ -229,7 +230,10 @@ attr_dict['id'] = Column(Integer, primary_key=True)
 
 # Dynamically add the other columns
 for column in merged_df.columns:
-    attr_dict[column] = Column(String)
+    if column == 'LOGRECNO':
+        attr_dict[column] = Column(String, ForeignKey('place_counties.logrecno'))
+    else:
+        attr_dict[column] = Column(String)
 
 # Define the __repr__ for the new class
 def _repr(self):
@@ -238,11 +242,17 @@ def _repr(self):
 # Add the definition above to the class
 attr_dict['__repr__'] = _repr
 
+# Add the relationship
+attr_dict['placecounty'] = relationship('PlaceCounty', back_populates='data')
+
 # attr_dict
 Data = type('Data', (Base,), attr_dict)
 
 # Create the table in the database
 Data.metadata.create_all(engine)
+
+# Add relationship to PlaceCounty
+PlaceCounty.data = relationship('Data', uselist=False, back_populates='place_counties')
 
 data_rows = []
 
