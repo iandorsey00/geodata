@@ -32,7 +32,8 @@ attr_dict['id'] = Column(Integer, primary_key=True)
 
 # Define the class's __repr__
 def _repr(self):
-    return "<ColumnHeader(table_title='%s' ...)>" % (self.table_title)
+    return "<ColumnHeader(table_id='%s', sequence_number='%s', line_number='%s', start_position='%s' table_title='%s' ...)>" % (
+        self.table_id, self.sequence_number, self.line_number, self.start_position, self.table_title)
 
 # Add the definition above to the class
 attr_dict['__repr__'] = _repr

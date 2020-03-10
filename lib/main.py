@@ -4,12 +4,12 @@
 # The main project file.
 #
 
-from PlaceCounty import PlaceCounty
+import pandas as pd
 
+from PlaceCounty import PlaceCounty
 from ColumnHeader import ColumnHeader, columns
 
 from key_hash import key_hash
-import pandas as pd
 
 # Get SQLAlchemy ready.
 from sqlalchemy import create_engine
@@ -74,9 +74,6 @@ places_df = places_df.loc[places_df.iloc[:,2] == '155']
 # Declare an array to hold instances of PlaceCounty.
 places = []
 
-# Get population data.
-pop_df = pd.read_csv('../data/e20185ca0002000.txt', dtype='str', header=None)
-
 # Iterate through the DataFrame and convert each row to a Place model.
 for index, data in places_df.iterrows():
     # Assign our data to temporary variables.
@@ -105,4 +102,166 @@ for instance in session.query(ColumnHeader).limit(5):
 
 # Print the five largest places in California for debugging purposes.
 for instance in session.query(PlaceCounty).limit(5):
+    print(instance)
+
+# Specify table_ids and line numbers that have the data we needed.
+# See data/ACS_5yr_Seq_Table_Number_Lookup.txt
+ids_and_line_numbers_for_needed_tables = {
+    'B01003': '1',        # TOTAL POPULATION
+    'B19301': '1'         # PER CAPITA INCOME IN THE PAST 12 MONTHS (IN 2018
+                          # INFLATION-ADJUSTED DOLLARS)
+}
+
+# Select relevant column headers.
+needed_column_headers = session.query(ColumnHeader) \
+    .filter(ColumnHeader.table_id.in_(
+        ids_and_line_numbers_for_needed_tables.keys()
+        )).all()
+
+# Obtain needed sequence numbers ##############################################
+needed_sequence_numbers = dict()
+this_table_id = ''
+this_sequence_number = ''
+
+for needed_column_header in needed_column_headers:
+    # Have our current table_id available.
+    if this_table_id != needed_column_header.table_id:
+        this_table_id = needed_column_header.table_id
+        needed_sequence_numbers[this_table_id] = []
+
+    if needed_column_header.sequence_number != this_sequence_number:
+        this_sequence_number = needed_column_header.sequence_number
+        # Add a new sequence number when we iterate on one.
+        needed_sequence_numbers[this_table_id] = this_sequence_number
+
+print("Needed sequence numbers:", needed_sequence_numbers)
+
+# Obtain needed files #########################################################
+
+needed_files = dict()
+
+for table_id, sequence_numbers in needed_sequence_numbers.items():
+    needed_files[table_id] = "../data/e20185ca" + sequence_numbers + "000.txt"
+
+print("Needed files:", needed_files)
+
+# Obtain needed positions #####################################################
+
+needed_positions = dict()
+this_starting_position = 0
+this_position = 0
+
+for needed_column_header in needed_column_headers:
+    # Have our current table_id available.
+    if this_table_id != needed_column_header.table_id:
+        this_table_id = needed_column_header.table_id
+        needed_positions[this_table_id] = [5]
+    # We will hit a start position first.
+    if needed_column_header.start_position:
+        # Subtract 1, because census start positions start from 1, not 0.
+        this_starting_position = int(needed_column_header.start_position) - 1
+        # After hitting a start position, we'll hit a line number.
+    elif needed_column_header.line_number in \
+        ids_and_line_numbers_for_needed_tables.values():
+        # Line numbers are offsets from starting positions. But again, they
+        # start at 1.
+        needed_positions[this_table_id].append(this_starting_position + \
+            int(needed_column_header.line_number) - 1)
+
+print("Needed positions:", needed_positions)
+
+# Obtain needed column names ##################################################
+
+needed_column_names = dict()
+
+for id, line_number in ids_and_line_numbers_for_needed_tables.items():
+    # If it's not in the table yet, initialize a new list with 'LOGRECNO'
+    if id not in needed_column_names.keys():
+        needed_column_names[id] = ['LOGRECNO']
+    # Add the table_id, plus and underscore, plus a line number
+    needed_column_names[id].append(id + '_' + line_number)
+
+###############################################################################
+
+# Get ready to store data in a dictionary of dataframes.
+data_dfs = {}
+
+for id, line_number in ids_and_line_numbers_for_needed_tables.items():
+    # Add column 5 because we need the logrecnos.
+    data_dfs[id] = pd.read_csv(needed_files[id], \
+        usecols=needed_positions[id], names=needed_column_names[id], dtype='str', \
+        header=None)
+
+# Merge the values of data_dfs together for easier insertion into our Data
+# SQL table.
+# First, declare a placeholder.
+merged_df = pd.DataFrame()
+
+for df in data_dfs.values():
+    # At first, just assign df to merged_df.
+    if merged_df.empty:
+        merged_df = df
+    # For future iterations, merge the DataFrames together.
+    else:
+        merged_df = merged_df.set_index('LOGRECNO') \
+                    .join(df.set_index('LOGRECNO'))
+
+merged_df = merged_df.reset_index()
+print(merged_df.head())
+
+###############################################################################
+# Create our new model
+
+# declarative_base() is the class which all models inherit.
+from sqlalchemy.ext.declarative import declarative_base
+Base = declarative_base()
+
+from sqlalchemy import Column, Integer, String, Index
+
+# Dynamic table creation: Create an attr_dict to store table attributes
+attr_dict = {}
+
+# Set the name for the table.
+attr_dict['__tablename__'] = 'data'
+
+# Give the table an id column
+attr_dict['id'] = Column(Integer, primary_key=True)
+
+# Dynamically add the other columns
+for column in merged_df.columns:
+    attr_dict[column] = Column(String)
+
+# Define the __repr__ for the new class
+def _repr(self):
+    return "<Data(LOGRECNO='%s' ...)>" % (self.LOGRECNO)
+
+# Add the definition above to the class
+attr_dict['__repr__'] = _repr
+
+# attr_dict
+Data = type('Data', (Base,), attr_dict)
+
+# Create the table in the database
+Data.metadata.create_all(engine)
+
+data_rows = []
+
+for index, data in merged_df.iterrows():
+    # Create column header models
+    record = Data()
+
+    for column in merged_df.columns:
+        # Dynamically assign data to each attribute
+        setattr(record, column, data[column])
+    
+    data_rows.append(record)
+
+for data_row in data_rows:
+    # Add column headers to database
+    session.add(data_row)
+
+session.commit()
+
+# Print the Data for debugging purposes.
+for instance in session.query(Data).limit(5):
     print(instance)
