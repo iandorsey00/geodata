@@ -61,7 +61,7 @@ Base.metadata.create_all(engine)
 
 # First, put all places into a pandas DataFrame.
 places_df = pd.read_csv('../data/g20185ca.csv', encoding='iso-8859-1', \
-dtype='str', header=0)
+dtype='str', header=None)
 # Filter for rows where the summary level is 155.
 places_df = places_df.loc[places_df.iloc[:,2] == '155']
 
@@ -74,14 +74,15 @@ for index, data in places_df.iterrows():
 
     # LOGRECNO matches a geo entry with its data.
     _logrecno = data[4]
+    _geo_id = data[48][7:14]
     _state = 'California'
     _name = get_place(data[49])
     _key = key_hash(_name)
     _county = get_county(data[49])
     # For now, look up the population using pandas.
     # Create the models.
-    places.append(PlaceCounty(logrecno=_logrecno, key=_key, state=_state, \
-    county=_county, name=_name))
+    places.append(PlaceCounty(logrecno=_logrecno, geo_id=_geo_id, key=_key, \
+    state=_state, county=_county, name=_name))
 
 # Add the places to our SQLite database.
 for place in places:
