@@ -12,11 +12,13 @@ Upon executing
 in the `lib` directory, we're able to query the SQLite database for all
 places in California. The ORM models used for California is `PlaceCounties`
 instead of `Place`s so that it is easier to find out which county a place
-is in.
+is in. We're also able to join some data from data files.
 
 ## Next steps
 
-Improve the link between `PlaceCounties` and their data.
+Join enough data to create a `PlaceVector`. See my old 2016 project. With
+`PlaceVector`s, it will be possible calculate how "similar" one place is to
+another based on demographic data.
 
 ## Grouping places within California by counties
 
