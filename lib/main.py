@@ -364,6 +364,58 @@ for instance in first_five:
 
 print()
 
+print("DataFrame:", "\n")
+
+query_df = pd.DataFrame(columns=[
+            'B01003_1',
+            'B19301_1',
+            'B02001_2',
+            'B02001_3',
+            'B02001_5',
+            'B03002_12',
+            'B15003_1',
+            'B15003_22',
+            'B15003_23',
+            'B15003_24',
+            'B15003_25',
+            'ALAND_SQMI'
+        ])
+
+for instance in session.query(PlaceCounty):
+    to_append = [
+                instance.data.B01003_1,
+                instance.data.B19301_1,
+                instance.data.B02001_2,
+                instance.data.B02001_3,
+                instance.data.B02001_5,
+                instance.data.B03002_12,
+                instance.data.B15003_1,
+                instance.data.B15003_22,
+                instance.data.B15003_23,
+                instance.data.B15003_24,
+                instance.data.B15003_25,
+                instance.geoheader.ALAND_SQMI
+                ]
+    
+    a_series = pd.Series(to_append, index = query_df.columns)
+    query_df = query_df.append(a_series, ignore_index=True)
+
+query_df = query_df.apply(pd.to_numeric, errors='coerce')
+
+print(query_df.head())
+print()
+
+print("Medians:", "\n")
+print(list(query_df.median()))
+print()
+
+print("Standard deviations:", "\n")
+print(list(query_df.std()))
+print()
+
+###############################################################################
+# PlaceVectors
+
 print("Early PlaceVector instances for records above:", "\n")
 
 from PlaceVector import PlaceVector
