@@ -89,10 +89,10 @@ class PlaceVector:
         # If the value for the subcomponent is at the median, the score is 50.
         #
         # If the value for the subcomponent is above the median but below
-        # two standard deviations from the median, the score is 50 plus
-        # the ratio of (the value minus the median) and (two standard
-        # deviations) times 50. (In simple terms, we are assigning a
-        # proportional value between 50 and 100.)
+        # two standard deviations from the median, the score is the ratio of
+        # the value and (the median plus two standard deviations) times 100.
+        # (In simple terms, we are assigning a proportional value between 50
+        # and 100.)
         #
         # If the value for the subcomponent is at the median plus two standard
         # deviations or more, the score will be 100.
@@ -100,20 +100,25 @@ class PlaceVector:
         # Create a dictionary to store subcomponents
         self.s = dict()
 
-        # sc = subcomponent
+        # sc = s = subcomponent
+        # rs = raw subcomponent
+        # med = median
+        # sd = standard deviation
         for sc in self.rs.keys():
             if self.rs[sc] < self.med[sc]:
-                self.s[sc] = int(round( (self.rs[sc] / self.med[sc] ) \
-                * 50))
+                self.s[sc] = \
+                int(
+                    round( (self.rs[sc] / self.med[sc]) * 50 )
+                )
             elif self.rs[sc] == self.med[sc]:
                 self.s[sc] = 50
-            elif self.rs[sc] > self.med[sc] and self.rs[sc] < (self.sd[sc] * 2):
+            elif self.rs[sc] > self.med[sc] and self.rs[sc] < self.med[sc] + (self.sd[sc] * 2):
                 self.s[sc] = \
                 int(
                     round( 
-                        50 + (
-                             (self.rs[sc] - self.med[sc]) / (self.rs[sc] * 2)
-                             ) * 50
+                            50 + (
+                            (self.rs[sc] - self.med[sc]) / (self.sd[sc] * 2)
+                            ) * 50
                     )
                 )
             else: # self.rs[sc] > self.med[sc] + (self.sd[sc] * 2)

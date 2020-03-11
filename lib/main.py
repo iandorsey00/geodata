@@ -341,25 +341,50 @@ print()
 
 print("PlaceCounty instances with joined Data:", "\n")
 
+###############################################################################
+
 # Final query: Print 5 records from PlaceCounty with the population and all
 # records joined to it.
 first_five = session.query(PlaceCounty).limit(5)
 
+all_results = session.query(PlaceCounty)
+
 for instance in first_five:
     print(
     instance, "\n",
-    "Population:", instance.data.B01003_1, "\n",
-    "Per capita income:", instance.data.B19301_1, "\n",
-    "White alone:", instance.data.B02001_2, "\n",
-    "Black alone:", instance.data.B02001_3, "\n",
-    "Asian alone:", instance.data.B02001_5, "\n",
-    "Hispanic or Latino alone:", instance.data.B03002_12, "\n",
-    "Population 25 years and over:", instance.data.B15003_1, "\n",
-    "Bachelor's degree:", instance.data.B15003_22, "\n",
-    "Master's degree:", instance.data.B15003_23, "\n",
-    "Professional school degree:", instance.data.B15003_24, "\n",
-    "Doctorate degree:", instance.data.B15003_25, "\n",
-    "Land area:", instance.geoheader.ALAND_SQMI
+    "Population:", instance.data.B01003_1, "\n",                   # 0
+    "Per capita income:", instance.data.B19301_1, "\n",            # 1
+    "White alone:", instance.data.B02001_2, "\n",                  # 2
+    "Black alone:", instance.data.B02001_3, "\n",                  # 3
+    "Asian alone:", instance.data.B02001_5, "\n",                  # 4
+    "Hispanic or Latino alone:", instance.data.B03002_12, "\n",    # 5
+    "Population 25 years and over:", instance.data.B15003_1, "\n", # 6
+    "Bachelor's degree:", instance.data.B15003_22, "\n",           # 7               
+    "Master's degree:", instance.data.B15003_23, "\n",             # 8   
+    "Professional school degree:", instance.data.B15003_24, "\n",  # 9 
+    "Doctorate degree:", instance.data.B15003_25, "\n",            # 10
+    "Land area:", instance.geoheader.ALAND_SQMI                    # 11
+    )
+
+print()
+search_name = input("Enter the name of a place for which you would like to look up data: ")
+print()
+
+for instance in all_results.filter(PlaceCounty.name == search_name):
+    print(
+    instance, "\n",
+    "Population:", instance.data.B01003_1, "\n",                   # 0
+    "Per capita income:", instance.data.B19301_1, "\n",            # 1
+    "White alone:", instance.data.B02001_2, "\n",                  # 2
+    "Black alone:", instance.data.B02001_3, "\n",                  # 3
+    "Asian alone:", instance.data.B02001_5, "\n",                  # 4
+    "Hispanic or Latino alone:", instance.data.B03002_12, "\n",    # 5
+    "Population 25 years and over:", instance.data.B15003_1, "\n", # 6
+    "Bachelor's degree:", instance.data.B15003_22, "\n",           # 7               
+    "Master's degree:", instance.data.B15003_23, "\n",             # 8   
+    "Professional school degree:", instance.data.B15003_24, "\n",  # 9 
+    "Doctorate degree:", instance.data.B15003_25, "\n",            # 10
+    "Land area:", instance.geoheader.ALAND_SQMI                    # 11
     )
 
 print()
@@ -418,7 +443,7 @@ print()
 ###############################################################################
 # PlaceVectors
 
-print("Early PlaceVector instances for records above:", "\n")
+print("First five PlaceVectors:", "\n")
 
 from PlaceVector import PlaceVector
 
@@ -427,17 +452,43 @@ for instance in first_five:
         PlaceVector(
             instance.name,
             instance.county,
-            instance.data.B01003_1,
-            instance.data.B19301_1,
-            instance.data.B02001_2,
-            instance.data.B02001_3,
-            instance.data.B02001_5,
-            instance.data.B03002_12,
-            instance.data.B15003_1,
-            instance.data.B15003_22,
-            instance.data.B15003_23,
-            instance.data.B15003_24,
-            instance.data.B15003_25,
+            instance.data.B01003_1,       
+            instance.data.B19301_1,       
+            instance.data.B02001_2,       
+            instance.data.B02001_3,       
+            instance.data.B02001_5,       
+            instance.data.B03002_12,      
+            instance.data.B15003_1,       
+            instance.data.B15003_22,      
+            instance.data.B15003_23,      
+            instance.data.B15003_24,      
+            instance.data.B15003_25,      
+            instance.geoheader.ALAND_SQMI,
+            list(medians),
+            list(standard_deviations)
+        )
+    )
+
+print()
+search_name = input("Enter the name of a place for which you would like to look up a PlaceVector: ")
+print()
+
+for instance in all_results.filter(PlaceCounty.name == search_name):
+    print(
+        PlaceVector(
+            instance.name,
+            instance.county,
+            instance.data.B01003_1,       
+            instance.data.B19301_1,       
+            instance.data.B02001_2,       
+            instance.data.B02001_3,       
+            instance.data.B02001_5,       
+            instance.data.B03002_12,      
+            instance.data.B15003_1,       
+            instance.data.B15003_22,      
+            instance.data.B15003_23,      
+            instance.data.B15003_24,      
+            instance.data.B15003_25,      
             instance.geoheader.ALAND_SQMI,
             list(medians),
             list(standard_deviations)
