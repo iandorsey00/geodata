@@ -46,7 +46,9 @@ Key hashes in `geodata` must be unique and have the following format
 
     country_code:soad_code:name[/option1[/option2[/...]]]
 
-All letters in the hash must be lowercase.
+All letters in the hash must be lowercase. For example
+
+    us:ca:losangeles
 
 ### Mandatory items
 
