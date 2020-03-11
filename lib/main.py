@@ -406,11 +406,13 @@ print(query_df.head())
 print()
 
 print("Medians:", "\n")
-print(list(query_df.median()))
+medians = query_df.median()
+print(list(medians))
 print()
 
 print("Standard deviations:", "\n")
-print(list(query_df.std()))
+standard_deviations = query_df.std()
+print(list(standard_deviations))
 print()
 
 ###############################################################################
@@ -434,6 +436,8 @@ for instance in first_five:
             instance.data.B15003_23,
             instance.data.B15003_24,
             instance.data.B15003_25,
-            instance.geoheader.ALAND_SQMI
+            instance.geoheader.ALAND_SQMI,
+            list(medians),
+            list(standard_deviations)
         )
     )
