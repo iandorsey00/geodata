@@ -265,3 +265,9 @@ session.commit()
 # Print the Data for debugging purposes.
 for instance in session.query(Data).limit(5):
     print(instance)
+
+# Final query: Print 5 records from PlaceCounty with the population and per
+# capita income records joined to it.
+for instance in session.query(PlaceCounty).limit(5):
+    print(instance, "\n", "Population:", instance.data.B01003_1, "\n",
+    "Per capita income:", instance.data.B19301_1)
