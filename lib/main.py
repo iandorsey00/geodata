@@ -8,21 +8,15 @@ import pandas as pd
 
 from PlaceCounty import PlaceCounty
 from ColumnHeader import ColumnHeader, columns
+from initialize_sqlalchemy import Base, engine, session
 
 from key_hash import key_hash
-
-# Get SQLAlchemy ready.
-from sqlalchemy import create_engine
-engine = create_engine('sqlite:///:memory:')
-from sqlalchemy.orm import sessionmaker
-Session = sessionmaker(bind=engine)
-session = Session()
 
 ###############################################################################
 # ColumnHeaders
 
 # Create the table
-ColumnHeader.metadata.create_all(engine)
+Base.metadata.create_all(engine)
 
 # Place data into DataFrame
 column_headers_df = pd.read_csv('../data/ACS_5yr_Seq_Table_Number_Lookup.txt',
@@ -63,7 +57,7 @@ def get_place(sl_155_geo_name_string):
     return ", ".join(split_geo_name_string[1:])
 
 # Create the table
-PlaceCounty.metadata.create_all(engine)
+Base.metadata.create_all(engine)
 
 # First, put all places into a pandas DataFrame.
 places_df = pd.read_csv('../data/g20185ca.csv', encoding='iso-8859-1', \
@@ -212,10 +206,6 @@ print(merged_df.head())
 ###############################################################################
 # Create our new model
 
-# declarative_base() is the class which all models inherit.
-from sqlalchemy.ext.declarative import declarative_base
-Base = declarative_base()
-
 from sqlalchemy import Column, Integer, String, Index, ForeignKey
 from sqlalchemy.orm import relationship
 
@@ -249,10 +239,10 @@ attr_dict['placecounty'] = relationship('PlaceCounty', back_populates='data')
 Data = type('Data', (Base,), attr_dict)
 
 # Create the table in the database
-Data.metadata.create_all(engine)
+Base.metadata.create_all(engine)
 
 # Add relationship to PlaceCounty
-PlaceCounty.data = relationship('Data', uselist=False, back_populates='place_counties')
+PlaceCounty.data = relationship('Data', uselist=False, back_populates='placecounty')
 
 data_rows = []
 

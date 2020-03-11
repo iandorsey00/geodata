@@ -6,6 +6,8 @@
 #
 
 import pandas as pd
+from initialize_sqlalchemy import Base
+from sqlalchemy import Column, Integer, String, Index
 
 # Obtain column headers for the column headers
 columns = list(pd.read_csv('../data/ACS_5yr_Seq_Table_Number_Lookup.txt',
@@ -14,12 +16,6 @@ columns = list(pd.read_csv('../data/ACS_5yr_Seq_Table_Number_Lookup.txt',
 # Convert column headers to snake_case
 columns = list(map(lambda x: x.lower(), columns))
 columns = list(map(lambda x: x.replace(' ', '_'), columns))
-
-# declarative_base() is the class which all models inherit.
-from sqlalchemy.ext.declarative import declarative_base
-Base = declarative_base()
-
-from sqlalchemy import Column, Integer, String, Index
 
 # Dynamic table creation: Create an attr_dict to store table attributes
 attr_dict = {}

@@ -10,8 +10,7 @@
 #
 
 # declarative_base() is the class which all models inherit.
-from sqlalchemy.ext.declarative import declarative_base
-Base = declarative_base()
+from initialize_sqlalchemy import Base
 
 from sqlalchemy import Column, Integer, String, Index
 from sqlalchemy.orm import relationship
