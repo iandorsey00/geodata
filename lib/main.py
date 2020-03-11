@@ -291,7 +291,8 @@ PlaceCounty.geoheaders = relationship('GeoHeader', uselist=False, \
 # Declare a place holder for 
 geoheader_rows = []
 
-gh_df = pd.read_csv('../data/2019_Gaz_place_national.txt', sep='\t')
+gh_df = pd.read_csv('../data/2019_Gaz_place_national.txt', sep='\t',
+dtype='str')
 
 for idx, data in gh_df.iterrows():
     gh_data = GeoHeader()
