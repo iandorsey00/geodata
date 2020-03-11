@@ -425,6 +425,8 @@ from PlaceVector import PlaceVector
 for instance in first_five:
     print(
         PlaceVector(
+            instance.name,
+            instance.county,
             instance.data.B01003_1,
             instance.data.B19301_1,
             instance.data.B02001_2,
