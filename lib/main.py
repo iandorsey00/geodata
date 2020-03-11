@@ -115,6 +115,12 @@ ids_and_line_numbers_for_needed_tables = {
                '3',    # RACE - Black or African American alone
                '5'],   # RACE - Asian alone
     'B03002': ['12'],  # HISPANIC OR LATINO ORIGIN BY RACE - Hispanic or Latino
+    # EDUCATIONAL ATTAINMENT FOR THE POPULATION 25 YEARS AND OVER
+    'B15003': ['1',    # Total:
+               '22',   # Bachelor's degree
+               '23',   # Master's degree
+               '24',   # Professional school degree
+               '25']   # Doctorate degree
 }
 
 print("Other debugging information:", "\n")
@@ -302,7 +308,12 @@ for instance in session.query(PlaceCounty).limit(5):
     "White alone:", instance.data.B02001_2, "\n",
     "Black alone:", instance.data.B02001_3, "\n",
     "Asian alone:", instance.data.B02001_5, "\n",
-    "Hispanic or Latino alone:", instance.data.B03002_12
+    "Hispanic or Latino alone:", instance.data.B03002_12, "\n",
+    "Population 25 years and over:", instance.data.B15003_1, "\n",
+    "Bachelor's degree:", instance.data.B15003_22, "\n",
+    "Master's degree:", instance.data.B15003_23, "\n",
+    "Professional school degree:", instance.data.B15003_24, "\n",
+    "Doctorate degree:", instance.data.B15003_25, "\n"
     )
 
 print()
