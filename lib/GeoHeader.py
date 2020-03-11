@@ -37,7 +37,7 @@ for column in columns:
 
 # Add the relationship
 attr_dict['placecounty'] = relationship('PlaceCounty', \
-    back_populates='geoheaders')
+    back_populates='geoheader')
 
 # Dynamically create ColumnHeader class using attr_dict
 GeoHeader = type('GeoHeader', (Base,), attr_dict)

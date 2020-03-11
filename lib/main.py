@@ -296,28 +296,6 @@ for instance in session.query(Data).limit(5):
 
 print()
 
-print("PlaceCounty instances with joined Data:", "\n")
-
-# Final query: Print 5 records from PlaceCounty with the population and per
-# capita income records joined to it.
-for instance in session.query(PlaceCounty).limit(5):
-    print(
-    instance, "\n",
-    "Population:", instance.data.B01003_1, "\n",
-    "Per capita income:", instance.data.B19301_1, "\n",
-    "White alone:", instance.data.B02001_2, "\n",
-    "Black alone:", instance.data.B02001_3, "\n",
-    "Asian alone:", instance.data.B02001_5, "\n",
-    "Hispanic or Latino alone:", instance.data.B03002_12, "\n",
-    "Population 25 years and over:", instance.data.B15003_1, "\n",
-    "Bachelor's degree:", instance.data.B15003_22, "\n",
-    "Master's degree:", instance.data.B15003_23, "\n",
-    "Professional school degree:", instance.data.B15003_24, "\n",
-    "Doctorate degree:", instance.data.B15003_25, "\n"
-    )
-
-print()
-
 ###############################################################################
 # GeoHeaders
 #
@@ -331,7 +309,7 @@ from GeoHeader import GeoHeader
 # Create the table in the database
 Base.metadata.create_all(engine)
 
-PlaceCounty.geoheaders = relationship('GeoHeader', uselist=False, \
+PlaceCounty.geoheader = relationship('GeoHeader', uselist=False, \
     back_populates='placecounty')
 
 # Declare a place holder for 
@@ -360,10 +338,50 @@ for instance in session.query(GeoHeader).limit(5):
     print(instance)
 
 print()
-print("PlaceCounty instances with joined land area data:", "\n")
 
-# Final query: Print 5 records from PlaceCounty with the population and per
-# capita income records joined to it.
-for instance in session.query(PlaceCounty).limit(5):
-    print(instance, "\n",
-    "Land area:", instance.geoheaders.ALAND_SQMI)
+print("PlaceCounty instances with joined Data:", "\n")
+
+# Final query: Print 5 records from PlaceCounty with the population and all
+# records joined to it.
+first_five = session.query(PlaceCounty).limit(5)
+
+for instance in first_five:
+    print(
+    instance, "\n",
+    "Population:", instance.data.B01003_1, "\n",
+    "Per capita income:", instance.data.B19301_1, "\n",
+    "White alone:", instance.data.B02001_2, "\n",
+    "Black alone:", instance.data.B02001_3, "\n",
+    "Asian alone:", instance.data.B02001_5, "\n",
+    "Hispanic or Latino alone:", instance.data.B03002_12, "\n",
+    "Population 25 years and over:", instance.data.B15003_1, "\n",
+    "Bachelor's degree:", instance.data.B15003_22, "\n",
+    "Master's degree:", instance.data.B15003_23, "\n",
+    "Professional school degree:", instance.data.B15003_24, "\n",
+    "Doctorate degree:", instance.data.B15003_25, "\n",
+    "Land area:", instance.geoheader.ALAND_SQMI
+    )
+
+print()
+
+print("Early PlaceVector instances for records above:", "\n")
+
+from PlaceVector import PlaceVector
+
+for instance in first_five:
+    print(
+        PlaceVector(
+            instance.data.B01003_1,
+            instance.data.B19301_1,
+            instance.data.B02001_2,
+            instance.data.B02001_3,
+            instance.data.B02001_5,
+            instance.data.B03002_12,
+            instance.data.B15003_1,
+            instance.data.B15003_22,
+            instance.data.B15003_23,
+            instance.data.B15003_24,
+            instance.data.B15003_25,
+            instance.geoheader.ALAND_SQMI
+        )
+    )

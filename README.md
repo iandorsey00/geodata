@@ -16,9 +16,10 @@ is in. We're also able to join some data from data files.
 
 ## Next steps
 
-Join enough data to create a `PlaceVector`. See my old 2016 project. With
-`PlaceVector`s, it will be possible calculate how "similar" one place is to
-another based on demographic data.
+Early work on `PlaceVector`s has started. Currently, we're only able to
+calcuate raw subcomponents for each vector. To convert the subcomponents into
+relative "scores," we will need to calculate the median for each subcomponent
+for all `PlaceCounties` in California.
 
 ## Grouping places within California by counties
 
