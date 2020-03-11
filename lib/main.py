@@ -89,21 +89,35 @@ session.add_all(places)
 # Commit changes
 session.commit()
 
+print("Column headers:", "\n")
+
 # Print the first five column headers for debugging purposes.
 for instance in session.query(ColumnHeader).limit(5):
     print(instance)
+
+print()
+
+print("PlaceCounties:", "\n")
 
 # Print the five largest places in California for debugging purposes.
 for instance in session.query(PlaceCounty).limit(5):
     print(instance)
 
+print()
+
 # Specify table_ids and line numbers that have the data we needed.
 # See data/ACS_5yr_Seq_Table_Number_Lookup.txt
 ids_and_line_numbers_for_needed_tables = {
-    'B01003': '1',        # TOTAL POPULATION
-    'B19301': '1'         # PER CAPITA INCOME IN THE PAST 12 MONTHS (IN 2018
-                          # INFLATION-ADJUSTED DOLLARS)
+    'B01003': ['1'],   # TOTAL POPULATION
+    'B19301': ['1'],   # PER CAPITA INCOME IN THE PAST 12 MONTHS (IN 2018
+                       # INFLATION-ADJUSTED DOLLARS)
+    'B02001': ['2',    # RACE - White alone
+               '3',    # RACE - Black or African American alone
+               '5'],   # RACE - Asian alone
+    'B03002': ['12'],  # HISPANIC OR LATINO ORIGIN BY RACE - Hispanic or Latino
 }
+
+print("Other debugging information:", "\n")
 
 # Select relevant column headers.
 needed_column_headers = session.query(ColumnHeader) \
@@ -120,6 +134,7 @@ for needed_column_header in needed_column_headers:
     # Have our current table_id available.
     if this_table_id != needed_column_header.table_id:
         this_table_id = needed_column_header.table_id
+        # Set the entry for this table to an empty list if it's not available.
         needed_sequence_numbers[this_table_id] = []
 
     if needed_column_header.sequence_number != this_sequence_number:
@@ -145,7 +160,7 @@ this_starting_position = 0
 this_position = 0
 
 for needed_column_header in needed_column_headers:
-    # Have our current table_id available.
+    # Insert the table_id key
     if this_table_id != needed_column_header.table_id:
         this_table_id = needed_column_header.table_id
         needed_positions[this_table_id] = [5]
@@ -155,7 +170,7 @@ for needed_column_header in needed_column_headers:
         this_starting_position = int(needed_column_header.start_position) - 1
         # After hitting a start position, we'll hit a line number.
     elif needed_column_header.line_number in \
-        ids_and_line_numbers_for_needed_tables.values():
+        ids_and_line_numbers_for_needed_tables[this_table_id]:
         # Line numbers are offsets from starting positions. But again, they
         # start at 1.
         needed_positions[this_table_id].append(this_starting_position + \
@@ -167,12 +182,15 @@ print("Needed positions:", needed_positions)
 
 needed_column_names = dict()
 
-for id, line_number in ids_and_line_numbers_for_needed_tables.items():
+for id, line_numbers in ids_and_line_numbers_for_needed_tables.items():
     # If it's not in the table yet, initialize a new list with 'LOGRECNO'
-    if id not in needed_column_names.keys():
-        needed_column_names[id] = ['LOGRECNO']
+    needed_column_names[id] = ['LOGRECNO']
     # Add the table_id, plus and underscore, plus a line number
-    needed_column_names[id].append(id + '_' + line_number)
+    for line_number in line_numbers:
+        needed_column_names[id].append(id + '_' + line_number)
+
+print("Needed column names:", needed_column_names)
+print()
 
 ###############################################################################
 
@@ -198,9 +216,11 @@ for df in data_dfs.values():
     else:
         merged_df = merged_df.set_index('LOGRECNO') \
                     .join(df.set_index('LOGRECNO'))
+        merged_df = merged_df.reset_index()
 
-merged_df = merged_df.reset_index()
+print("Merged Data class data:", "\n")
 print(merged_df.head())
+print()
 
 ###############################################################################
 # Create our new model
@@ -262,15 +282,30 @@ session.add_all(data_rows)
 
 session.commit()
 
+print("Data instances:", "\n")
+
 # Print the Data for debugging purposes.
 for instance in session.query(Data).limit(5):
     print(instance)
 
+print()
+
+print("PlaceCounty instances with joined Data:", "\n")
+
 # Final query: Print 5 records from PlaceCounty with the population and per
 # capita income records joined to it.
 for instance in session.query(PlaceCounty).limit(5):
-    print(instance, "\n", "Population:", instance.data.B01003_1, "\n",
-    "Per capita income:", instance.data.B19301_1)
+    print(
+    instance, "\n",
+    "Population:", instance.data.B01003_1, "\n",
+    "Per capita income:", instance.data.B19301_1, "\n",
+    "White alone:", instance.data.B02001_2, "\n",
+    "Black alone:", instance.data.B02001_3, "\n",
+    "Asian alone:", instance.data.B02001_5, "\n",
+    "Hispanic or Latino alone:", instance.data.B03002_12
+    )
+
+print()
 
 ###############################################################################
 # GeoHeaders
@@ -307,15 +342,17 @@ session.add_all(geoheader_rows)
 
 session.commit()
 
+print("Geoheaders:", "\n")
+
 # Print some GeoHeaders for debugging purposes.
 for instance in session.query(GeoHeader).limit(5):
     print(instance)
 
-import inspect
+print()
+print("PlaceCounty instances with joined land area data:", "\n")
 
 # Final query: Print 5 records from PlaceCounty with the population and per
 # capita income records joined to it.
 for instance in session.query(PlaceCounty).limit(5):
-    print(instance, "\n", "Population:", instance.data.B01003_1, "\n",
-    "Per capita income:", instance.data.B19301_1, "\n", "Land area:",
-    instance.geoheaders.ALAND_SQMI)
+    print(instance, "\n",
+    "Land area:", instance.geoheaders.ALAND_SQMI)
