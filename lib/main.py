@@ -183,8 +183,8 @@ data_dfs = {}
 for id, line_number in ids_and_line_numbers_for_needed_tables.items():
     # Add column 5 because we need the logrecnos.
     data_dfs[id] = pd.read_csv(needed_files[id], \
-        usecols=needed_positions[id], names=needed_column_names[id], dtype='str', \
-        header=None)
+        usecols=needed_positions[id], names=needed_column_names[id], \
+        dtype='str', header=None)
 
 # Merge the values of data_dfs together for easier insertion into our Data
 # SQL table.
@@ -221,7 +221,8 @@ attr_dict['id'] = Column(Integer, primary_key=True)
 # Dynamically add the other columns
 for column in merged_df.columns:
     if column == 'LOGRECNO':
-        attr_dict[column] = Column(String, ForeignKey('place_counties.logrecno'))
+        attr_dict[column] = Column(String, 
+            ForeignKey('place_counties.logrecno'))
     else:
         attr_dict[column] = Column(String)
 
@@ -242,7 +243,8 @@ Data = type('Data', (Base,), attr_dict)
 Base.metadata.create_all(engine)
 
 # Add relationship to PlaceCounty
-PlaceCounty.data = relationship('Data', uselist=False, back_populates='placecounty')
+PlaceCounty.data = relationship('Data', uselist=False, \
+    back_populates='placecounty')
 
 data_rows = []
 
@@ -271,3 +273,39 @@ for instance in session.query(Data).limit(5):
 for instance in session.query(PlaceCounty).limit(5):
     print(instance, "\n", "Population:", instance.data.B01003_1, "\n",
     "Per capita income:", instance.data.B19301_1)
+
+###############################################################################
+# GeoHeaders
+#
+# The primary reason we are interested in the 2019 National Gazetteer is to
+# to get the land area so that we can calculate population and housing unit
+# densities.
+#
+
+from GeoHeader import GeoHeader
+
+# Create the table in the database
+Base.metadata.create_all(engine)
+
+# Declare a place holder for 
+geoheader_rows = []
+
+gh_df = pd.read_csv('../data/2019_Gaz_place_national.txt', sep='\t')
+
+for idx, data in gh_df.iterrows():
+    gh_data = GeoHeader()
+
+    for column in gh_df.columns:
+        # Dynamically assign data to each attribute
+        setattr(gh_data, column, data[column])
+
+    geoheader_rows.append(gh_data)
+
+for geoheader_row in geoheader_rows:
+    session.add(geoheader_row)
+
+session.commit()
+
+# Print some GeoHeaders for debugging purposes.
+for instance in session.query(GeoHeader).limit(5):
+    print(instance)

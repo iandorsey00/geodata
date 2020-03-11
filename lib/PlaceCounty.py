@@ -20,11 +20,12 @@ class PlaceCounty(Base):
 
     id = Column(Integer, primary_key=True)
     logrecno = Column(String)
+    geo_id = Column(String)
     key = Column(String)
     state = Column(String)
     county = Column(String)
     name = Column(String)
 
     def __repr__(self):
-            return "<PlaceCounty(key='%s', state='%s', county='%s', name='%s'>" % (
+            return "<PlaceCounty(key='%s', state='%s', county='%s', name='%s')>" % (
                 self.key, self.state, self.county, self.name)
