@@ -6,7 +6,8 @@
 
 import pandas as pd
 from initialize_sqlalchemy import Base
-from sqlalchemy import Column, Integer, String, Index
+from sqlalchemy import Column, Integer, String, Index, ForeignKey
+from sqlalchemy.orm import relationship
 
 # Obtain column headers for the column headers
 columns = list(pd.read_csv('../data/2019_Gaz_place_national.txt',
@@ -29,9 +30,14 @@ attr_dict['__repr__'] = _repr
 for column in columns:
     if column == 'GEOID':
         # Set GEOID as the primary key
-        attr_dict[column] = Column(String, primary_key=True)
+        attr_dict[column] = Column(String, \
+            ForeignKey('place_counties.geo_id'), primary_key=True)
     else:
         attr_dict[column] = Column(String)
+
+# Add the relationship
+attr_dict['placecounty'] = relationship('PlaceCounty', \
+    back_populates='geoheaders')
 
 # Dynamically create ColumnHeader class using attr_dict
 GeoHeader = type('GeoHeader', (Base,), attr_dict)

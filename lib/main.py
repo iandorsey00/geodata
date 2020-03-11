@@ -35,9 +35,8 @@ for index, data in column_headers_df.iterrows():
     
     column_headers.append(ch)
 
-for column_header in column_headers:
-    # Add column headers to database
-    session.add(column_header)
+# Add column headers to database
+session.add_all(column_headers)
 
 ###############################################################################
 # Places
@@ -85,8 +84,7 @@ for index, data in places_df.iterrows():
     state=_state, county=_county, name=_name))
 
 # Add the places to our SQLite database.
-for place in places:
-    session.add(place)
+session.add_all(places)
 
 # Commit changes
 session.commit()
@@ -259,9 +257,8 @@ for index, data in merged_df.iterrows():
     
     data_rows.append(record)
 
-for data_row in data_rows:
-    # Add column headers to database
-    session.add(data_row)
+# Add column headers to database
+session.add_all(data_rows)
 
 session.commit()
 
@@ -288,6 +285,9 @@ from GeoHeader import GeoHeader
 # Create the table in the database
 Base.metadata.create_all(engine)
 
+PlaceCounty.geoheaders = relationship('GeoHeader', uselist=False, \
+    back_populates='placecounty')
+
 # Declare a place holder for 
 geoheader_rows = []
 
@@ -302,11 +302,19 @@ for idx, data in gh_df.iterrows():
 
     geoheader_rows.append(gh_data)
 
-for geoheader_row in geoheader_rows:
-    session.add(geoheader_row)
+session.add_all(geoheader_rows)
 
 session.commit()
 
 # Print some GeoHeaders for debugging purposes.
 for instance in session.query(GeoHeader).limit(5):
     print(instance)
+
+import inspect
+
+# Final query: Print 5 records from PlaceCounty with the population and per
+# capita income records joined to it.
+for instance in session.query(PlaceCounty).limit(5):
+    print(instance, "\n", "Population:", instance.data.B01003_1, "\n",
+    "Per capita income:", instance.data.B19301_1, "\n", "Land area:",
+    instance.geoheaders.ALAND_SQMI)
