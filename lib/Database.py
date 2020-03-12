@@ -101,7 +101,7 @@ class Database:
 
         # Specify table_ids and line numbers that have the data we needed.
         # See data/ACS_5yr_Seq_Table_Number_Lookup.txt
-        ids_and_line_numbers_for_needed_tables = {
+        line_numbers_dict = {
             'B01003': ['1'],   # TOTAL POPULATION
             'B19301': ['1'],   # PER CAPITA INCOME IN THE PAST 12 MONTHS (IN
                                # 2018 INFLATION-ADJUSTED DOLLARS)
@@ -119,92 +119,91 @@ class Database:
         }
 
         # Select relevant column headers.
-        needed_column_headers = session.query(ColumnHeader) \
+        column_headers = session.query(ColumnHeader) \
             .filter(ColumnHeader.table_id.in_(
-                ids_and_line_numbers_for_needed_tables.keys()
+                line_numbers_dict.keys()
                 )).all()
 
         # Obtain needed sequence numbers                                  #####
-        needed_sequence_numbers = dict()
+        sequence_numbers = dict()
         this_table_id = ''
         this_sequence_number = ''
 
-        for needed_column_header in needed_column_headers:
+        for column_header in column_headers:
             # Have our current table_id available.
-            if this_table_id != needed_column_header.table_id:
-                this_table_id = needed_column_header.table_id
+            if this_table_id != column_header.table_id:
+                this_table_id = column_header.table_id
                 # Set the entry for this table to an empty list if it's not
                 # available.
-                needed_sequence_numbers[this_table_id] = []
+                sequence_numbers[this_table_id] = []
 
-            if needed_column_header.sequence_number != this_sequence_number:
-                this_sequence_number = needed_column_header.sequence_number
+            if column_header.sequence_number != this_sequence_number:
+                this_sequence_number = column_header.sequence_number
                 # Add a new sequence number when we iterate on one.
-                needed_sequence_numbers[this_table_id] = this_sequence_number
+                sequence_numbers[this_table_id] = this_sequence_number
 
-        print("Needed sequence numbers:", needed_sequence_numbers)
+        print("Needed sequence numbers:", sequence_numbers)
 
-        # Obtain needed files #########################################################
+        # Obtain needed files                                             #####
 
-        needed_files = dict()
+        files = dict()
 
-        for table_id, sequence_numbers in needed_sequence_numbers.items():
-            needed_files[table_id] = "../data/e20185ca" + sequence_numbers + "000.txt"
+        for table_id, sequence_number in sequence_numbers.items():
+            files[table_id] = "../data/e20185ca" + sequence_number + "000.txt"
 
-        print("Needed files:", needed_files)
+        print("Needed files:", files)
 
-        # Obtain needed positions #####################################################
+        # Obtain needed positions                                         #####
 
-        needed_positions = dict()
-        this_starting_position = 0
-        this_position = 0
+        positions = dict()
+        this_start_position = 0
+        this_pos = 0
 
-        for needed_column_header in needed_column_headers:
+        for column_header in column_headers:
             # Insert the table_id key
-            if this_table_id != needed_column_header.table_id:
-                this_table_id = needed_column_header.table_id
-                needed_positions[this_table_id] = [5]
+            if this_table_id != column_header.table_id:
+                this_table_id = column_header.table_id
+                positions[this_table_id] = [5]
             # We will hit a start position first.
-            if needed_column_header.start_position:
-                # Subtract 1, because census start positions start from 1, not 0.
-                this_starting_position = int(needed_column_header.start_position) - 1
+            if column_header.start_position:
+                # Subtract 1, because census start positions start from 1, not
+                # 0.
+                this_start_position = int(column_header.start_position) - 1
                 # After hitting a start position, we'll hit a line number.
-            elif needed_column_header.line_number in \
-                ids_and_line_numbers_for_needed_tables[this_table_id]:
-                # Line numbers are offsets from starting positions. But again, they
-                # start at 1.
-                needed_positions[this_table_id].append(this_starting_position + \
-                    int(needed_column_header.line_number) - 1)
+            elif column_header.line_number in line_numbers_dict[this_table_id]:
+                # Line numbers are offsets from starting positions. But again,
+                # they start at 1.
+                positions[this_table_id].append(this_start_position + \
+                    int(column_header.line_number) - 1)
 
-        print("Needed positions:", needed_positions)
+        print("Needed positions:", positions)
 
-        # Obtain needed column names ##################################################
+        # Obtain needed column names                                      #####
 
-        needed_column_names = dict()
+        column_names = dict()
 
-        for id, line_numbers in ids_and_line_numbers_for_needed_tables.items():
+        for id, line_numbers in line_numbers_dict.items():
             # If it's not in the table yet, initialize a new list with 'LOGRECNO'
-            needed_column_names[id] = ['LOGRECNO']
+            column_names[id] = ['LOGRECNO']
             # Add the table_id, plus and underscore, plus a line number
             for line_number in line_numbers:
-                needed_column_names[id].append(id + '_' + line_number)
+                column_names[id].append(id + '_' + line_number)
 
-        print("Needed column names:", needed_column_names)
+        print("Needed column names:", column_names)
         print()
 
-        ###############################################################################
+        # Organize data #######################################################
 
         # Get ready to store data in a dictionary of dataframes.
         data_dfs = {}
 
-        for id, line_number in ids_and_line_numbers_for_needed_tables.items():
+        for id, line_number in line_numbers_dict.items():
             # Add column 5 because we need the logrecnos.
-            data_dfs[id] = pd.read_csv(needed_files[id], \
-                usecols=needed_positions[id], names=needed_column_names[id], \
-                dtype='str', header=None)
+            data_dfs[id] = pd.read_csv(files[id], usecols=positions[id],
+                names=column_names[id], dtype='str', header=None)
 
-        # Merge the values of data_dfs together for easier insertion into our Data
-        # SQL table.
+        # Merge the values of data_dfs together for easier insertion into our
+        # Data SQL table.
         # First, declare a placeholder.
         merged_df = pd.DataFrame()
 
@@ -222,8 +221,7 @@ class Database:
         print(merged_df.head())
         print()
 
-        ###############################################################################
-        # Create our new model
+        # Create our new model ################################################
 
         from sqlalchemy import Column, Integer, String, Index, ForeignKey
         from sqlalchemy.orm import relationship
@@ -253,7 +251,8 @@ class Database:
         attr_dict['__repr__'] = _repr
 
         # Add the relationship
-        attr_dict['placecounty'] = relationship('PlaceCounty', back_populates='data')
+        attr_dict['placecounty'] = relationship('PlaceCounty',
+            back_populates='data')
 
         # attr_dict
         Data = type('Data', (Base,), attr_dict)
@@ -262,7 +261,7 @@ class Database:
         Base.metadata.create_all(engine)
 
         # Add relationship to PlaceCounty
-        PlaceCounty.data = relationship('Data', uselist=False, \
+        PlaceCounty.data = relationship('Data', uselist=False,
             back_populates='placecounty')
 
         data_rows = []
@@ -290,13 +289,11 @@ class Database:
 
         print()
 
-        ###############################################################################
-        # GeoHeaders
-        #
-        # The primary reason we are interested in the 2019 National Gazetteer is to
-        # to get the land area so that we can calculate population and housing unit
-        # densities.
-        #
+        # GeoHeaders ##########################################################
+
+        # The primary reason we are interested in the 2019 National Gazetteer
+        # is that we need to get the land area so that we can calculate
+        # population and housing unit densities.
 
         from GeoHeader import GeoHeader
 
