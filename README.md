@@ -10,16 +10,13 @@ Upon executing
     python3 main.py
 
 in the `lib` directory, we're able to query the SQLite database for all
-places in California. The ORM models used for California is `PlaceCounties`
-instead of `Place`s so that it is easier to find out which county a place
-is in. We're also able to join some data from data files.
+places in California. Find demographically similar places in California by
+entering the exact Census name for the city at the prompt, e.g. San Francisco
+city, California.
 
 ## Next steps
 
-Early work on `PlaceVector`s has started. Currently, we're only able to
-calcuate raw subcomponents for each vector. To convert the subcomponents into
-relative "scores," we will need to calculate the median for each subcomponent
-for all `PlaceCounties` in California.
+Prompt and code organization improvements are needed.
 
 ## Grouping places within California by counties
 
