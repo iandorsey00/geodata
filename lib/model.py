@@ -15,7 +15,7 @@ def insert_rows(model, read_csv_file, cols=None, dtype='str',
         # Place data into DataFrame
         # e.g. df = pd.read_csv('../data/ACS_5yr_Seq_Table_Number_Lookup.txt',
         #           dtype='str')
-        df = pd.read_csv(read_csv_file, dtype=dtype, header=header, sep=sep)
+        df = pd.read_csv(read_csv_file, sep=sep, dtype=dtype, header=header)
 
         if cols is None:
             columns = df.columns
