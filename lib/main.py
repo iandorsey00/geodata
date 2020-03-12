@@ -468,8 +468,8 @@ print()
 if filter_county != '':
     placevectors = list(filter(lambda x: x.county == filter_county, placevectors))
 
-# Get the ten closest PlaceVectors.
-# In other words, get the five most demographically similar places.
+# Get the closest PlaceVectors.
+# In other words, get the most demographically similar places.
 closest_placevectors = sorted(placevectors, key=lambda x: placevector_for_comparison.distance(x))[1:10]
 
 # Print these PlaceVectors
