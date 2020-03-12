@@ -7,16 +7,19 @@ This project currently supports places in California.
 
 Upon executing
 
-    python3 main.py
+    python3 __init__.py
 
-in the `lib` directory, we're able to query the SQLite database for all
+in the `geodata` directory, we're able to query the SQLite database for all
 places in California. Find demographically similar places in California by
 entering the exact Census name for the city at the prompt, e.g. San Francisco
 city, California.
 
 ## Next steps
 
-Prompt and code organization improvements are needed.
+* Prompt improvements are needed.
+* Support for the following will be added:
+  * Looking up data profiles for a geography
+  * Appearance place vectors (`PlaceVectorApp`s)
 
 ## Grouping places within California by counties
 
