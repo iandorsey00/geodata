@@ -303,22 +303,8 @@ class Database:
         PlaceCounty.geoheader = relationship('GeoHeader', uselist=False, \
             back_populates='placecounty')
 
-        # Declare a place holder for 
-        geoheader_rows = []
-
-        gh_df = pd.read_csv('../data/2019_Gaz_place_national.txt', sep='\t',
-        dtype='str')
-
-        for idx, data in gh_df.iterrows():
-            gh_data = GeoHeader()
-
-            for column in gh_df.columns:
-                # Dynamically assign data to each attribute
-                setattr(gh_data, column, data[column])
-
-            geoheader_rows.append(gh_data)
-
-        session.add_all(geoheader_rows)
+        insert_rows(GeoHeader, '../data/2019_Gaz_place_national.txt', sep='\t',
+                    dtype='str')
 
         session.commit()
 
@@ -332,12 +318,10 @@ class Database:
 
         print("PlaceCounty instances with joined Data:", "\n")
 
-        ###############################################################################
+        # Joined data #########################################################
 
-        # Final query: Print 5 records from PlaceCounty with the population and all
-        # records joined to it.
+        # Get rows of data
         first_five = session.query(PlaceCounty).limit(5)
-
         all_results = session.query(PlaceCounty)
 
         for instance in first_five:
@@ -361,6 +345,7 @@ class Database:
 
         print("DataFrame:", "\n")
 
+        # Prepare a DataFrame into which we can insert columns.
         query_df = pd.DataFrame(columns=[
                     'B01003_1',
                     'B19301_1',
@@ -377,6 +362,7 @@ class Database:
                 ])
 
         for instance in session.query(PlaceCounty):
+            # Load data into a list first.
             to_append = [
                         instance.data.B01003_1,
                         instance.data.B19301_1,
@@ -392,14 +378,19 @@ class Database:
                         instance.geoheader.ALAND_SQMI
                         ]
             
+            # In order to insert rows into the DataFrame, first convert the
+            # list into a Pandas series.
             a_series = pd.Series(to_append, index = query_df.columns)
+            # Next, append the series to the DataFrame.
             query_df = query_df.append(a_series, ignore_index=True)
 
+        # Convert all data into numeric data, even if there are errors.
         query_df = query_df.apply(pd.to_numeric, errors='coerce')
 
         print(query_df.head())
         print()
 
+        # Print some debug information.
         print("Medians:", "\n")
         medians = query_df.median()
         print(list(medians))
@@ -410,16 +401,18 @@ class Database:
         print(list(standard_deviations))
         print()
 
-        ###############################################################################
-        # PlaceVectors
+        # PlaceVectors ########################################################
+
+        # Now, we are ready to work with PlaceVectors
 
         from PlaceVector import PlaceVector
 
-        placevectors = []
+        self.placevectors = []
 
         for instance in all_results:
             try:
-                placevectors.append(
+                # Construct a PlaceVector and append it to self.PlaceVectors.
+                self.placevectors.append(
                     PlaceVector(
                         instance.name,
                         instance.county,
@@ -439,10 +432,11 @@ class Database:
                         list(standard_deviations)
                     )
                 )
-            # If a TypeError is thrown because some data is unavailable, for example,
-            # just don't make that PlaceVector.
+            # If a TypeError is thrown because some data is unavailable, just
+            # don't make that PlaceVector and print a debugging message.
             except (TypeError, ValueError):
-                print("Note: Inadequate data for PlaceVector creation:", instance.name)
+                print("Note: Inadequate data for PlaceVector creation:",
+                      instance.name)
 
         print()
         search_name = input("Enter the name of a place that you want to compare with others: ")
@@ -450,19 +444,22 @@ class Database:
         print()
 
         # Obtain the PlaceVector for which we entered a name.
-        placevector_for_comparison = list(filter(lambda x: x.name == search_name, placevectors))[0]
+        comparison_pv = \
+            list(filter(lambda x: x.name == search_name, self.placevectors))[0]
 
         print("The most demographically similar places are:")
         print()
 
         # Filter by county if a filter_county was specified.
         if filter_county != '':
-            placevectors = list(filter(lambda x: x.county == filter_county, placevectors))
+            filtered_pvs = list(filter(lambda x: x.county == filter_county,
+                                self.placevectors))
 
         # Get the closest PlaceVectors.
         # In other words, get the most demographically similar places.
-        closest_placevectors = sorted(placevectors, key=lambda x: placevector_for_comparison.distance(x))[1:10]
+        closest_pvs = sorted(filtered_pvs,
+            key=lambda x: comparison_pv.distance(x))[1:10]
 
         # Print these PlaceVectors
-        for closest_placevector in closest_placevectors:
-            print(closest_placevector)
+        for closest_pv in closest_pvs:
+            print(closest_pv)
