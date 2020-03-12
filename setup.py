@@ -12,7 +12,7 @@ with open('LICENSE') as f:
 
 setup(
     name='geodata',
-    version='0.1.0a',
+    version='0.1a0',
     description='A program for getting information about and comparing geographies',
     long_description=readme,
     author='Ian Dorsey',
