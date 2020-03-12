@@ -367,27 +367,6 @@ for instance in first_five:
     )
 
 print()
-search_name = input("Enter the name of a place for which you would like to look up data: ")
-print()
-
-for instance in all_results.filter(PlaceCounty.name == search_name):
-    print(
-    instance, "\n",
-    "Population:", instance.data.B01003_1, "\n",                   # 0
-    "Per capita income:", instance.data.B19301_1, "\n",            # 1
-    "White alone:", instance.data.B02001_2, "\n",                  # 2
-    "Black alone:", instance.data.B02001_3, "\n",                  # 3
-    "Asian alone:", instance.data.B02001_5, "\n",                  # 4
-    "Hispanic or Latino alone:", instance.data.B03002_12, "\n",    # 5
-    "Population 25 years and over:", instance.data.B15003_1, "\n", # 6
-    "Bachelor's degree:", instance.data.B15003_22, "\n",           # 7               
-    "Master's degree:", instance.data.B15003_23, "\n",             # 8   
-    "Professional school degree:", instance.data.B15003_24, "\n",  # 9 
-    "Doctorate degree:", instance.data.B15003_25, "\n",            # 10
-    "Land area:", instance.geoheader.ALAND_SQMI                    # 11
-    )
-
-print()
 
 print("DataFrame:", "\n")
 
@@ -443,54 +422,56 @@ print()
 ###############################################################################
 # PlaceVectors
 
-print("First five PlaceVectors:", "\n")
-
 from PlaceVector import PlaceVector
 
-for instance in first_five:
-    print(
-        PlaceVector(
-            instance.name,
-            instance.county,
-            instance.data.B01003_1,       
-            instance.data.B19301_1,       
-            instance.data.B02001_2,       
-            instance.data.B02001_3,       
-            instance.data.B02001_5,       
-            instance.data.B03002_12,      
-            instance.data.B15003_1,       
-            instance.data.B15003_22,      
-            instance.data.B15003_23,      
-            instance.data.B15003_24,      
-            instance.data.B15003_25,      
-            instance.geoheader.ALAND_SQMI,
-            list(medians),
-            list(standard_deviations)
+placevectors = []
+
+for instance in all_results:
+    try:
+        placevectors.append(
+            PlaceVector(
+                instance.name,
+                instance.county,
+                instance.data.B01003_1,       
+                instance.data.B19301_1,       
+                instance.data.B02001_2,       
+                instance.data.B02001_3,       
+                instance.data.B02001_5,       
+                instance.data.B03002_12,      
+                instance.data.B15003_1,       
+                instance.data.B15003_22,      
+                instance.data.B15003_23,      
+                instance.data.B15003_24,      
+                instance.data.B15003_25,      
+                instance.geoheader.ALAND_SQMI,
+                list(medians),
+                list(standard_deviations)
+            )
         )
-    )
+    # If a TypeError is thrown because some data is unavailable, for example,
+    # just don't make that PlaceVector.
+    except (TypeError, ValueError):
+        print("Note: Inadequate data for PlaceVector creation:", instance.name)
 
 print()
-search_name = input("Enter the name of a place for which you would like to look up a PlaceVector: ")
+search_name = input("Enter the name of a place that you want to compare with others: ")
+filter_county = input("Would you like to filter by a county? If not, just press Enter: ")
 print()
 
-for instance in all_results.filter(PlaceCounty.name == search_name):
-    print(
-        PlaceVector(
-            instance.name,
-            instance.county,
-            instance.data.B01003_1,       
-            instance.data.B19301_1,       
-            instance.data.B02001_2,       
-            instance.data.B02001_3,       
-            instance.data.B02001_5,       
-            instance.data.B03002_12,      
-            instance.data.B15003_1,       
-            instance.data.B15003_22,      
-            instance.data.B15003_23,      
-            instance.data.B15003_24,      
-            instance.data.B15003_25,      
-            instance.geoheader.ALAND_SQMI,
-            list(medians),
-            list(standard_deviations)
-        )
-    )
+# Obtain the PlaceVector for which we entered a name.
+placevector_for_comparison = list(filter(lambda x: x.name == search_name, placevectors))[0]
+
+print("The most demographically similar places are:")
+print()
+
+# Filter by county if a filter_county was specified.
+if filter_county != '':
+    placevectors = list(filter(lambda x: x.county == filter_county, placevectors))
+
+# Get the ten closest PlaceVectors.
+# In other words, get the five most demographically similar places.
+closest_placevectors = sorted(placevectors, key=lambda x: placevector_for_comparison.distance(x))[1:10]
+
+# Print these PlaceVectors
+for closest_placevector in closest_placevectors:
+    print(closest_placevector)
