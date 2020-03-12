@@ -7,17 +7,15 @@ from setuptools import setup, find_packages
 with open('README.md') as f:
     readme = f.read()
 
-with open('LICENSE') as f:
-    license = f.read()
-
 setup(
     name='geodata',
     version='0.1a0',
     description='A program for getting information about and comparing geographies',
     long_description=readme,
+    long_description_content_type='text/markdown',
     author='Ian Dorsey',
     author_email='ian.dorsey@gmail.com',
     url='https://github.com/iandorsey00/geodata',
-    license=license,
+    license='MIT',
     packages=find_packages(exclude=('tests', 'docs'))
 )
