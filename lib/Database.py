@@ -12,8 +12,8 @@ class Database:
     ###########################################################################
     # Helper methods for __init__
 
-    # Get the county given a name string from summary level 155.
-    def get_county(geo_name):
+    # Get the county given a Census name string from summary level 155.
+    def get_county(self, geo_name):
         # Split the name string by ", "
         split_geo_name = geo_name.split(", ")
         # Get the first part, which will be of format XXX County (part)
@@ -21,23 +21,36 @@ class Database:
         # Return only the part before " (part)"
         return county_part[:-7]
 
+    # Get the Census place string given a Census name string.
+    def get_place(self, geo_name):
+        # Split the name string by ", "
+        split_geo_name = geo_name.split(", ")
+        return ", ".join(split_geo_name[1:])
+
+    # Get the state name given a Sensus name string.
+    def get_state(self, geo_name):
+        # Split the name string by ", "
+        split_geo_name = geo_name.split(", ")
+        return split_geo_name[-1]
+    
+    ###########################################################################
+    # __init__
+
     def __init__(self):
-        # Transfer column header data to the database.
+        # Transfer of ColumnHeader data to database ###########################
         insert_rows(ColumnHeader,
                    '../data/ACS_5yr_Seq_Table_Number_Lookup.txt',
                    cols=columns)
 
-        def get_place(sl_155_geo_name_string):
-            # Split the name string by ", "
-            split_geo_name_string = sl_155_geo_name_string.split(", ")
-            return ", ".join(split_geo_name_string[1:])
+        # Prepare PlaceCounties ###############################################
 
-        # Create the table
+        # Create all tables
         Base.metadata.create_all(engine)
 
         # First, put all places into a pandas DataFrame.
-        places_df = pd.read_csv('../data/g20185ca.csv', encoding='iso-8859-1', \
-        dtype='str', header=None)
+        places_df = pd.read_csv('../data/g20185ca.csv', encoding='iso-8859-1',
+                                dtype='str', header=None)
+                                
         # Filter for rows where the summary level is 155.
         places_df = places_df.loc[places_df.iloc[:,2] == '155']
 
@@ -51,20 +64,22 @@ class Database:
             # LOGRECNO matches a geo entry with its data.
             _logrecno = data[4]
             _geo_id = data[48][7:14]
-            _state = 'California'
-            _name = get_place(data[49])
+            _state = self.get_state(data[49])
+            _name = self.get_place(data[49])
             _key = key_hash(_name)
-            _county = get_county(data[49])
+            _county = self.get_county(data[49])
             # For now, look up the population using pandas.
             # Create the models.
-            places.append(PlaceCounty(logrecno=_logrecno, geo_id=_geo_id, key=_key, \
-            state=_state, county=_county, name=_name))
+            places.append(PlaceCounty(logrecno=_logrecno, geo_id=_geo_id,
+            key=_key, state=_state, county=_county, name=_name))
 
         # Add the places to our SQLite database.
         session.add_all(places)
 
         # Commit changes
         session.commit()
+
+        # Debug output for ColumnHeaders and PlaceCounties ####################
 
         print("Column headers:", "\n")
 
@@ -82,25 +97,26 @@ class Database:
 
         print()
 
+        # Prepare needed data #################################################
+
         # Specify table_ids and line numbers that have the data we needed.
         # See data/ACS_5yr_Seq_Table_Number_Lookup.txt
         ids_and_line_numbers_for_needed_tables = {
             'B01003': ['1'],   # TOTAL POPULATION
-            'B19301': ['1'],   # PER CAPITA INCOME IN THE PAST 12 MONTHS (IN 2018
-                            # INFLATION-ADJUSTED DOLLARS)
+            'B19301': ['1'],   # PER CAPITA INCOME IN THE PAST 12 MONTHS (IN
+                               # 2018 INFLATION-ADJUSTED DOLLARS)
             'B02001': ['2',    # RACE - White alone
-                    '3',    # RACE - Black or African American alone
-                    '5'],   # RACE - Asian alone
-            'B03002': ['12'],  # HISPANIC OR LATINO ORIGIN BY RACE - Hispanic or Latino
+                       '3',    # RACE - Black or African American alone
+                       '5'],   # RACE - Asian alone
+            'B03002': ['12'],  # HISPANIC OR LATINO ORIGIN BY RACE - Hispanic
+                               # or Latino
             # EDUCATIONAL ATTAINMENT FOR THE POPULATION 25 YEARS AND OVER
             'B15003': ['1',    # Total:
-                    '22',   # Bachelor's degree
-                    '23',   # Master's degree
-                    '24',   # Professional school degree
-                    '25']   # Doctorate degree
+                       '22',   # Bachelor's degree
+                       '23',   # Master's degree
+                       '24',   # Professional school degree
+                       '25']   # Doctorate degree
         }
-
-        print("Other debugging information:", "\n")
 
         # Select relevant column headers.
         needed_column_headers = session.query(ColumnHeader) \
@@ -108,7 +124,7 @@ class Database:
                 ids_and_line_numbers_for_needed_tables.keys()
                 )).all()
 
-        # Obtain needed sequence numbers ##############################################
+        # Obtain needed sequence numbers                                  #####
         needed_sequence_numbers = dict()
         this_table_id = ''
         this_sequence_number = ''
@@ -117,7 +133,8 @@ class Database:
             # Have our current table_id available.
             if this_table_id != needed_column_header.table_id:
                 this_table_id = needed_column_header.table_id
-                # Set the entry for this table to an empty list if it's not available.
+                # Set the entry for this table to an empty list if it's not
+                # available.
                 needed_sequence_numbers[this_table_id] = []
 
             if needed_column_header.sequence_number != this_sequence_number:
