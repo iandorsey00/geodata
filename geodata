@@ -1,5 +1,0 @@
-#!/usr/bin/python3
-
-from lib.Database import Database
-
-Database()
