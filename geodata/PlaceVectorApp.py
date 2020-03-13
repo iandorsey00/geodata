@@ -8,7 +8,7 @@
 #
 
 class PlaceVectorApp:
-    '''A standard 8-dimensional vector used to compare places with others.'''
+    '''A 3-dimensional vector used to compare place appearances.'''
     def __init__(
         self,
         name,

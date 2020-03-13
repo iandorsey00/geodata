@@ -116,6 +116,10 @@ def compare_placevectors(geo, type='placevector'):
         print(closest_pv)
         print("Distance:", comparison_pv.distance(closest_pv))
 
+# Get DemographicProfiles
+def get_dp(places):
+    pass
+
 # Process options and arguments.
 try:
     opts, args = getopt.getopt(sys.argv[1:],
@@ -151,6 +155,9 @@ for opt, arg in opts:
         sys.exit(0)
 
     # DemographicProfiles #####################################################
+    elif opt in ('-d', '--demographic-profile'):
+        get_dp(arg)
+        sys.exit(0)
 
 
 # Currently, this app compares PlaceVectors by default.

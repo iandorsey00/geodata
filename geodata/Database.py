@@ -116,7 +116,10 @@ class Database:
                        '23',   # Master's degree
                        '24',   # Professional school degree
                        '25'],  # Doctorate degree
-            'B25035': ['1']    # Median year structure built
+            'B25035': ['1'],   # Median year structure built
+            'B25058': ['1'],   # Median contract rent (of renter-occupied
+                               # housing units)
+            'B25077': ['1'],   # Median value (of owner-occupied housing units)
         }
 
         # Select relevant column headers.
@@ -127,21 +130,17 @@ class Database:
 
         # Obtain needed sequence numbers                                  #####
         sequence_numbers = dict()
-        this_table_id = ''
-        this_sequence_number = ''
 
+        # New algorithm. Assumes all members of a table are always in the same
+        # sequence:
         for column_header in column_headers:
-            # Have our current table_id available.
-            if this_table_id != column_header.table_id:
-                this_table_id = column_header.table_id
-                # Set the entry for this table to an empty list if it's not
-                # available.
-                sequence_numbers[this_table_id] = []
-
-            if column_header.sequence_number != this_sequence_number:
-                this_sequence_number = column_header.sequence_number
-                # Add a new sequence number when we iterate on one.
-                sequence_numbers[this_table_id] = this_sequence_number
+            table_id = column_header.table_id
+            line_number = column_header.line_number
+            # If we needed the line number for that table_id, set the
+            # sequence_number for table_id to the sequence number for that
+            # column_header.
+            if line_number in line_numbers_dict[table_id]:
+                sequence_numbers[table_id] = column_header.sequence_number
 
         print("Needed sequence numbers:", sequence_numbers)
 
@@ -157,39 +156,46 @@ class Database:
         # Obtain needed positions                                         #####
 
         positions = dict()
-        this_start_position = 0
-        this_pos = 0
 
+        # New algorithm
         for column_header in column_headers:
-            # Insert the table_id key
-            if this_table_id != column_header.table_id:
-                this_table_id = column_header.table_id
-                positions[this_table_id] = [5]
-            # We will hit a start position first.
+            # Get table_id
+            table_id = column_header.table_id
+
+            # Set positions[table_id] to a list containing 5 (the position for
+            # LOGRECNO) if the key table_id doesn't yet exist.
+            if table_id not in positions.keys():
+                positions[table_id] = [5]
+
+            # Once we hit our start_position, get it and subtract one since
+            # they start at one, not zero.
             if column_header.start_position:
-                # Subtract 1, because census start positions start from 1, not
-                # 0.
-                this_start_position = int(column_header.start_position) - 1
-                # After hitting a start position, we'll hit a line number.
-            elif column_header.line_number in line_numbers_dict[this_table_id]:
-                # Line numbers are offsets from starting positions. But again,
-                # they start at 1.
-                positions[this_table_id].append(this_start_position + \
-                    int(column_header.line_number) - 1)
+                start_position = int(column_header.start_position) - 1
+
+            # If we hit a line number and it's a line number we need, get it,
+            # add it to the start_position, then subtract one again since
+            # line numbers also start at zero.
+            elif column_header.line_number in line_numbers_dict[table_id]:
+                line_number = int(column_header.line_number)
+                positions[table_id].append(start_position + line_number - 1)
 
         print("Needed positions:", positions)
 
         # Obtain needed column names                                      #####
 
-        column_names = dict()
+        column_name_dict = dict()
+        column_names = []
 
         for id, line_numbers in line_numbers_dict.items():
             # If it's not in the table yet, initialize a new list with 'LOGRECNO'
-            column_names[id] = ['LOGRECNO']
+            column_name_dict[id] = ['LOGRECNO']
             # Add the table_id, plus and underscore, plus a line number
             for line_number in line_numbers:
-                column_names[id].append(id + '_' + line_number)
+                column_name = id + '_' + line_number
+                column_name_dict[id].append(column_name)
+                column_names.append(column_name)
 
+        print("Needed column names by table_id:", column_name_dict)
         print("Needed column names:", column_names)
         print()
 
@@ -201,7 +207,7 @@ class Database:
         for id, line_number in line_numbers_dict.items():
             # Add column 5 because we need the logrecnos.
             data_dfs[id] = pd.read_csv(files[id], usecols=positions[id],
-                names=column_names[id], dtype='str', header=None)
+                names=column_name_dict[id], dtype='str', header=None)
 
         # Merge the values of data_dfs together for easier insertion into our
         # Data SQL table.
@@ -347,22 +353,8 @@ class Database:
 
         print("DataFrame:", "\n")
 
-        # Prepare a DataFrame into which we can insert columns.
-        query_df = pd.DataFrame(columns=[
-                    'B01003_1',
-                    'B19301_1',
-                    'B02001_2',
-                    'B02001_3',
-                    'B02001_5',
-                    'B03002_12',
-                    'B15003_1',
-                    'B15003_22',
-                    'B15003_23',
-                    'B15003_24',
-                    'B15003_25',
-                    'ALAND_SQMI',
-                    'B25035_1'
-                ])
+        # Prepare a DataFrame into which we can insert rows.
+        query_df = pd.DataFrame(columns=column_names + ['ALAND_SQMI'])
 
         for instance in session.query(PlaceCounty):
             # Load data into a list first.
@@ -379,7 +371,9 @@ class Database:
                         instance.data.B15003_24,
                         instance.data.B15003_25,
                         instance.geoheader.ALAND_SQMI,
-                        instance.data.B25035_1
+                        instance.data.B25035_1,
+                        instance.data.B25058_1,
+                        instance.data.B25077_1,
                         ]
             
             # In order to insert rows into the DataFrame, first convert the
