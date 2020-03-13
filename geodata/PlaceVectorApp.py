@@ -30,21 +30,25 @@ class PlaceVectorApp:
         # Population density
         self.rs['population_density']  = int(population) / float(land_area_sqmi)
         self.rs['per_capita_income'] = int(per_capita_income)
-        self.rs['median_year_structure_built'] = int(median_year_structure_built)
+        # Subtract 1939 because the U.S. Census Bureau doesn't record year
+        # structure built values that are earlier than 1939. (1939=0)
+        self.rs['median_year_structure_built'] = int(median_year_structure_built) - 1939
 
         # Get medians for each subcomponent
         self.med = dict()
 
-        self.med['population_density'] = float(medians[0]) / float(medians[11])
-        self.med['per_capita_income'] = float(medians[1])
-        self.med['median_year_structure_built'] = float(medians[12])
+        self.med['population_density'] = float(medians['B01003_1']) / float(medians['ALAND_SQMI'])
+        self.med['per_capita_income'] = float(medians['B19301_1'])
+        # Subtract 1939 because the U.S. Census Bureau doesn't record year
+        # structure built values that are earlier than 1939. (1939=0)
+        self.med['median_year_structure_built'] = float(medians['B25035_1']) - 1939
 
         # Get standard deviations for each subcomponent
         self.sd = dict()
 
-        self.sd['population_density'] = float(standard_deviations[0]) / float(standard_deviations[11])
-        self.sd['per_capita_income'] = float(standard_deviations[1])
-        self.sd['median_year_structure_built'] = float(standard_deviations[12])
+        self.sd['population_density'] = float(standard_deviations['B01003_1']) / float(standard_deviations['ALAND_SQMI'])
+        self.sd['per_capita_income'] = float(standard_deviations['B19301_1'])
+        self.sd['median_year_structure_built'] = float(standard_deviations['B25035_1'])
 
         #######################################################################
         # Calculate subcomponent scores

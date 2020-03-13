@@ -130,6 +130,7 @@ except getopt.GetoptError:
 
 # Determine what to do based on command line args.
 for opt, arg in opts:
+    # Basics ##################################################################
     # Display help.
     if   opt in ('-h', '--help'):
         display_help()
@@ -138,6 +139,8 @@ for opt, arg in opts:
     elif opt in ('-c', '--create-database'):
         create_database()
         sys.exit(0)
+
+    # PlaceVectors ############################################################
     # Compare PlaceVectors
     elif opt in ('-p', '--placevectors'):
         compare_placevectors(arg)
@@ -146,6 +149,9 @@ for opt, arg in opts:
     elif opt in ('-a', '--placevectorapps'):
         compare_placevectors(arg, 'placevectorapp')
         sys.exit(0)
+
+    # DemographicProfiles #####################################################
+
 
 # Currently, this app compares PlaceVectors by default.
 compare_placevectors()

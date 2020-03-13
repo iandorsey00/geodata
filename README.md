@@ -63,6 +63,8 @@ and compare them with others.
 
 * Support for the following will be added:
   * Looking up data profiles for a geography
+* Searching through geographies (not requiring the place string to be
+  entered exactly)
 * Improve documentation
 
 ## Comparing demographic similarity: Types of PlaceVectors
@@ -138,7 +140,9 @@ components:
 * The population density component,
 * The income component, and
 * The median year structure built component. This is the year for which the
-  median house was built in the place.
+  median house was built in the place. For this component, 1939 is treated as
+  0 because the U.S. Census Bureau doesn't record median year structure built
+  values before 1939.
 
 ## Grouping places within California by counties
 

@@ -52,30 +52,30 @@ class PlaceVector:
         # Get medians for each subcomponent
         self.med = dict()
 
-        self.med['population_density'] = float(medians[0]) / float(medians[11])
-        self.med['per_capita_income'] = float(medians[1])
-        self.med['white_alone'] = float(medians[2]) / float(medians[0]) * 100.0
-        self.med['black_alone'] = float(medians[3]) / float(medians[0]) * 100.0
-        self.med['asian_alone'] = float(medians[4]) / float(medians[0]) * 100.0
-        self.med['hispanic_or_latino_alone'] = float(medians[5]) / float(medians[0]) * 100.0
-        self.med['bachelors_degree_or_higher'] = (int(medians[7]) + int(medians[8]) \
-        + int(medians[9]) + int(medians[10])) / float(medians[6]) * 100.0
-        self.med['graduate_degree_or_higher'] = (int(medians[8]) \
-        + int(medians[9]) + int(medians[10])) / float(medians[6]) * 100.0
+        self.med['population_density'] = float(medians['B01003_1']) / float(medians['ALAND_SQMI'])
+        self.med['per_capita_income'] = float(medians['B19301_1'])
+        self.med['white_alone'] = float(medians['B02001_2']) / float(medians['B01003_1']) * 100.0
+        self.med['black_alone'] = float(medians['B02001_3']) / float(medians['B01003_1']) * 100.0
+        self.med['asian_alone'] = float(medians['B02001_5']) / float(medians['B01003_1']) * 100.0
+        self.med['hispanic_or_latino_alone'] = float(medians['B03002_12']) / float(medians['B01003_1']) * 100.0
+        self.med['bachelors_degree_or_higher'] = (int(medians['B15003_22']) + int(medians['B15003_23']) \
+        + int(medians['B15003_24']) + int(medians['B15003_25'])) / float(medians['B15003_1']) * 100.0
+        self.med['graduate_degree_or_higher'] = (int(medians['B15003_23']) \
+        + int(medians['B15003_24']) + int(medians['B15003_25'])) / float(medians['B15003_1']) * 100.0
 
         # Get standard deviations for each subcomponent
         self.sd = dict()
 
-        self.sd['population_density'] = float(standard_deviations[0]) / float(standard_deviations[11])
-        self.sd['per_capita_income'] = float(standard_deviations[1])
-        self.sd['white_alone'] = float(standard_deviations[2]) / float(standard_deviations[0]) * 100.0
-        self.sd['black_alone'] = float(standard_deviations[3]) / float(standard_deviations[0]) * 100.0
-        self.sd['asian_alone'] = float(standard_deviations[4]) / float(standard_deviations[0]) * 100.0
-        self.sd['hispanic_or_latino_alone'] = float(standard_deviations[5]) / float(standard_deviations[0]) * 100.0
-        self.sd['bachelors_degree_or_higher'] = (int(standard_deviations[7]) + int(standard_deviations[8]) \
-        + int(standard_deviations[9]) + int(standard_deviations[10])) / float(standard_deviations[6]) * 100.0
-        self.sd['graduate_degree_or_higher'] = (int(standard_deviations[8]) \
-        + int(standard_deviations[9]) + int(standard_deviations[10])) / float(standard_deviations[6]) * 100.0
+        self.sd['population_density'] = float(standard_deviations['B01003_1']) / float(standard_deviations['ALAND_SQMI'])
+        self.sd['per_capita_income'] = float(standard_deviations['B19301_1'])
+        self.sd['white_alone'] = float(standard_deviations['B02001_2']) / float(standard_deviations['B01003_1']) * 100.0
+        self.sd['black_alone'] = float(standard_deviations['B02001_3']) / float(standard_deviations['B01003_1']) * 100.0
+        self.sd['asian_alone'] = float(standard_deviations['B02001_5']) / float(standard_deviations['B01003_1']) * 100.0
+        self.sd['hispanic_or_latino_alone'] = float(standard_deviations['B03002_12']) / float(standard_deviations['B01003_1']) * 100.0
+        self.sd['bachelors_degree_or_higher'] = (int(standard_deviations['B15003_22']) + int(standard_deviations['B15003_23']) \
+        + int(standard_deviations['B15003_24']) + int(standard_deviations['B15003_25'])) / float(standard_deviations['B15003_1']) * 100.0
+        self.sd['graduate_degree_or_higher'] = (int(standard_deviations['B15003_23']) \
+        + int(standard_deviations['B15003_24']) + int(standard_deviations['B15003_25'])) / float(standard_deviations['B15003_1']) * 100.0
 
         #######################################################################
         # Calculate subcomponent scores

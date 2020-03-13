@@ -397,12 +397,12 @@ class Database:
         # Print some debug information.
         print("Medians:", "\n")
         medians = query_df.median()
-        print(list(medians))
+        print(dict(medians))
         print()
 
         print("Standard deviations:", "\n")
         standard_deviations = query_df.std()
-        print(list(standard_deviations))
+        print(dict(standard_deviations))
         print()
 
         # PlaceVectors ########################################################
@@ -430,8 +430,8 @@ class Database:
                         instance.data.B15003_24,      
                         instance.data.B15003_25,      
                         instance.geoheader.ALAND_SQMI,
-                        list(medians),
-                        list(standard_deviations)
+                        dict(medians),
+                        dict(standard_deviations)
                     )
                 )
             # If a TypeError is thrown because some data is unavailable, just
@@ -457,8 +457,8 @@ class Database:
                         instance.data.B19301_1,    
                         instance.geoheader.ALAND_SQMI,
                         instance.data.B25035_1,
-                        list(medians),
-                        list(standard_deviations)
+                        dict(medians),
+                        dict(standard_deviations)
                     )
                 )
             # If a TypeError is thrown because some data is unavailable, just
