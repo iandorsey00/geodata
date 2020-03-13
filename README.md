@@ -4,6 +4,11 @@ A program for getting information about and comparing geographies
 At this point in development, this project currently only supports places in
 California.
 
+## Dependencies
+
+* `pandas`
+* `sqlalchemy`
+
 ## Goals of the project
 
 * Make it easier to access census data from the U.S. (and perhaps other
@@ -12,6 +17,10 @@ countries in the future).
 `PlaceVector`s and `PlaceVectorApp`s (see below).
 
 ## Usage
+
+If you checked out this repository, add `python` or `python3` before `geodata`
+when running the program, i.e. `python3 geodata ...` while in the top level
+directory of the source code.
 
     Basic usage:       geodata option
     Options:
