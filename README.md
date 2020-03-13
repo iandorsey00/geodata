@@ -65,8 +65,8 @@ modeled by the vector's components.
 
 To create a PlaceVector, raw data corresponding to its components are first
 collected; this is referred to as raw subcomponent data. Using the median values
-and standard deviation for such data (see `PlaceVector.py` for the calculation
-method), these are assigned scores with
+and standard deviation for such data (see below for the calculation method),
+these are assigned scores with:
 
 * 0 representing 0,
 * 50 representing the median value, and
@@ -76,11 +76,35 @@ With these standarized scores, it's possible to calculate the Euclidean distance
 between vectors by squaring the differences of each component, adding them
 together, then taking the square of that sum.
 
-### `PlaceVectors` (standard)
+Not all subcomponents must have the same weight. The effect that each
+subcomponent has on the vector's value can be controlled by proportionally
+reducing the amount of the subcomponent. This way, it will not affect the
+position of the overall vector as much.
+
+### `PlaceVector` score calculation method
+
+The calculation method for `PlaceVector` scores for each subcomponent is usually
+as follows:
+
+* If the raw data is equal to zero, the score is zero.
+* If the raw data is between zero and the median, it is equal to its proportion
+  with the median times 50. In simple terms, we are giving the score a
+  proportional value between 0 and 50, with 0 representing 0 and 50 representing
+  the median.
+* If the raw data is at the median, the score will be 50.
+* If the raw data is between the median and two standard deviations above the
+  median, its score will be 50 plus the proportion above the median with two
+  standard deviations times 50. In simple terms, we are give the score a
+  proportional value between 50 and 100, with 50 representing the median and
+  100 representing two standard deviations above the median.
+* If the raw data is at or above two standard deviations above the median,
+  the score will be 100.
+
+### `PlaceVector`s (standard)
 
 The aim of a standard `PlaceVector` is to calculate the general demographic
 similarity of two areas. `PlaceVector`s are made up of the following
-components.
+components:
 
 * The population density component,
 * The income component,
@@ -95,6 +119,17 @@ components.
     higher (50%), and
   * The proportion of those 25 years and older who have a graduate degree or
     higher (50%).
+
+### `PlaceVectorApp`s
+
+The aim of a `PlaceVectorApp` is to calculate how similar two areas appear.
+`PlaceVectorApp`s are made up of the following
+components:
+
+* The population density component,
+* The income component, and
+* The median year structure built component. This is the year for which the
+  median house was built in the place.
 
 ## Grouping places within California by counties
 
