@@ -10,7 +10,7 @@ from sqlalchemy import Column, Integer, String, Index, ForeignKey
 from sqlalchemy.orm import relationship
 
 # Obtain column headers for the column headers
-columns = list(pd.read_csv('../data/2019_Gaz_place_national.txt',
+columns = list(pd.read_csv('./data/2019_Gaz_place_national.txt',
     sep='\t', nrows=1, dtype='str').columns)
 
 # Dynamic table creation: Create an attr_dict to store table attributes

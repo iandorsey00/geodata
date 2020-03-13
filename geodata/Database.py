@@ -39,7 +39,7 @@ class Database:
     def __init__(self):
         # Transfer of ColumnHeader data to database ###########################
         insert_rows(ColumnHeader,
-                   '../data/ACS_5yr_Seq_Table_Number_Lookup.txt',
+                   './data/ACS_5yr_Seq_Table_Number_Lookup.txt',
                    cols=columns)
 
         # Prepare PlaceCounties ###############################################
@@ -48,7 +48,7 @@ class Database:
         Base.metadata.create_all(engine)
 
         # First, put all places into a pandas DataFrame.
-        places_df = pd.read_csv('../data/g20185ca.csv', encoding='iso-8859-1',
+        places_df = pd.read_csv('./data/g20185ca.csv', encoding='iso-8859-1',
                                 dtype='str', header=None)
                                 
         # Filter for rows where the summary level is 155.
@@ -150,7 +150,7 @@ class Database:
         files = dict()
 
         for table_id, sequence_number in sequence_numbers.items():
-            files[table_id] = "../data/e20185ca" + sequence_number + "000.txt"
+            files[table_id] = "./data/e20185ca" + sequence_number + "000.txt"
 
         print("Needed files:", files)
 
@@ -304,7 +304,7 @@ class Database:
         PlaceCounty.geoheader = relationship('GeoHeader', uselist=False, \
             back_populates='placecounty')
 
-        insert_rows(GeoHeader, '../data/2019_Gaz_place_national.txt', sep='\t',
+        insert_rows(GeoHeader, './data/2019_Gaz_place_national.txt', sep='\t',
                     dtype='str')
 
         session.commit()

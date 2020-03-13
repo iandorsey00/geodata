@@ -10,7 +10,7 @@ from initialize_sqlalchemy import Base
 from sqlalchemy import Column, Integer, String, Index
 
 # Obtain column headers for the column headers
-columns = list(pd.read_csv('../data/ACS_5yr_Seq_Table_Number_Lookup.txt',
+columns = list(pd.read_csv('./data/ACS_5yr_Seq_Table_Number_Lookup.txt',
     nrows=1, dtype='str').columns)
 
 # Convert column headers to snake_case

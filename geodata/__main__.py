@@ -5,20 +5,45 @@ import pickle
 
 # Display help information.
 def display_help():
-    print('Usage: geodata [option]')
+    print('Basic usage:       geodata option')
     print('Options:')
-    print('  -h|--help             Display this information.')
-    print('  -c|--create-database  Create a new database.')
-    print('  -p|--placevectors     Compare PlaceVectors.')
-    print('  -a|--placevectorapps  Compare PlaceVectorApps.')
+    print()
+    print('  -h|--help                              Display this information.')
+    print('  -c|--create-database                   Create a new database.')
+    print()
+    print('PlaceVector usage: geodata -p|-a pv_query')
+    print('PlaceVector usage: geodata --placevectors=pv_query')
+    print('PlaceVector usage: geodata --placevectorapps=pv_query')
+    print()
+    print('Options:')
+    print()
+    print('  -p pv_query|--placevectors=pv_query    Compare PlaceVectors.')
+    print('  -a pv_query|--placevectorapps=pv_query Compare PlaceVectorApps.')
+    print()
+    print('pv_query: PlaceVector queries')
+    print()
+    print('    "place[|county]"')
+    print()
+    print('Compare the PlaceVector associated with place (required) with')
+    print('PlaceVectors in county (optional). If county is not specified,')
+    print('Compare the PlaceVector with all others in the state.')
+    print()
+    print('In each case, the closest PlaceVectors will be printed.')
+    print()
+    print('Example: geodata -p "Los Angeles city, California"')
+    print('         Get the closest PlaceVectors to Los Angeles, CA.')
+    print()
+    print('Example: geodata -a "San Diego city, California|Los Angeles County"')
+    print('         Get the closest PlaceVectorsApps to San Diego, CA in Los')
+    print('         Angeles County, CA.')
 
 # Create and save a database.
 def create_database():
-    pickle.dump(Database(), open('../bin/default.db', 'wb'))
+    pickle.dump(Database(), open('./bin/default.db', 'wb'))
 
 # Load a database.
 def load_database():
-    with open('../bin/default.db', 'rb') as f:
+    with open('./bin/default.db', 'rb') as f:
         return pickle.load(f)
 
 def initalize_database():
@@ -47,7 +72,7 @@ def initalize_database():
 # type options:
 #   placevector         PlaceVector (default)
 #   placevectorapp      PlaceVectorApp
-def compare_placevectors(type='placevector'):
+def compare_placevectors(geo, type='placevector'):
     d = initalize_database()
 
     if type == 'placevector':
@@ -55,10 +80,17 @@ def compare_placevectors(type='placevector'):
     elif type == 'placevectorapp':
         pv_list = d.placevectorapps
 
-    print()
-    search_name = input("Enter the name of a place that you want to compare with others: ")
-    filter_county = input("Would you like to filter by a county? If not, just press Enter: ")
-    print()
+    # Split the geos with a pipe
+    geo_split = geo.split('|')
+
+    search_name = geo_split[0]
+
+    # See if the is a filter_county specified. If not, set it to an empty
+    # string.
+    if len(geo_split) > 1:
+        filter_county = geo_split[1]
+    else:
+        filter_county = ''
 
     # Obtain the PlaceVector for which we entered a name.
     comparison_pv = \
@@ -71,6 +103,8 @@ def compare_placevectors(type='placevector'):
     if filter_county != '':
         filtered_pvs = list(filter(lambda x: x.county == filter_county,
                             pv_list))
+    else:
+        filtered_pvs = pv_list
 
     # Get the closest PlaceVectors.
     # In other words, get the most demographically similar places.
@@ -80,13 +114,14 @@ def compare_placevectors(type='placevector'):
     # Print these PlaceVectors
     for closest_pv in closest_pvs:
         print(closest_pv)
+        print("Distance:", comparison_pv.distance(closest_pv))
 
 # Process options and arguments.
 try:
     opts, args = getopt.getopt(sys.argv[1:],
-                               'hcpa',
-                               ['help', 'create-database', 'placevectors',
-                               'placevectorapps'])
+                               'hcp:a:',
+                               ['help', 'create-database', 'placevectors=',
+                               'placevectorapps='])
 # If there was an error with processing arguments, display help information,
 # then exit.
 except getopt.GetoptError:
@@ -105,11 +140,11 @@ for opt, arg in opts:
         sys.exit(0)
     # Compare PlaceVectors
     elif opt in ('-p', '--placevectors'):
-        compare_placevectors()
+        compare_placevectors(arg)
         sys.exit(0)
     # Compare PlaceVectors
     elif opt in ('-a', '--placevectorapps'):
-        compare_placevectors('placevectorapp')
+        compare_placevectors(arg, 'placevectorapp')
         sys.exit(0)
 
 # Currently, this app compares PlaceVectors by default.
