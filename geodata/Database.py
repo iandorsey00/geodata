@@ -332,22 +332,23 @@ class Database:
         all_results = session.query(PlaceCounty)
 
         for instance in first_five:
-            print(
-            instance, "\n",
-            "Population:", instance.data.B01003_1, "\n",                   # 0
-            "Per capita income:", instance.data.B19301_1, "\n",            # 1
-            "White alone:", instance.data.B02001_2, "\n",                  # 2
-            "Black alone:", instance.data.B02001_3, "\n",                  # 3
-            "Asian alone:", instance.data.B02001_5, "\n",                  # 4
-            "Hispanic or Latino alone:", instance.data.B03002_12, "\n",    # 5
-            "Population 25 years and over:", instance.data.B15003_1, "\n", # 6
-            "Bachelor's degree:", instance.data.B15003_22, "\n",           # 7               
-            "Master's degree:", instance.data.B15003_23, "\n",             # 8   
-            "Professional school degree:", instance.data.B15003_24, "\n",  # 9 
-            "Doctorate degree:", instance.data.B15003_25, "\n",            # 10
-            "Land area:", instance.geoheader.ALAND_SQMI,                   # 11
-            "Median year structure built:", instance.data.B25035_1, "\n"   # 12
-            )
+            # print(
+            # instance, "\n",
+            # "Population:", instance.data.B01003_1, "\n",                   # 0
+            # "Per capita income:", instance.data.B19301_1, "\n",            # 1
+            # "White alone:", instance.data.B02001_2, "\n",                  # 2
+            # "Black alone:", instance.data.B02001_3, "\n",                  # 3
+            # "Asian alone:", instance.data.B02001_5, "\n",                  # 4
+            # "Hispanic or Latino alone:", instance.data.B03002_12, "\n",    # 5
+            # "Population 25 years and over:", instance.data.B15003_1, "\n", # 6
+            # "Bachelor's degree:", instance.data.B15003_22, "\n",           # 7               
+            # "Master's degree:", instance.data.B15003_23, "\n",             # 8   
+            # "Professional school degree:", instance.data.B15003_24, "\n",  # 9 
+            # "Doctorate degree:", instance.data.B15003_25, "\n",            # 10
+            # "Land area:", instance.geoheader.ALAND_SQMI,                   # 11
+            # "Median year structure built:", instance.data.B25035_1, "\n"   # 12
+            # )
+            print(DemographicProfile(instance))
 
         print()
 
@@ -370,10 +371,10 @@ class Database:
                         instance.data.B15003_23,
                         instance.data.B15003_24,
                         instance.data.B15003_25,
-                        instance.geoheader.ALAND_SQMI,
                         instance.data.B25035_1,
                         instance.data.B25058_1,
                         instance.data.B25077_1,
+                        instance.geoheader.ALAND_SQMI,
                         ]
             
             # In order to insert rows into the DataFrame, first convert the

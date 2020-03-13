@@ -6,44 +6,60 @@
 #
 
 class DemographicProfile:
-    '''A standard 8-dimensional vector used to compare places with others.'''
-    def __init__(
-        self,
-        name,
-        county,
-        population,
-        per_capita_income,
-        white_alone,
-        black_alone,
-        asian_alone,
-        hispanic_or_latino_alone,
-        population_25_years_or_older,
-        bachelors_degree,
-        masters_degree,
-        professional_school_degree,
-        doctorate_degree,
-        land_area_sqmi,
-        median_year_structure_built,
-        median_value
-        ):
+    '''Used to display data for a geography.'''
+    def __init__(self, geo_instance):
 
-        self.name = name
-        self.county = county
+        self.name = geo_instance.name
+        self.county = geo_instance.county
+        self.data = geo_instance.data
+        self.geoheader = geo_instance.geoheader
 
-        # Raw subcomponents - Raw values of each subcomponent
-        self.rs = dict()
+        # Raw components - Data that comes directly from the Census data files
+        self.rc = dict()
 
-        # Population density
-        self.rs['population_density']  = int(population) / float(land_area_sqmi)
-        self.rs['per_capita_income'] = int(per_capita_income)
-        self.rs['white_alone'] = float(white_alone) / float(population) * 100.0
-        self.rs['black_alone'] = float(black_alone) / float(population) * 100.0
-        self.rs['asian_alone'] = float(asian_alone) / float(population) * 100.0
-        self.rs['hispanic_or_latino_alone'] = float(hispanic_or_latino_alone) / float(population) * 100.0
-        self.rs['bachelors_degree_or_higher'] = ( int(bachelors_degree) \
+        # Population category
+        self.rc['population'] = int(self.data.B01003_1)
+
+        # Geographic category
+        self.rc['land_area'] = float(self.geoheader.ALAND_SQMI)
+
+        # Race category
+        self.rc['white_alone'] = int(self.data.B02001_2)
+        self.rc['black_alone'] = int(self.data.B02001_3)
+        self.rc['asian_alone'] = int(self.data.B02001_5)
+        self.rc['other_race'] = int(self.data.B01003_1) \
+            - int(self.data.B02001_2) - int(self.data.B02001_3) \
+            - int(self.data.B02001_5)
+        # Technically not a race, but included in the race category
+        self.rc['hispanic_or_latino_alone'] = int(self.data.B03002_12)
+
+        # Education category
+        self.rc['population_25_years_and_older'] = int(self.data.B15003_1)
+        self.rc['bachelors_degree_or_higher'] = int(self.data.B15003_22) \
+            + int(self.data.B15003_23) + int(self.data.B15003_24) \
+            + int(self.data.B15003_25)
+        self.rc['graduate_degree_or_higher'] = int(self.data.B15003_23) \
+           + int(self.data.B15003_24) + int(self.data.B15003_25)
+
+        # Income category
+        self.rc['per_capita_income'] = int(self.data.B19301_1)
+
+
+        # Population category
+        self.nc['population'] = int(self.data.B01003_1)
+        self.nc['population_density'] = int(self.data.B01003_1) / float(self.geoheader.ALAND_SQMI)
+
+        # Race category
+        self.nc['white_alone'] = int(self.data.B02001_2) / float(self.data.B01003_1) * 100.0
+        self.nc['black_alone'] = int(self.data.B02001_3) / float(self.data.B01003_1) * 100.0
+        self.nc['asian_alone'] = int(self.data.B02001_5) / float(self.data.B01003_1) * 100.0
+        self.nc['other_race'] = (int(self.data.B01003_1) - int(self.data.B02001_2) - int(self.data.B02001_3) \
+            int(self.data.B02001_5) ) / float(self.data_B01003_1) * 100
+        self.nc['hispanic_or_latino_alone'] = int(self.data.B03002_12) / float(self.data.B01003_1) * 100.0
+        self.nc['bachelors_degree_or_higher'] = ( int(bachelors_degree) \
             + int(masters_degree) + int(professional_school_degree) \
             + int(doctorate_degree) ) / int(population_25_years_or_older)  * 100.0
-        self.rs['graduate_degree_or_higher'] = ( int(masters_degree) \
+        self.nc['graduate_degree_or_higher'] = ( int(masters_degree) \
             + int(professional_school_degree) + int(doctorate_degree) ) \
             / int(population_25_years_or_older)  * 100.0
 
