@@ -147,7 +147,7 @@ class PlaceVector:
         #   Per capita income (100%)
         #
 
-        self.ws['per_capita_income'] = self.s['population_density']
+        self.ws['per_capita_income'] = self.s['per_capita_income']
 
         #
         # The race component:
@@ -192,5 +192,5 @@ class PlaceVector:
 
     # Display subcomponent scores
     def __repr__(self):
-        return 'PlaceVector(' + self.name + ': ' + self.county + '; s:' \
+        return 'PlaceVector(' + self.name + ': ' + self.county + '\ns:' \
             + ', '.join([str((i,j)) for i,j in self.s.items()]) + ')'

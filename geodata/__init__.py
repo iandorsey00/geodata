@@ -73,9 +73,9 @@ def compare_placevectors():
 
 # Process options and arguments.
 try:
-    opts, args = getopt.getopt(sys.argv,
+    opts, args = getopt.getopt(sys.argv[1:],
                                'hcp',
-                               ['help','create-database','placevector'])
+                               ['help', 'create-database', 'placevector'])
 # If there was an error with processing arguments, display help information,
 # then exit.
 except getopt.GetoptError:

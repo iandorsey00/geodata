@@ -115,7 +115,8 @@ class Database:
                        '22',   # Bachelor's degree
                        '23',   # Master's degree
                        '24',   # Professional school degree
-                       '25']   # Doctorate degree
+                       '25'],  # Doctorate degree
+            'B25035': ['1']    # Median year structure built
         }
 
         # Select relevant column headers.
@@ -338,7 +339,8 @@ class Database:
             "Master's degree:", instance.data.B15003_23, "\n",             # 8   
             "Professional school degree:", instance.data.B15003_24, "\n",  # 9 
             "Doctorate degree:", instance.data.B15003_25, "\n",            # 10
-            "Land area:", instance.geoheader.ALAND_SQMI                    # 11
+            "Land area:", instance.geoheader.ALAND_SQMI,                   # 11
+            "Median year structure built:", instance.data.B25035_1, "\n"   # 12
             )
 
         print()
