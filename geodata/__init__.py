@@ -1,32 +1,101 @@
 from Database import Database
+import getopt
 import sys
+import pickle
 
-print(sys.argv)
+# Display help information.
+def display_help():
+    print('Usage: geodata [option]')
+    print('Options:')
+    print('  -h|--help             Display this information.')
+    print('  -c|--create-database  Create a new database.')
+    print('  -p|--placevector      Compare PlaceVectors with others.')
 
-# d = Database()
+# Create and save a database.
+def create_database():
+    pickle.dump(Database(), open('../bin/default.db', 'wb'))
 
-# print()
-# search_name = input("Enter the name of a place that you want to compare with others: ")
-# filter_county = input("Would you like to filter by a county? If not, just press Enter: ")
-# print()
+# Load a database.
+def load_database():
+    with open('../bin/default.db', 'rb') as f:
+        return pickle.load(f)
 
-# # Obtain the PlaceVector for which we entered a name.
-# comparison_pv = \
-#     list(filter(lambda x: x.name == search_name, d.placevectors))[0]
+def initalize_database():
+    # Try to open the default database, located at ../bin/default.db.
+    try:
+        d = load_database()
+        return d
+    # If there is no such database...
+    except FileNotFoundError:
+        # Print a notice of this and ask the user if they want to create one.
+        print('Default database does not exist.')
+        print('Would you like to create one?')
+        print("Enter 'y' for yes or anything else for no.")
+        response = input()
 
-# print("The most demographically similar places are:")
-# print()
+        # If the user wants to create a database, enter 'y'.
+        if response == 'y':
+            create_database()
+            d = load_database()
+            return d
+        # Otherwise, exit.
+        else:
+            sys.exit(0)
 
-# # Filter by county if a filter_county was specified.
-# if filter_county != '':
-#     filtered_pvs = list(filter(lambda x: x.county == filter_county,
-#                         d.placevectors))
+def compare_placevectors():
+    d = initalize_database()
 
-# # Get the closest PlaceVectors.
-# # In other words, get the most demographically similar places.
-# closest_pvs = sorted(filtered_pvs,
-#     key=lambda x: comparison_pv.distance(x))[1:10]
+    print()
+    search_name = input("Enter the name of a place that you want to compare with others: ")
+    filter_county = input("Would you like to filter by a county? If not, just press Enter: ")
+    print()
 
-# # Print these PlaceVectors
-# for closest_pv in closest_pvs:
-#     print(closest_pv)
+    # Obtain the PlaceVector for which we entered a name.
+    comparison_pv = \
+        list(filter(lambda x: x.name == search_name, d.placevectors))[0]
+
+    print("The most demographically similar places are:")
+    print()
+
+    # Filter by county if a filter_county was specified.
+    if filter_county != '':
+        filtered_pvs = list(filter(lambda x: x.county == filter_county,
+                            d.placevectors))
+
+    # Get the closest PlaceVectors.
+    # In other words, get the most demographically similar places.
+    closest_pvs = sorted(filtered_pvs,
+        key=lambda x: comparison_pv.distance(x))[1:10]
+
+    # Print these PlaceVectors
+    for closest_pv in closest_pvs:
+        print(closest_pv)
+
+# Process options and arguments.
+try:
+    opts, args = getopt.getopt(sys.argv,
+                               'hcp',
+                               ['help','create-database','placevector'])
+# If there was an error with processing arguments, display help information,
+# then exit.
+except getopt.GetoptError:
+    display_help()
+    sys.exit(2)
+
+# Determine what to do based on command line args.
+for opt, arg in opts:
+    # Display help.
+    if   opt in ('-h', '--help'):
+        display_help()
+        sys.exit(0)
+    # Create a database.
+    elif opt in ('-c', '--create-database'):
+        create_database()
+        sys.exit(0)
+    # Compare PlaceVectors
+    elif opt in ('-p', '--placevectors'):
+        compare_placevectors()
+        sys.exit(0)
+
+# Currently, this app compares PlaceVectors by default.
+compare_placevectors()
