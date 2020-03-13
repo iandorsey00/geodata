@@ -49,3 +49,12 @@ def gdt(input_str, dtype='default', verbose=False, no_digits=numpy.nan):
         return int(fs)
     elif dtype == 'float':
         return float(fs)
+
+# A wrapper function to return ints only.
+def gdti(input_str, verbose=False, no_digits=numpy.nan):
+    return gdt(input_str, dtype='int', verbose=False, no_digits=numpy.nan)
+
+# A wrapper function to return ints only.
+def gdtf(input_str, verbose=False, no_digits=numpy.nan):
+    return gdt(input_str, dtype='float', verbose=False, no_digits=numpy.nan)
+    

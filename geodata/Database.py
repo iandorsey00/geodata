@@ -2,6 +2,7 @@ import pandas as pd
 
 from PlaceCounty import PlaceCounty
 from ColumnHeader import ColumnHeader, columns
+from DemographicProfile import DemographicProfile
 from initialize_sqlalchemy import Base, engine, session
 
 from model import insert_rows
@@ -348,7 +349,7 @@ class Database:
             # "Land area:", instance.geoheader.ALAND_SQMI,                   # 11
             # "Median year structure built:", instance.data.B25035_1, "\n"   # 12
             # )
-            print(DemographicProfile(instance))
+            print(str(DemographicProfile(instance)))
 
         print()
 
