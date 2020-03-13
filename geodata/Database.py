@@ -360,7 +360,8 @@ class Database:
                     'B15003_23',
                     'B15003_24',
                     'B15003_25',
-                    'ALAND_SQMI'
+                    'ALAND_SQMI',
+                    'B25035_1'
                 ])
 
         for instance in session.query(PlaceCounty):
@@ -377,7 +378,8 @@ class Database:
                         instance.data.B15003_23,
                         instance.data.B15003_24,
                         instance.data.B15003_25,
-                        instance.geoheader.ALAND_SQMI
+                        instance.geoheader.ALAND_SQMI,
+                        instance.data.B25035_1
                         ]
             
             # In order to insert rows into the DataFrame, first convert the
@@ -404,8 +406,6 @@ class Database:
         print()
 
         # PlaceVectors ########################################################
-
-        # Now, we are ready to work with PlaceVectors
 
         from PlaceVector import PlaceVector
 
@@ -439,3 +439,32 @@ class Database:
             except (TypeError, ValueError):
                 print("Note: Inadequate data for PlaceVector creation:",
                       instance.name)
+
+        # PlaceVectorApps #####################################################
+
+        from PlaceVectorApp import PlaceVectorApp
+
+        self.placevectorapps = []
+
+        for instance in all_results:
+            try:
+                # Construct a PlaceVector and append it to self.PlaceVectors.
+                self.placevectorapps.append(
+                    PlaceVectorApp(
+                        instance.name,
+                        instance.county,
+                        instance.data.B01003_1,       
+                        instance.data.B19301_1,    
+                        instance.geoheader.ALAND_SQMI,
+                        instance.data.B25035_1,
+                        list(medians),
+                        list(standard_deviations)
+                    )
+                )
+            # If a TypeError is thrown because some data is unavailable, just
+            # don't make that PlaceVectorApp and print a debugging message.
+            except (TypeError, ValueError):
+                print("Note: Inadequate data for PlaceVectorApp creation:",
+                      instance.name)
+
+

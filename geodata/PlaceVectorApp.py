@@ -35,16 +35,16 @@ class PlaceVectorApp:
         # Get medians for each subcomponent
         self.med = dict()
 
-        self.med['population_density'] = float(medians[0]) / float(medians[5])
+        self.med['population_density'] = float(medians[0]) / float(medians[11])
         self.med['per_capita_income'] = float(medians[1])
-        self.med['median_year_structure_built'] = float(medians[6])
+        self.med['median_year_structure_built'] = float(medians[12])
 
         # Get standard deviations for each subcomponent
         self.sd = dict()
 
-        self.sd['population_density'] = float(standard_deviations[0]) / float(standard_deviations[5])
+        self.sd['population_density'] = float(standard_deviations[0]) / float(standard_deviations[11])
         self.sd['per_capita_income'] = float(standard_deviations[1])
-        self.sd['median_year_structure_built'] = float(standard_deviations[6])
+        self.sd['median_year_structure_built'] = float(standard_deviations[12])
 
         #######################################################################
         # Calculate subcomponent scores

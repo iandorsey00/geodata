@@ -9,7 +9,8 @@ def display_help():
     print('Options:')
     print('  -h|--help             Display this information.')
     print('  -c|--create-database  Create a new database.')
-    print('  -p|--placevector      Compare PlaceVectors with others.')
+    print('  -p|--placevectors     Compare PlaceVectors.')
+    print('  -a|--placevectorapps  Compare PlaceVectorApps.')
 
 # Create and save a database.
 def create_database():
@@ -42,8 +43,17 @@ def initalize_database():
         else:
             sys.exit(0)
 
-def compare_placevectors():
+# Compare certain types of PlaceVectors.
+# type options:
+#   placevector         PlaceVector (default)
+#   placevectorapp      PlaceVectorApp
+def compare_placevectors(type='placevector'):
     d = initalize_database()
+
+    if type == 'placevector':
+        pv_list = d.placevectors
+    elif type == 'placevectorapp':
+        pv_list = d.placevectorapps
 
     print()
     search_name = input("Enter the name of a place that you want to compare with others: ")
@@ -52,7 +62,7 @@ def compare_placevectors():
 
     # Obtain the PlaceVector for which we entered a name.
     comparison_pv = \
-        list(filter(lambda x: x.name == search_name, d.placevectors))[0]
+        list(filter(lambda x: x.name == search_name, pv_list))[0]
 
     print("The most demographically similar places are:")
     print()
@@ -60,12 +70,12 @@ def compare_placevectors():
     # Filter by county if a filter_county was specified.
     if filter_county != '':
         filtered_pvs = list(filter(lambda x: x.county == filter_county,
-                            d.placevectors))
+                            pv_list))
 
     # Get the closest PlaceVectors.
     # In other words, get the most demographically similar places.
     closest_pvs = sorted(filtered_pvs,
-        key=lambda x: comparison_pv.distance(x))[1:10]
+        key=lambda x: comparison_pv.distance(x))[:6]
 
     # Print these PlaceVectors
     for closest_pv in closest_pvs:
@@ -74,8 +84,9 @@ def compare_placevectors():
 # Process options and arguments.
 try:
     opts, args = getopt.getopt(sys.argv[1:],
-                               'hcp',
-                               ['help', 'create-database', 'placevector'])
+                               'hcpa',
+                               ['help', 'create-database', 'placevectors',
+                               'placevectorapps'])
 # If there was an error with processing arguments, display help information,
 # then exit.
 except getopt.GetoptError:
@@ -95,6 +106,10 @@ for opt, arg in opts:
     # Compare PlaceVectors
     elif opt in ('-p', '--placevectors'):
         compare_placevectors()
+        sys.exit(0)
+    # Compare PlaceVectors
+    elif opt in ('-a', '--placevectorapps'):
+        compare_placevectors('placevectorapp')
         sys.exit(0)
 
 # Currently, this app compares PlaceVectors by default.
