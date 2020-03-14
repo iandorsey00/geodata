@@ -36,6 +36,14 @@ def display_help():
     print('Example: geodata -a "San Diego city, California|Los Angeles County"')
     print('         Get the closest PlaceVectorsApps to San Diego, CA in Los')
     print('         Angeles County, CA.')
+    print()
+    print('DemographicProfile usage: geodata -d "place_str"')
+    print('DemographicProfile usage: geodata --demographicprofile="place_str"')
+    print()
+    print('Get the DemographicProfile for a place.')
+    print()
+    print('Example: geodata -d "San Francisco city, California"')
+    print('         Get the DemographicProfile for San Francisco, CA.')
 
 # Create and save a database.
 def create_database():
@@ -117,15 +125,18 @@ def compare_placevectors(geo, type='placevector'):
         print("Distance:", comparison_pv.distance(closest_pv))
 
 # Get DemographicProfiles
-def get_dp(places):
-    pass
+def get_dp(place):
+    d = initalize_database()
+
+    dp = list(filter(lambda x: x.name == place, d.demographicprofiles))[0]
+    print(str(dp))
 
 # Process options and arguments.
 try:
     opts, args = getopt.getopt(sys.argv[1:],
-                               'hcp:a:',
+                               'hcp:a:d:',
                                ['help', 'create-database', 'placevectors=',
-                               'placevectorapps='])
+                               'placevectorapps=', 'demographicprofile='])
 # If there was an error with processing arguments, display help information,
 # then exit.
 except getopt.GetoptError:
@@ -155,10 +166,9 @@ for opt, arg in opts:
         sys.exit(0)
 
     # DemographicProfiles #####################################################
-    elif opt in ('-d', '--demographic-profile'):
+    elif opt in ('-d', '--demographicprofile'):
         get_dp(arg)
         sys.exit(0)
-
 
 # Currently, this app compares PlaceVectors by default.
 compare_placevectors()

@@ -67,6 +67,41 @@ and compare them with others.
   entered exactly)
 * Improve documentation
 
+## Viewing Census data for a place: DemographicProfiles
+
+Use `geodata -d "census_place_string"` to get a demographic profile for a place.
+For example:
+
+    $ geodata -d "San Francisco city, California"
+    ---------------------------------------------------------------------
+     San Francisco city, California                         
+     San Francisco                                          
+     us:ca:sanfrancisco                                     
+    ---------------------------------------------------------------------
+     POPULATION                                             
+     Total population                                            870,044 
+     Population density                                    18,549.9/sqmi 
+       Race                                                 
+         White alone                             406,538           46.7% 
+         Black alone                              45,402           34.2% 
+         Asian alone                             297,667            5.2% 
+         Other                                   120,437           13.8% 
+       Hispanic or Latino (of any race)                     
+         Hispanic or Latino                      132,651           15.2% 
+     EDUCATION                                              
+     Total population 25 years and older         689,551           79.3% 
+       Bachelor's degree or higher               394,004           57.1% 
+       Graduate degree or higher                 157,411           22.8% 
+     INCOME                                                 
+     Per capita income                                           $64,157 
+     HOUSING                                                
+     Median year unit built                                         1942 
+     Median value                                             $1,009,500 
+     Median rent                                                  $1,734 
+    ---------------------------------------------------------------------
+
+
+
 ## Comparing demographic similarity: Types of PlaceVectors
 
 `PlaceVector`s model all places in California as a multidimensional vector

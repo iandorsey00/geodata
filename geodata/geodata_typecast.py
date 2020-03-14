@@ -12,9 +12,13 @@ import numpy
 # Shorten the function name so that it can be used better when doing complex
 # calculations
 def gdt(input_str, dtype='default', verbose=False, no_digits=numpy.nan):
-    # Remove everything except digits and decimals.
-    # fs = filtered_string
-    fs = ''.join(filter(lambda x: x.isdigit() or x == '.', list(input_str)))
+    # Handle None values.
+    if input_str is None:
+        fs = ''
+    else:
+        # Remove everything except digits and decimals.
+        # fs = filtered_string
+        fs = ''.join(filter(lambda x: x.isdigit() or x == '.', list(input_str)))
 
     # Remove every decimal except the first.
     if '.' in fs:
@@ -57,4 +61,3 @@ def gdti(input_str, verbose=False, no_digits=numpy.nan):
 # A wrapper function to return ints only.
 def gdtf(input_str, verbose=False, no_digits=numpy.nan):
     return gdt(input_str, dtype='float', verbose=False, no_digits=numpy.nan)
-    

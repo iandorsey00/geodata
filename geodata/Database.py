@@ -231,39 +231,10 @@ class Database:
 
         # Create our new model ################################################
 
-        from sqlalchemy import Column, Integer, String, Index, ForeignKey
+        from Data import create_data_class
         from sqlalchemy.orm import relationship
 
-        # Dynamic table creation: Create an attr_dict to store table attributes
-        attr_dict = {}
-
-        # Set the name for the table.
-        attr_dict['__tablename__'] = 'data'
-
-        # Give the table an id column
-        attr_dict['id'] = Column(Integer, primary_key=True)
-
-        # Dynamically add the other columns
-        for column in merged_df.columns:
-            if column == 'LOGRECNO':
-                attr_dict[column] = Column(String, 
-                    ForeignKey('place_counties.logrecno'))
-            else:
-                attr_dict[column] = Column(String)
-
-        # Define the __repr__ for the new class
-        def _repr(self):
-            return "<Data(LOGRECNO='%s' ...)>" % (self.LOGRECNO)
-
-        # Add the definition above to the class
-        attr_dict['__repr__'] = _repr
-
-        # Add the relationship
-        attr_dict['placecounty'] = relationship('PlaceCounty',
-            back_populates='data')
-
-        # attr_dict
-        Data = type('Data', (Base,), attr_dict)
+        Data = create_data_class(merged_df)
 
         # Create the table in the database
         Base.metadata.create_all(engine)
@@ -322,38 +293,25 @@ class Database:
         for instance in session.query(GeoHeader).limit(5):
             print(instance)
 
-        print()
-
-        print("PlaceCounty instances with joined Data:", "\n")
-
-        # Joined data #########################################################
+        # DemographicProfiles #################################################
 
         # Get rows of data
         first_five = session.query(PlaceCounty).limit(5)
         all_results = session.query(PlaceCounty)
 
-        for instance in first_five:
-            # print(
-            # instance, "\n",
-            # "Population:", instance.data.B01003_1, "\n",                   # 0
-            # "Per capita income:", instance.data.B19301_1, "\n",            # 1
-            # "White alone:", instance.data.B02001_2, "\n",                  # 2
-            # "Black alone:", instance.data.B02001_3, "\n",                  # 3
-            # "Asian alone:", instance.data.B02001_5, "\n",                  # 4
-            # "Hispanic or Latino alone:", instance.data.B03002_12, "\n",    # 5
-            # "Population 25 years and over:", instance.data.B15003_1, "\n", # 6
-            # "Bachelor's degree:", instance.data.B15003_22, "\n",           # 7               
-            # "Master's degree:", instance.data.B15003_23, "\n",             # 8   
-            # "Professional school degree:", instance.data.B15003_24, "\n",  # 9 
-            # "Doctorate degree:", instance.data.B15003_25, "\n",            # 10
-            # "Land area:", instance.geoheader.ALAND_SQMI,                   # 11
-            # "Median year structure built:", instance.data.B25035_1, "\n"   # 12
-            # )
-            print(str(DemographicProfile(instance)))
+        # Create a placeholder for DemographicProfiles
+        self.demographicprofiles = []
+
+        for instance in all_results:
+            self.demographicprofiles.append(DemographicProfile(instance))
 
         print()
+        print("First five DemographicProfiles:", "\n")
 
-        print("DataFrame:", "\n")
+        for demographicprofile in self.demographicprofiles[:5]:
+            print(str(demographicprofile))
+
+        print("DataFrames:", "\n")
 
         # Prepare a DataFrame into which we can insert rows.
         query_df = pd.DataFrame(columns=column_names + ['ALAND_SQMI'])
@@ -462,5 +420,10 @@ class Database:
             except (TypeError, ValueError):
                 print("Note: Inadequate data for PlaceVectorApp creation:",
                       instance.name)
+
+    def get_data(self):
+        return ProcessedData(placevectors=self.placevectors,
+                             placevectorapps=self.placevectorapps,
+                             demographicprofiles=self.demographicprofiles)
 
 
