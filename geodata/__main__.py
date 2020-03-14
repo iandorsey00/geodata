@@ -46,6 +46,23 @@ def display_help():
     print()
     print('Example: geodata -d "San Francisco city, California"')
     print('         Get the DemographicProfile for San Francisco, CA.')
+    print()
+    print('Superlative usage:     geodata -s "superlative_query"')
+    print('Superlative usage:     geodata --superlative="superlative_query"')
+    print('Antisuperlative usage: geodata -n "superlative_query"')
+    print('Antisuperlative usage: geodata -antisuperlative="superlative_query"')
+    print()
+    print('Print the top (or bottom) 30 places with by component or compound')
+    print('value.')
+    print()
+    print('Example: geodata -s "per_capita_income:c:50000"')
+    print('         Get the top 30 places in California by per capita income')
+    print('         with a population of over 50,000.')
+    print()
+    print('Example: geodata -n "bachelors_degree_or_higher:cc:0:Orange County"')
+    print('         Get the bottom 30 places in California by percent of the')
+    print("         population over 25 with a bachelor's degree or higher in")
+    print('         Orange County.')
 
 # Create and save a database.
 def create_database():
@@ -137,17 +154,30 @@ def get_dp(place):
 def superlatives(arg, anti=False):
     d = initalize_database()
 
-    args = len(arg.split(' '))
+    # Use the colon (:) to seperate subargs
+    filter_str = ':'
+    # Determine how many args
+    args = len(arg.split(filter_str))
 
+    # Assign comp_name (component_name), data_type, filter_pop, and
+    # filter_county based on position and arg count
     if args == 2:
-        comp_name, data_type = arg.split(' ')
-        pop_filter = None
+        comp_name, data_type = arg.split(filter_str)
+        filter_pop = None
+        filter_county = None
     elif args == 3:
-        comp_name, data_type, pop_filter = arg.split(' ')
+        comp_name, data_type, filter_pop = arg.split(filter_str)
+        filter_county = None
+    elif args == 4:
+        comp_name, data_type, filter_pop, filter_county = arg.split(filter_str)
 
-    if pop_filter:
-        pop_filter = gdti(pop_filter)
+    # If a filter_pop was specified, parse it.
+    if filter_pop:
+        filter_pop = gdti(filter_pop)
 
+    # Determine whether we want components (values that come straight from
+    # Census data files) or compounds (values that can only be obtained by
+    # math operations involving multiple components).
     if data_type == 'c':
         sort_by = 'rc'
         print_ = 'fc'
@@ -155,31 +185,49 @@ def superlatives(arg, anti=False):
         sort_by = 'c'
         print_ = 'fcd'
 
+    # The inter-area margin to divide display sections
     iam = ' '
 
+    # Print a section divider
     def divider():
         return '-' * 89
 
+    # Print the header
     def sl_print_headers(dpi):
-        return iam + 'Place'.ljust(45) + iam \
-               + getattr(dpi, 'rh')['population'].rjust(20) + iam \
-               + getattr(dpi, 'rh')[comp_name].rjust(20)
+        if filter_county:
+            return iam + ('Place in ' + filter_county).ljust(45) + iam \
+                + getattr(dpi, 'rh')['population'].rjust(20) + iam \
+                + getattr(dpi, 'rh')[comp_name].rjust(20)
+        else:
+            return iam + 'Place'.ljust(45) + iam \
+                + getattr(dpi, 'rh')['population'].rjust(20) + iam \
+                + getattr(dpi, 'rh')[comp_name].rjust(20)
 
+    # Print a row
     def sl_print_row(dpi):
         return iam + getattr(dpi, 'name').ljust(45) + iam \
                + getattr(dpi, 'fc')['population'].rjust(20) + iam \
                + getattr(dpi, print_)[comp_name].rjust(20)
     
+    # Remove numpy.nans because they interfere with sorted()
     no_nans = list(filter(lambda x: not \
         numpy.isnan(getattr(x, sort_by)[comp_name]), d.demographicprofiles))
 
-    if pop_filter:
+    # If there's a filter pop, remove all places underneath it.
+    if filter_pop:
         no_nans = list(filter(lambda x: \
-        getattr(x, 'rc')['population'] > pop_filter, no_nans))
+        getattr(x, 'rc')['population'] >= filter_pop, no_nans))
 
+    # If there's a filter_county, remove all places outside that county.
+    if filter_county:
+        no_nans = list(filter(lambda x: \
+        getattr(x, 'county') == filter_county, no_nans))
+
+    # Sort our DemographicProfile instances by component or compound specified.
     sls = sorted(no_nans, key=lambda x: \
         getattr(x, sort_by)[comp_name], reverse=(not anti))
 
+    # Print the header and places with their information.
     print(divider())
     print(sl_print_headers(d.demographicprofiles[0]))
     print(divider())
@@ -187,8 +235,6 @@ def superlatives(arg, anti=False):
         print(sl_print_row(sl))
     print(divider())
     
-
-
 # Process options and arguments.
 try:
     opts, args = getopt.getopt(sys.argv[1:],

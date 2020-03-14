@@ -75,7 +75,7 @@ and compare them with others.
   entered exactly)
 * Improve documentation
 
-## Viewing Census data for a place: DemographicProfiles
+## Viewing Census data for a place: `DemographicProfiles`
 
 Use `geodata -d "census_place_string"` to get a demographic profile for a place.
 For example:
@@ -108,7 +108,72 @@ For example:
     Median rent                                                  $1,734 
     ---------------------------------------------------------------------
 
-## Comparing demographic similarity: Types of PlaceVectors
+## Seeing which places have the highest or lowest values: Superlatives and antisuperlatives
+
+geodata allows you to get the highest or lowest values by place for specific
+Census data. For example:
+
+    $ geodata -s "per_capita_income:c:50000"
+    -----------------------------------------------------------------------------------------
+     Place                                             Total population    Per capita income
+    -----------------------------------------------------------------------------------------
+     Newport Beach city, California                              86,280              $90,042
+     Palo Alto city, California                                  67,019              $89,205
+     Mountain View city, California                              80,993              $73,924
+     Santa Monica city, California                               92,078              $72,280
+     Cupertino city, California                                  60,614              $67,888
+     Pleasanton city, California                                 80,847              $64,504
+     San Francisco city, California                             870,044              $64,157
+     Sunnyvale city, California                                 152,323              $62,891
+     Encinitas city, California                                  62,713              $62,251
+     Walnut Creek city, California                               69,007              $61,026
+     San Ramon city, California                                  75,384              $60,326
+     San Mateo city, California                                 104,035              $58,922
+     Redondo Beach city, California                              67,700              $58,514
+     Dublin city, California                                     59,172              $58,454
+     San Clemente city, California                               65,045              $56,681
+     Laguna Niguel city, California                              65,652              $55,659
+     Carlsbad city, California                                  113,670              $55,518
+     Yorba Linda city, California                                67,815              $54,101
+     Redwood City city, California                               85,217              $53,836
+     San Rafael city, California                                 58,939              $53,559
+     Novato city, California                                     55,523              $52,236
+     Thousand Oaks city, California                             128,481              $50,747
+     Livermore city, California                                  89,027              $50,470
+     Fremont city, California                                   233,083              $49,529
+     Santa Clara city, California                               126,209              $49,485
+     Alameda city, California                                    78,462              $48,791
+     Mission Viejo city, California                              96,124              $48,616
+     Berkeley city, California                                  120,926              $48,229
+     Irvine city, California                                    265,502              $48,166
+     Aliso Viejo city, California                                50,925              $48,053
+    -----------------------------------------------------------------------------------------
+
+The syntax for the argument for the `-s` (superlative) and `-n`
+(antisuperlative) options are are as follows:
+
+    comp_name:c|cc[:filter_pop[:filter_county]]
+
+The `comp_name` (component_name or compound_name) and their corresponding `c`
+(component) or `cc` (compound) values can be one of the following:
+
+* `population_density` – Population density: `cc` only
+* `land_area` – Land area (in square miles): `c` only
+* `white_alone` – White alone: `c` or `cc`
+* `black_alone` – Black alone: `c` or `cc`
+* `asian_alone` – Asian alone: `c` or `cc`
+* `other_race` – Other race: `c` or `cc`
+* `hispanic_or_latino` – Hispanic or Latino: `c` or `cc`
+* `population_25_years_and_older` – Total population 25 years and older: `c` or
+  `cc`
+* `bachelors_degree_or_higher` – Bachelor's degree or higher: `c` or `cc`
+* `graduate_degree_or_higher` – Graduate degree or higher: `c` or `cc`
+* `per_capita_income` – Per capita income: `c` only
+* `median_year_structure_built` – Median year housing unit built: `c` only
+* `median_value` –  Median value of housing units: `c` only
+* `median_rent` – Median rent of housing units: `c` only
+
+## Comparing demographic similarity: Types of `PlaceVectors`
 
 `PlaceVector`s model all places in California as a multidimensional vector
 with components differing by the type of `PlaceVector`. Currently there are two
