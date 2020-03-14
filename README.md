@@ -173,6 +173,28 @@ The `comp_name` (component_name or compound_name) and their corresponding `c`
 * `median_value` –  Median value of housing units: `c` only
 * `median_rent` – Median rent of housing units: `c` only
 
+For each item on the list specify `c` if you just want a raw number, such as the
+number of people with a bachelor's degree or higher. If you want a ratio or
+percentage (such as the *percent* of people over age 25 with a bachelor's
+degree or higher), specify `cc`.
+
+Sometimes, we're only interested in places with a population over a certain
+threshold, say 50,000. To filter for places with population of 50,000 or more,
+specify that as the third argument for the syntax above. This is optional.
+
+Sometimes, we are only interested in places in a particular county. To filter
+by a county, specify one with the fourth argument.
+
+### Current known issues
+
+* To filter by county, you must filter by a population. Workaround: Just filter
+  by a population of zero or higher if you don't want to specify a population
+  threshold. For example: `geodata -s "per_capita_income:c:0:San Mateo County`.
+* You should to use the `population` component (with `c`), but two population
+  columns will appear.
+* Strings that are too long might slightly break the layout.
+* No more than thirty places can be displayed at once.
+
 ## Comparing demographic similarity: Types of `PlaceVectors`
 
 `PlaceVector`s model all places in California as a multidimensional vector
