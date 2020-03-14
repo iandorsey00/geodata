@@ -2,6 +2,8 @@ from Database import Database
 import getopt
 import sys
 import pickle
+import numpy
+from geodata_typecast import gdt, gdtf, gdti
 
 # Display help information.
 def display_help():
@@ -131,12 +133,69 @@ def get_dp(place):
     dp = list(filter(lambda x: x.name == place, d.demographicprofiles))[0]
     print(str(dp))
 
+# Superlatives and antisuperlatives
+def superlatives(arg, anti=False):
+    d = initalize_database()
+
+    args = len(arg.split(' '))
+
+    if args == 2:
+        comp_name, data_type = arg.split(' ')
+        pop_filter = None
+    elif args == 3:
+        comp_name, data_type, pop_filter = arg.split(' ')
+
+    if pop_filter:
+        pop_filter = gdti(pop_filter)
+
+    if data_type == 'c':
+        sort_by = 'rc'
+        print_ = 'fc'
+    else:
+        sort_by = 'c'
+        print_ = 'fcd'
+
+    iam = ' '
+
+    def divider():
+        return '-' * 89
+
+    def sl_print_headers(dpi):
+        return iam + 'Place'.ljust(45) + iam \
+               + getattr(dpi, 'rh')['population'].rjust(20) + iam \
+               + getattr(dpi, 'rh')[comp_name].rjust(20)
+
+    def sl_print_row(dpi):
+        return iam + getattr(dpi, 'name').ljust(45) + iam \
+               + getattr(dpi, 'fc')['population'].rjust(20) + iam \
+               + getattr(dpi, print_)[comp_name].rjust(20)
+    
+    no_nans = list(filter(lambda x: not \
+        numpy.isnan(getattr(x, sort_by)[comp_name]), d.demographicprofiles))
+
+    if pop_filter:
+        no_nans = list(filter(lambda x: \
+        getattr(x, 'rc')['population'] > pop_filter, no_nans))
+
+    sls = sorted(no_nans, key=lambda x: \
+        getattr(x, sort_by)[comp_name], reverse=(not anti))
+
+    print(divider())
+    print(sl_print_headers(d.demographicprofiles[0]))
+    print(divider())
+    for sl in sls[:30]:
+        print(sl_print_row(sl))
+    print(divider())
+    
+
+
 # Process options and arguments.
 try:
     opts, args = getopt.getopt(sys.argv[1:],
-                               'hcp:a:d:',
+                               'hcp:a:d:s:n:',
                                ['help', 'create-database', 'placevectors=',
-                               'placevectorapps=', 'demographicprofile='])
+                               'placevectorapps=', 'demographicprofile=',
+                               'superlatives=', 'antisuperlatives='])
 # If there was an error with processing arguments, display help information,
 # then exit.
 except getopt.GetoptError:
@@ -168,6 +227,14 @@ for opt, arg in opts:
     # DemographicProfiles #####################################################
     elif opt in ('-d', '--demographicprofile'):
         get_dp(arg)
+        sys.exit(0)
+
+    # Superlatives and antisuperlatives #######################################
+    elif opt in ('-s', '--superlatives'):
+        superlatives(arg)
+        sys.exit(0)
+    elif opt in ('-n', '--antisuperlatives'):
+        superlatives(arg, anti=True)
         sys.exit(0)
 
 # Currently, this app compares PlaceVectors by default.

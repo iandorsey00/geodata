@@ -120,8 +120,8 @@ class DemographicProfile:
         if self.rc['population'] != 0:
             # Race category - Percentages of the total population
             self.c['white_alone'] = self.rc['white_alone'] / self.rc['population'] * 100.0
-            self.c['black_alone'] = self.rc['asian_alone'] / self.rc['population'] * 100.0
-            self.c['asian_alone'] = self.rc['black_alone'] / self.rc['population'] * 100.0
+            self.c['black_alone'] = self.rc['black_alone'] / self.rc['population'] * 100.0
+            self.c['asian_alone'] = self.rc['asian_alone'] / self.rc['population'] * 100.0
             self.c['other_race'] = self.rc['other_race'] / self.rc['population'] * 100.0
             # Technically not a race, but included in the race category
             self.c['hispanic_or_latino'] = self.rc['hispanic_or_latino'] / self.rc['population'] * 100.0
