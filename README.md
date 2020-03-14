@@ -189,9 +189,9 @@ by a county, specify one with the fourth argument.
 
 * To filter by county, you must filter by a population. Workaround: Just filter
   by a population of zero or higher if you don't want to specify a population
-  threshold. For example: `geodata -s "per_capita_income:c:0:San Mateo County`.
-* You should to use the `population` component (with `c`), but two population
-  columns will appear.
+  threshold. For example: `geodata -s "per_capita_income:c:0:San Mateo County"`.
+* You should be able to use the `population` component (with `c`), but two
+  population columns will appear.
 * Strings that are too long might slightly break the layout.
 * No more than thirty places can be displayed at once.
 
