@@ -24,35 +24,43 @@ directory of the source code.
 
     Basic usage:       geodata option
     Options:
-    
+
       -h|--help                              Display this information.
       -c|--create-database                   Create a new database.
-    
+
     PlaceVector usage: geodata -p|-a pv_query
     PlaceVector usage: geodata --placevectors=pv_query
     PlaceVector usage: geodata --placevectorapps=pv_query
-    
+
     Options:
-    
+
       -p pv_query|--placevectors=pv_query    Compare PlaceVectors.
       -a pv_query|--placevectorapps=pv_query Compare PlaceVectorApps.
-    
+
     pv_query: PlaceVector queries
-    
+
         "place[|county]"
-    
+
     Compare the PlaceVector associated with place (required) with
     PlaceVectors in county (optional). If county is not specified,
     Compare the PlaceVector with all others in the state.
-    
+
     In each case, the closest PlaceVectors will be printed.
-    
+
     Example: geodata -p "Los Angeles city, California"
-             Get the closest PlaceVectors to Los Angeles, CA.
-    
+            Get the closest PlaceVectors to Los Angeles, CA.
+
     Example: geodata -a "San Diego city, California|Los Angeles County"
-             Get the closest PlaceVectors to San Diego, CA in Los
-             Angeles County, CA.
+            Get the closest PlaceVectorsApps to San Diego, CA in Los
+            Angeles County, CA.
+
+    DemographicProfile usage: geodata -d "place_str"
+    DemographicProfile usage: geodata --demographicprofile="place_str"
+
+    Get the DemographicProfile for a place.
+
+    Example: geodata -d "San Francisco city, California"
+            Get the DemographicProfile for San Francisco, CA.
 
 ## Current project status
 
