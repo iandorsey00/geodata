@@ -271,7 +271,7 @@ for opt, arg in opts:
     elif opt in ('-p', '--placevectors'):
         compare_placevectors(arg)
         sys.exit(0)
-    # Compare PlaceVectors
+    # Compare PlaceVectorApps
     elif opt in ('-a', '--placevectorapps'):
         compare_placevectors(arg, 'placevectorapp')
         sys.exit(0)

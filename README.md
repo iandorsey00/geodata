@@ -1,8 +1,9 @@
 # geodata
 A program for getting information about and comparing geographies
 
-At this point in development, this project currently only supports places in
-California.
+The project in this branch currently only supports places in California.
+Development of a version of geodata that supports places in the entire United
+States has begun. See the `national` branch.
 
 ## Dependencies
 
