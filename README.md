@@ -62,6 +62,29 @@ directory of the source code.
     Example: geodata -d "San Francisco city, California"
             Get the DemographicProfile for San Francisco, CA.
 
+    Superlative usage:     geodata -s "superlative_query"
+    Superlative usage:     geodata --superlative="superlative_query"
+    Antisuperlative usage: geodata -n "superlative_query"
+    Antisuperlative usage: geodata -antisuperlative="superlative_query"
+
+    Print the top (or bottom) 30 places with by component or compound
+    value.
+
+    superlative_query
+
+        comp_name:c|cc[:filter_pop[:filter_county]]
+
+    See documentation.
+
+    Example: geodata -s "per_capita_income:c:50000"
+            Get the top 30 places in California by per capita income
+            with a population of over 50,000.
+
+    Example: geodata -n "bachelors_degree_or_higher:cc:0:Orange County"
+            Get the bottom 30 places in California by percent of the
+            population over 25 with a bachelor's degree or higher in
+            Orange County.
+
 ## Current project status
 
 It's now possible to query `PlaceVectors` and `PlaceVectorApps` in California
