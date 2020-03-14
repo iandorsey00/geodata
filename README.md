@@ -13,8 +13,11 @@ California.
 
 * Make it easier to access census data from the U.S. (and perhaps other
 countries in the future).
-* Provide an easy way to compare the demographic similarity of geographies with
+* Make it easier to compare the demographic similarity of geographies with
 `PlaceVector`s and `PlaceVectorApp`s (see below).
+* Make it easier to manage data that came straight from the U.S. Census Bureau
+(currently called components) and data that requires mathematical operations
+on Census data (currently called compounds).
 
 ## Usage
 
@@ -87,16 +90,19 @@ directory of the source code.
 
 ## Current project status
 
-It's now possible to query `PlaceVectors` and `PlaceVectorApps` in California
-and compare them with others.
+Features:
+* `DemographicProfiles` get information about a specific place.
+* Superlatives and antisuperlatives create tables of geographies that rank
+highest or lowest respectively by a certain characteristic.
+* `PlaceVector`s and `PlaceVectorApp`s to see which geographies are most similar
+to one another.
 
 ## Next steps
 
-* Support for the following will be added:
-  * Looking up data profiles for a geography
 * Searching through geographies (not requiring the place string to be
   entered exactly)
-* Improve documentation
+* Improved documentation
+* Support all geographies in the U.S.
 
 ## Viewing Census data for a place: `DemographicProfiles`
 
@@ -299,10 +305,11 @@ components:
 
 States can be quite large, and sometimes it is difficult to group places inside
 of them. California is divided up into 58 counties. Cities are not allowed to
-cross state lines, but CDPs (unincorporated areas) can and do cross state lines.
+cross county lines, but CDPs (unincorporated areas) can and do cross county
+lines.
 
 Fortunately for California, situations in which place-level geographies cross
-state lines are rare enough that `PlaceCounties` are used by default for that
+county lines are rare enough that `PlaceCounties` are used by default for that
 state. This means that we can readily find out which county a place is in,
 making it very easy to group geographies that are in close proximity to one
 another.
@@ -321,8 +328,8 @@ is in.
 
 ### The Census and different summary levels
 
-In order to solve this problem, (and other similar problems of places inside)
-bigger geographies, there is not just one type of place as far as the Census
+In order to solve this problem, (and other similar problems of places inside
+bigger geographies), there is not just one type of place as far as the Census
 is concerned. The most common type of place is known as a State-Place. In this
 app, we're also interested in what counties the places are inside of, so we
 will be using State-Place-Counties whenever possible.
@@ -334,11 +341,6 @@ for states is `040`. The summary level for a State-Place (commonly just called a
 *place* is `160`, and the summary level for a State-Place-County is `155`. See
 [this page](https://factfinder.census.gov/help/en/summary_level_code_list.htm)
 for a list of summary levels.)
-
-### The ID problem
-
-Unfortunately, State-Places and State-Place-Counties have different `GEO_ID`s,
-which means we can have different IDs for essentially the same geography.
 
 ### This app's solution – A key hash
 
@@ -374,13 +376,3 @@ need to append an option to the hash string, such as `/cdp` for unincorporated
 areas in California. (`cdp` stands for census designated place.) Options should
 be used as little as possible and only as necessary to avoid duplicate hashes
 within second-order administrative divisions.
-
-## key_hash.py
-
-Contains the current function used to convert name strings to a hash. See above
-for more information.
-
-## `Place`
-
-The model used to represent places. Because this lacks county information,
-`PlaceCounties` should be used instead whenever possible.
