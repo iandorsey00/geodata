@@ -6,8 +6,8 @@
 #
 
 import pandas as pd
-from initialize_sqlalchemy import Base
-from sqlalchemy import Column, Integer, String, Index
+# from initialize_sqlalchemy import Base
+# from sqlalchemy import Column, Integer, String, Index
 
 def get_ch_columns(path):
     '''Obtain columns for the column headers'''
@@ -20,31 +20,31 @@ def get_ch_columns(path):
 
     return columns
 
-def create_ch_class(path):
-    '''Dynamically create the ColumnHeader class'''
-    columns = get_ch_columns(path)
+# def create_ch_class(path):
+#     '''Dynamically create the ColumnHeader class'''
+#     columns = get_ch_columns(path)
 
-    # Dynamic table creation: Create an attr_dict to store table attributes
-    attr_dict = {}
+#     # Dynamic table creation: Create an attr_dict to store table attributes
+#     attr_dict = {}
 
-    # Set the name for the table.
-    attr_dict['__tablename__'] = 'column_headers'
+#     # Set the name for the table.
+#     attr_dict['__tablename__'] = 'column_headers'
 
-    # Give the table an id column
-    attr_dict['id'] = Column(Integer, primary_key=True)
+#     # Give the table an id column
+#     attr_dict['id'] = Column(Integer, primary_key=True)
 
-    # Define the class's __repr__
-    def _repr(self):
-        return "<ColumnHeader(table_id='%s', sequence_number='%s', line_number='%s', start_position='%s', table_title='%s' ...)>" % (
-            self.table_id, self.sequence_number, self.line_number,
-            self.start_position, self.table_title)
+#     # Define the class's __repr__
+#     def _repr(self):
+#         return "<ColumnHeader(table_id='%s', sequence_number='%s', line_number='%s', start_position='%s', table_title='%s' ...)>" % (
+#             self.table_id, self.sequence_number, self.line_number,
+#             self.start_position, self.table_title)
 
-    # Add the definition above to the class
-    attr_dict['__repr__'] = _repr
+#     # Add the definition above to the class
+#     attr_dict['__repr__'] = _repr
 
-    for column in columns:
-        # Set the 'table_id' column to be the primary key.
-        attr_dict[column] = Column(String)
+#     for column in columns:
+#         # Set the 'table_id' column to be the primary key.
+#         attr_dict[column] = Column(String)
 
-    # Dynamically create ColumnHeader class using attr_dict
-    return type('ColumnHeader', (Base,), attr_dict)
+#     # Dynamically create ColumnHeader class using attr_dict
+#     return type('ColumnHeader', (Base,), attr_dict)

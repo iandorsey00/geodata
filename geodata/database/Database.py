@@ -1,9 +1,11 @@
 import pandas as pd
 
 from model.PlaceCounty import PlaceCounty
-from model.ColumnHeader import create_ch_class, get_ch_columns
+from model.ColumnHeader import get_ch_columns
 from datainterface.DemographicProfile import DemographicProfile
 from initialize_sqlalchemy import Base, engine, session
+import sqlite3
+import csv
 
 from model.model import insert_rows
 from key_hash import key_hash
@@ -36,6 +38,26 @@ class Database:
         # Split the name string by ', '
         split_geo_name = geo_name.split(', ')
         return split_geo_name[-1]
+
+    def create_table(self, table_name, columns, column_defs, rows):
+        '''Create a table for use by geodata.'''
+        # DBAPI question mark substring
+        columns_len = len(column_defs) - 1
+        question_mark_substr = ', '.join(['?'] * columns_len)
+
+        # CREATE TABLE statement
+        self.c.execute('''CREATE TABLE %s
+                          (%s)''' % (table_name, ', '.join(column_defs)))
+
+        # Insert rows into table
+        self.c.executemany('INSERT INTO %s(%s) VALUES (%s)' % (
+            table_name, ', '.join(columns), question_mark_substr), rows)
+
+    def debug_output(self, table_name):
+        print('%s table:' % table_name, '\n')
+        for row in self.c.execute('SELECT * FROM %s LIMIT 5' % table_name):
+            print(row)
+        print()
     
     ###########################################################################
     # __init__
@@ -48,427 +70,455 @@ class Database:
         'nc', 'nd', 'oh', 'ok', 'or', 'pa', 'ri', 'sc', 'sd', 'tn', 'tx', 'ut',
         'vt', 'va', 'wa', 'wv', 'wi', 'wy']
 
-        # Transfer of ColumnHeader data to database ###########################
+        # Initialize ##########################################################
+
         self.path = path
 
+        # Connect to SQLite3
+        self.conn = sqlite3.connect(':memory:')
+        self.c = self.conn.cursor()
+
+        # table_metadata ######################################################
+        this_table_name = 'table_metadata'
+
+        # Process column definitions
         columns = get_ch_columns(self.path)
-        ColumnHeader = create_ch_class(self.path)
+        column_defs = list(map(lambda x: x + ' TEXT', columns))
+        column_defs.insert(0, 'id INTEGER PRIMARY KEY')
 
-        insert_rows(ColumnHeader,
-                   self.path + 'ACS_5yr_Seq_Table_Number_Lookup.csv',
-                   cols=columns)
+        # Get rows from CSV
+        this_path = self.path + 'ACS_5yr_Seq_Table_Number_Lookup.csv'
+        rows = []
 
-        # Prepare PlaceCounties ###############################################
+        with open(this_path, 'rt') as f:
+            rows = list(csv.reader(f))
 
-        # Create all tables
-        Base.metadata.create_all(engine)
+        # Create table
+        self.create_table(this_table_name, columns, column_defs, rows)
 
-        dfs = [pd.read_csv(path + 'g20185' + state + '.csv',
-                    encoding='iso-8859-1', dtype='str', header=None)
-                for state in self.states]
-        # First, put all places into a pandas DataFrame.
-        places_df = pd.concat(dfs, axis=0)
-                                
-        # Filter for rows where the summary level is 155.
-        places_df = places_df.loc[places_df.iloc[:,2] == '160']
+        # Debug output
+        self.debug_output(this_table_name)
 
-        print(places_df.head())
+        # places ##############################################################
+        this_table_name = 'places'
 
-        # Declare an array to hold instances of PlaceCounty.
-        places = []
+        # Process column definitions
+        columns = [
+            'LOGRECNO',
+            'GEOID',
+            'STATE',
+            'NAME',
+            ]
+        column_defs = list(map(lambda x: x + ' TEXT', columns))
+        column_defs.insert(0, 'id INTEGER PRIMARY KEY')
 
-        # Iterate through the DataFrame and convert each row to a Place model.
-        for index, data in places_df.iterrows():
-            # Assign our data to temporary variables.
+        # Get rows from CSV
+        rows = []
+        # Get rows from CSV files for each state.
+        for state in self.states:
+            this_path = path + 'g20185' + state + '.csv'
+            with open(this_path, 'rt', encoding='iso-8859-1') as f:
+                rows += list(csv.reader(f))
+        # Filter for summary level code 160 (State-Places)
+        rows = list(filter(lambda x: x[2] == '160', rows))
+        rows = list(
+                    map(lambda x:
+                        [x[4],
+                        x[48][7:],
+                        self.get_state(x[49]),
+                        x[49]], rows
+                    )
+                )
 
-            # LOGRECNO matches a geo entry with its data.
-            _logrecno = data[4]
-            _geo_id = data[48][7:]
-            _state = self.get_state(data[49])
-            _name = data[49]
-            _key = key_hash(_name)
-            _county = ''
-            # For now, look up the population using pandas.
-            # Create the models.
-            places.append(PlaceCounty(logrecno=_logrecno, geo_id=_geo_id,
-            key=_key, state=_state, county=_county, name=_name))
+        # DBAPI question mark substring
+        columns_len = len(column_defs) - 1
+        question_mark_substr = ', '.join(['?'] * columns_len)
 
-        # Add the places to our SQLite database.
-        session.add_all(places)
+        # Create table
+        self.create_table(this_table_name, columns, column_defs, rows)
 
-        # Commit changes
-        session.commit()
+        # Debug output
+        self.debug_output(this_table_name)
 
-        # Debug output for ColumnHeaders and PlaceCounties ####################
+        # # Debug output for ColumnHeaders and PlaceCounties ####################
 
-        print('Column headers:', '\n')
+        # print('Column headers:', '\n')
 
-        # Print the first five column headers for debugging purposes.
-        for instance in session.query(ColumnHeader).limit(5):
-            print(instance)
+        # # Print the first five column headers for debugging purposes.
+        # for instance in session.query(ColumnHeader).limit(5):
+        #     print(instance)
 
-        print()
+        # print()
 
-        print('PlaceCounties:', '\n')
+        # print('PlaceCounties:', '\n')
 
-        # Print the five largest places in California for debugging purposes.
-        for instance in session.query(PlaceCounty).limit(5):
-            print(instance)
+        # # Print the five largest places in California for debugging purposes.
+        # for instance in session.query(PlaceCounty).limit(5):
+        #     print(instance)
 
-        print()
+        # print()
 
-        # Prepare needed data #################################################
+        # # Prepare needed data #################################################
 
-        # Specify table_ids and line numbers that have the data we needed.
-        # See data/ACS_5yr_Seq_Table_Number_Lookup.txt
-        line_numbers_dict = {
-            'B01003': ['1'],   # TOTAL POPULATION
-            'B19301': ['1'],   # PER CAPITA INCOME IN THE PAST 12 MONTHS (IN
-                               # 2018 INFLATION-ADJUSTED DOLLARS)
-            'B02001': ['2',    # RACE - White alone
-                       '3',    # RACE - Black or African American alone
-                       '5'],   # RACE - Asian alone
-            'B03002': ['12'],  # HISPANIC OR LATINO ORIGIN BY RACE - Hispanic
-                               # or Latino
-            # EDUCATIONAL ATTAINMENT FOR THE POPULATION 25 YEARS AND OVER
-            'B15003': ['1',    # Total:
-                       '22',   # Bachelor's degree
-                       '23',   # Master's degree
-                       '24',   # Professional school degree
-                       '25'],  # Doctorate degree
-            'B25035': ['1'],   # Median year structure built
-            'B25058': ['1'],   # Median contract rent (of renter-occupied
-                               # housing units)
-            'B25077': ['1'],   # Median value (of owner-occupied housing units)
-        }
+        # # Specify table_ids and line numbers that have the data we needed.
+        # # See data/ACS_5yr_Seq_Table_Number_Lookup.txt
+        # line_numbers_dict = {
+        #     'B01003': ['1'],   # TOTAL POPULATION
+        #     'B19301': ['1'],   # PER CAPITA INCOME IN THE PAST 12 MONTHS (IN
+        #                        # 2018 INFLATION-ADJUSTED DOLLARS)
+        #     'B02001': ['2',    # RACE - White alone
+        #                '3',    # RACE - Black or African American alone
+        #                '5'],   # RACE - Asian alone
+        #     'B03002': ['12'],  # HISPANIC OR LATINO ORIGIN BY RACE - Hispanic
+        #                        # or Latino
+        #     # EDUCATIONAL ATTAINMENT FOR THE POPULATION 25 YEARS AND OVER
+        #     'B15003': ['1',    # Total:
+        #                '22',   # Bachelor's degree
+        #                '23',   # Master's degree
+        #                '24',   # Professional school degree
+        #                '25'],  # Doctorate degree
+        #     'B25035': ['1'],   # Median year structure built
+        #     'B25058': ['1'],   # Median contract rent (of renter-occupied
+        #                        # housing units)
+        #     'B25077': ['1'],   # Median value (of owner-occupied housing units)
+        # }
 
-        # Select relevant column headers.
-        column_headers = session.query(ColumnHeader) \
-            .filter(ColumnHeader.table_id.in_(
-                line_numbers_dict.keys()
-                )).all()
+        # # Select relevant column headers.
+        # column_headers = session.query(ColumnHeader) \
+        #     .filter(ColumnHeader.table_id.in_(
+        #         line_numbers_dict.keys()
+        #         )).all()
 
-        # Obtain needed sequence numbers                                  #####
-        sequence_numbers = dict()
+        # # Obtain needed sequence numbers                                  #####
+        # sequence_numbers = dict()
 
-        # New algorithm. Assumes all members of a table are always in the same
-        # sequence:
-        for column_header in column_headers:
-            table_id = column_header.table_id
-            line_number = column_header.line_number
-            # If we needed the line number for that table_id, set the
-            # sequence_number for table_id to the sequence number for that
-            # column_header.
-            if line_number in line_numbers_dict[table_id]:
-                sequence_numbers[table_id] = column_header.sequence_number
+        # # New algorithm. Assumes all members of a table are always in the same
+        # # sequence:
+        # for column_header in column_headers:
+        #     table_id = column_header.table_id
+        #     line_number = column_header.line_number
+        #     # If we needed the line number for that table_id, set the
+        #     # sequence_number for table_id to the sequence number for that
+        #     # column_header.
+        #     if line_number in line_numbers_dict[table_id]:
+        #         sequence_numbers[table_id] = column_header.sequence_number
 
-        print('Needed sequence numbers:', sequence_numbers)
+        # print('Needed sequence numbers:', sequence_numbers)
 
-        # Obtain needed files                                             #####
+        # # Obtain needed files                                             #####
 
-        files = dict()
+        # files = dict()
 
-        for table_id, sequence_number in sequence_numbers.items():
-            files[table_id] = []
-            for state in self.states:
-                files[table_id].append(
-                    path + 'e20185' + state + sequence_number + '000.txt')
+        # for table_id, sequence_number in sequence_numbers.items():
+        #     files[table_id] = []
+        #     for state in self.states:
+        #         files[table_id].append(
+        #             path + 'e20185' + state + sequence_number + '000.txt')
 
-        print('Needed files:', files)
+        # print('Needed files:', files)
 
-        # Obtain needed positions                                         #####
-        positions = dict()
+        # # Obtain needed positions                                         #####
+        # positions = dict()
 
-        # Has the logrecno been added to the columns? We only want to add it
-        # once.
-        logrecno_added = False
+        # # Has the logrecno been added to the columns? We only want to add it
+        # # once.
+        # logrecno_added = False
 
-        # New algorithm
-        for column_header in column_headers:
-            # Get table_id
-            table_id = column_header.table_id
+        # # New algorithm
+        # for column_header in column_headers:
+        #     # Get table_id
+        #     table_id = column_header.table_id
 
-            # Add LOGRECNO only for the first table_id
-            if table_id not in positions.keys():
-                if not logrecno_added:
-                    positions[table_id] = [5]
-                    logrecno_added = True
-                else:
-                    positions[table_id] = []
+        #     # Add LOGRECNO only for the first table_id
+        #     if table_id not in positions.keys():
+        #         if not logrecno_added:
+        #             positions[table_id] = [5]
+        #             logrecno_added = True
+        #         else:
+        #             positions[table_id] = []
 
-            # Once we hit our start_position, get it and subtract one since
-            # they start at one, not zero.
-            if column_header.start_position:
-                start_position = int(column_header.start_position) - 1
+        #     # Once we hit our start_position, get it and subtract one since
+        #     # they start at one, not zero.
+        #     if column_header.start_position:
+        #         start_position = int(column_header.start_position) - 1
 
-            # If we hit a line number and it's a line number we need, get it,
-            # add it to the start_position, then subtract one again since
-            # line numbers also start at zero.
-            elif column_header.line_number in line_numbers_dict[table_id]:
-                line_number = int(column_header.line_number)
-                positions[table_id].append(start_position + line_number - 1)
+        #     # If we hit a line number and it's a line number we need, get it,
+        #     # add it to the start_position, then subtract one again since
+        #     # line numbers also start at zero.
+        #     elif column_header.line_number in line_numbers_dict[table_id]:
+        #         line_number = int(column_header.line_number)
+        #         positions[table_id].append(start_position + line_number - 1)
 
-        print('Needed positions:', positions)
+        # print('Needed positions:', positions)
 
-        # Obtain needed column names                                      #####
+        # # Obtain needed column names                                      #####
 
-        column_name_dict = dict()
-        column_names = []
-        logrecno_added = False
+        # column_name_dict = dict()
+        # column_names = []
+        # logrecno_added = False
 
-        for id, line_numbers in line_numbers_dict.items():
-            # If it's not in the table yet, initialize a new list with 'LOGRECNO'
-            if not logrecno_added:
-                column_name_dict[id] = ['LOGRECNO']
-                logrecno_added = True
-            else:
-                column_name_dict[id] = []
-            # Add the table_id, plus and underscore, plus a line number
-            for line_number in line_numbers:
-                column_name = id + '_' + line_number
-                column_name_dict[id].append(column_name)
-                column_names.append(column_name)
-
-        print('Needed column names by table_id:', column_name_dict)
-        print('Needed column names:', column_names)
-        print()
-
-        # Organize data #######################################################
-
-        # Get ready to store data in a dictionary of dataframes.
-        data_dfs = {}
-
-        for id, line_number in line_numbers_dict.items():
-            dfs = [pd.read_csv(f, usecols=positions[id],
-                                names=column_name_dict[id],
-                                dtype='str', header=None, engine='python') \
-                    for f in files[id]]
-            data_dfs[id] = pd.concat(dfs, axis=0)
-
-        # Merge the values of data_dfs together for easier insertion into our
-        # Data SQL table.
-        # First, declare a placeholder.
-        # merged_df = pd.DataFrame()
-        merged_df = pd.concat(data_dfs.values(), axis=1)
-
-        # for df in data_dfs.values():
-        #     # At first, just assign df to merged_df.
-        #     if merged_df.empty:
-        #         merged_df = df
-        #     # For future iterations, merge the DataFrames together.
+        # for id, line_numbers in line_numbers_dict.items():
+        #     # If it's not in the table yet, initialize a new list with 'LOGRECNO'
+        #     if not logrecno_added:
+        #         column_name_dict[id] = ['LOGRECNO']
+        #         logrecno_added = True
         #     else:
-        #         merged_df = merged_df.set_index('LOGRECNO') \
-        #                     .join(df.set_index('LOGRECNO'))
-        #         merged_df = merged_df.reset_index()
+        #         column_name_dict[id] = []
+        #     # Add the table_id, plus and underscore, plus a line number
+        #     for line_number in line_numbers:
+        #         column_name = id + '_' + line_number
+        #         column_name_dict[id].append(column_name)
+        #         column_names.append(column_name)
 
-        print('Merged Data class data:', '\n')
-        print(merged_df.head())
-        print()
+        # print('Needed column names by table_id:', column_name_dict)
+        # print('Needed column names:', column_names)
+        # print()
 
-        # Create our new model ################################################
+        # # Organize data #######################################################
 
-        from model.Data import create_data_class
-        from sqlalchemy.orm import relationship
+        # # Get ready to store data in a dictionary of dataframes.
+        # data_dfs = {}
 
-        Data = create_data_class(merged_df)
+        # for id, line_number in line_numbers_dict.items():
+        #     dfs = [pd.read_csv(f, usecols=positions[id],
+        #                         names=column_name_dict[id],
+        #                         dtype='str', header=None, engine='python') \
+        #             for f in files[id]]
+        #     data_dfs[id] = pd.concat(dfs, axis=0)
 
-        # Create the table in the database
-        Base.metadata.create_all(engine)
+        # # Merge the values of data_dfs together for easier insertion into our
+        # # Data SQL table.
+        # # First, declare a placeholder.
+        # # merged_df = pd.DataFrame()
+        # merged_df = pd.concat(data_dfs.values(), axis=1)
 
-        # Add relationship to PlaceCounty
-        PlaceCounty.data = relationship('Data', uselist=False,
-            back_populates='placecounty')
+        # # for df in data_dfs.values():
+        # #     # At first, just assign df to merged_df.
+        # #     if merged_df.empty:
+        # #         merged_df = df
+        # #     # For future iterations, merge the DataFrames together.
+        # #     else:
+        # #         merged_df = merged_df.set_index('LOGRECNO') \
+        # #                     .join(df.set_index('LOGRECNO'))
+        # #         merged_df = merged_df.reset_index()
 
-        data_rows = []
+        # print('Merged Data class data:', '\n')
+        # print(merged_df.head())
+        # print()
 
-        for index, data in merged_df.iterrows():
-            # Create column header models
-            record = Data()
+        # # Create our new model ################################################
 
-            for column in merged_df.columns:
-                # Dynamically assign data to each attribute
-                setattr(record, column, data[column])
+        # from model.Data import create_data_class
+        # from sqlalchemy.orm import relationship
+
+        # Data = create_data_class(merged_df)
+
+        # # Create the table in the database
+        # Base.metadata.create_all(engine)
+
+        # # Add relationship to PlaceCounty
+        # PlaceCounty.data = relationship('Data', uselist=False,
+        #     back_populates='placecounty')
+
+        # data_rows = []
+
+        # for index, data in merged_df.iterrows():
+        #     # Create column header models
+        #     record = Data()
+
+        #     for column in merged_df.columns:
+        #         # Dynamically assign data to each attribute
+        #         setattr(record, column, data[column])
             
-            data_rows.append(record)
+        #     data_rows.append(record)
 
-        # Add column headers to database
-        session.add_all(data_rows)
+        # # Add column headers to database
+        # session.add_all(data_rows)
 
-        session.commit()
+        # session.commit()
 
-        print('Data instances:', '\n')
+        # print('Data instances:', '\n')
 
-        # Print the Data for debugging purposes.
-        for instance in session.query(Data).limit(5):
-            print(instance)
+        # # Print the Data for debugging purposes.
+        # for instance in session.query(Data).limit(5):
+        #     print(instance)
 
-        print()
+        # print()
 
-        # GeoHeaders ##########################################################
+        # # GeoHeaders ##########################################################
 
-        # The primary reason we are interested in the 2019 National Gazetteer
-        # is that we need to get the land area so that we can calculate
-        # population and housing unit densities.
+        # # The primary reason we are interested in the 2019 National Gazetteer
+        # # is that we need to get the land area so that we can calculate
+        # # population and housing unit densities.
 
-        from model.GeoHeader import create_geoheader_class
+        # from model.GeoHeader import create_geoheader_class
 
-        GeoHeader = create_geoheader_class(self.path)
+        # GeoHeader = create_geoheader_class(self.path)
 
-        # Create the table in the database
-        Base.metadata.create_all(engine)
+        # # Create the table in the database
+        # Base.metadata.create_all(engine)
 
-        PlaceCounty.geoheader = relationship('GeoHeader', uselist=False, \
-            back_populates='placecounty')
+        # PlaceCounty.geoheader = relationship('GeoHeader', uselist=False, \
+        #     back_populates='placecounty')
 
-        insert_rows(GeoHeader, path + '2019_Gaz_place_national.txt', sep='\t',
-                    dtype='str')
+        # insert_rows(GeoHeader, path + '2019_Gaz_place_national.txt', sep='\t',
+        #             dtype='str')
 
-        session.commit()
+        # session.commit()
 
-        print('Geoheaders:', '\n')
+        # print('Geoheaders:', '\n')
 
-        # Print some GeoHeaders for debugging purposes.
-        for instance in session.query(GeoHeader).limit(5):
-            print(instance)
+        # # Print some GeoHeaders for debugging purposes.
+        # for instance in session.query(GeoHeader).limit(5):
+        #     print(instance)
 
-        print()
+        # print()
 
-        # DemographicProfiles #################################################
+        # # DemographicProfiles #################################################
 
-        # Get rows of data
-        first_five = session.query(PlaceCounty).limit(5)
-        all_results = session.query(PlaceCounty)
+        # # Get rows of data
+        # first_five = session.query(PlaceCounty).limit(5)
+        # all_results = session.query(PlaceCounty)
 
-        # Create a placeholder for DemographicProfiles
-        self.demographicprofiles = []
+        # # Create a placeholder for DemographicProfiles
+        # self.demographicprofiles = []
 
-        for instance in all_results:
-            try:
-                self.demographicprofiles.append(DemographicProfile(instance))
-            except AttributeError:
-                print('AttributeError:', instance)
+        # for instance in all_results:
+        #     try:
+        #         self.demographicprofiles.append(DemographicProfile(instance))
+        #     except AttributeError:
+        #         print('AttributeError:', instance)
 
-        print('First five DemographicProfiles:', '\n')
+        # print('First five DemographicProfiles:', '\n')
 
-        for demographicprofile in self.demographicprofiles[:5]:
-            print(str(demographicprofile))
+        # for demographicprofile in self.demographicprofiles[:5]:
+        #     print(str(demographicprofile))
 
-        print('DataFrames:', '\n')
+        # # Prepare a DataFrame into which we can insert rows.
+        # rows = []
 
-        # Prepare a DataFrame into which we can insert rows.
-        query_df = pd.DataFrame(columns=column_names + ['ALAND_SQMI'])
-
-        for instance in session.query(PlaceCounty):
-            try: 
-                # Load data into a list first.
-                to_append = [
-                            instance.data.B01003_1,
-                            instance.data.B19301_1,
-                            instance.data.B02001_2,
-                            instance.data.B02001_3,
-                            instance.data.B02001_5,
-                            instance.data.B03002_12,
-                            instance.data.B15003_1,
-                            instance.data.B15003_22,
-                            instance.data.B15003_23,
-                            instance.data.B15003_24,
-                            instance.data.B15003_25,
-                            instance.data.B25035_1,
-                            instance.data.B25058_1,
-                            instance.data.B25077_1,
-                            instance.geoheader.ALAND_SQMI,
-                            ]
+        # for instance in session.query(PlaceCounty):
+        #     try: 
+        #         # # Load data into a list first.
+        #         # to_append = [
+        #         #             instance.data.B01003_1,
+        #         #             instance.data.B19301_1,
+        #         #             instance.data.B02001_2,
+        #         #             instance.data.B02001_3,
+        #         #             instance.data.B02001_5,
+        #         #             instance.data.B03002_12,
+        #         #             instance.data.B15003_1,
+        #         #             instance.data.B15003_22,
+        #         #             instance.data.B15003_23,
+        #         #             instance.data.B15003_24,
+        #         #             instance.data.B15003_25,
+        #         #             instance.data.B25035_1,
+        #         #             instance.data.B25058_1,
+        #         #             instance.data.B25077_1,
+        #         #             instance.geoheader.ALAND_SQMI,
+        #         #             ]
             
-                # In order to insert rows into the DataFrame, first convert the
-                # list into a Pandas series.
-                a_series = pd.Series(to_append, index = query_df.columns)
-                # Next, append the series to the DataFrame.
-                query_df = query_df.append(a_series, ignore_index=True)
-            except AttributeError:
-                print('AttributeError:', instance)
+        #         # # In order to insert rows into the DataFrame, first convert the
+        #         # # list into a Pandas series.
+        #         # a_series = pd.Series(to_append, index = query_df.columns)
+        #         # # Next, append the series to the DataFrame.
+        #         # query_df = query_df.append(a_series, ignore_index=True)
+        #         rows.append([[
+        #                     instance.data.B01003_1,
+        #                     instance.data.B19301_1,
+        #                     instance.data.B02001_2,
+        #                     instance.data.B02001_3,
+        #                     instance.data.B02001_5,
+        #                     instance.data.B03002_12,
+        #                     instance.data.B15003_1,
+        #                     instance.data.B15003_22,
+        #                     instance.data.B15003_23,
+        #                     instance.data.B15003_24,
+        #                     instance.data.B15003_25,
+        #                     instance.data.B25035_1,
+        #                     instance.data.B25058_1,
+        #                     instance.data.B25077_1,
+        #                     instance.geoheader.ALAND_SQMI,
+        #                     ]])
+        #     except AttributeError:
+        #         print('AttributeError:', instance)
 
-        # Convert all data into numeric data, even if there are errors.
-        query_df = query_df.apply(pd.to_numeric, errors='coerce')
+        # # Convert all data into numeric data, even if there are errors.
+        # query_df = pd.DataFrame(rows, columns=column_names + ['ALAND_SQMI'])
 
-        print(query_df.head())
-        print()
+        # print('DataFrames:', '\n')
+        # print(query_df.head())
+        # print()
 
-        # Print some debug information.
-        print('Medians:', '\n')
-        medians = query_df.median()
-        print(dict(medians))
-        print()
+        # # Print some debug information.
+        # print('Medians:', '\n')
+        # medians = query_df.median()
+        # print(dict(medians))
+        # print()
 
-        print('Standard deviations:', '\n')
-        standard_deviations = query_df.std()
-        print(dict(standard_deviations))
-        print()
+        # print('Standard deviations:', '\n')
+        # standard_deviations = query_df.std()
+        # print(dict(standard_deviations))
+        # print()
 
-        # PlaceVectors ########################################################
+        # # PlaceVectors ########################################################
 
-        from datainterface.PlaceVector import PlaceVector
+        # from datainterface.PlaceVector import PlaceVector
 
-        self.placevectors = []
+        # self.placevectors = []
 
-        for instance in all_results:
-            try:
-                # Construct a PlaceVector and append it to self.PlaceVectors.
-                self.placevectors.append(
-                    PlaceVector(
-                        instance.name,
-                        instance.county,
-                        instance.data.B01003_1,       
-                        instance.data.B19301_1,       
-                        instance.data.B02001_2,       
-                        instance.data.B02001_3,       
-                        instance.data.B02001_5,       
-                        instance.data.B03002_12,      
-                        instance.data.B15003_1,       
-                        instance.data.B15003_22,      
-                        instance.data.B15003_23,      
-                        instance.data.B15003_24,      
-                        instance.data.B15003_25,      
-                        instance.geoheader.ALAND_SQMI,
-                        dict(medians),
-                        dict(standard_deviations)
-                    )
-                )
-            # If a TypeError is thrown because some data is unavailable, just
-            # don't make that PlaceVector and print a debugging message.
-            except (TypeError, ValueError, AttributeError):
-                print('Note: Inadequate data for PlaceVector creation:',
-                      instance.name)
+        # for instance in all_results:
+        #     try:
+        #         # Construct a PlaceVector and append it to self.PlaceVectors.
+        #         self.placevectors.append(
+        #             PlaceVector(
+        #                 instance.name,
+        #                 instance.county,
+        #                 instance.data.B01003_1,       
+        #                 instance.data.B19301_1,       
+        #                 instance.data.B02001_2,       
+        #                 instance.data.B02001_3,       
+        #                 instance.data.B02001_5,       
+        #                 instance.data.B03002_12,      
+        #                 instance.data.B15003_1,       
+        #                 instance.data.B15003_22,      
+        #                 instance.data.B15003_23,      
+        #                 instance.data.B15003_24,      
+        #                 instance.data.B15003_25,      
+        #                 instance.geoheader.ALAND_SQMI,
+        #                 dict(medians),
+        #                 dict(standard_deviations)
+        #             )
+        #         )
+        #     # If a TypeError is thrown because some data is unavailable, just
+        #     # don't make that PlaceVector and print a debugging message.
+        #     except (TypeError, ValueError, AttributeError):
+        #         print('Note: Inadequate data for PlaceVector creation:',
+        #               instance.name)
 
-        # PlaceVectorApps #####################################################
+        # # PlaceVectorApps #####################################################
 
-        from datainterface.PlaceVectorApp import PlaceVectorApp
+        # from datainterface.PlaceVectorApp import PlaceVectorApp
 
-        self.placevectorapps = []
+        # self.placevectorapps = []
 
-        for instance in all_results:
-            try:
-                # Construct a PlaceVector and append it to self.PlaceVectors.
-                self.placevectorapps.append(
-                    PlaceVectorApp(
-                        instance.name,
-                        instance.county,
-                        instance.data.B01003_1,       
-                        instance.data.B19301_1,    
-                        instance.geoheader.ALAND_SQMI,
-                        instance.data.B25035_1,
-                        dict(medians),
-                        dict(standard_deviations)
-                    )
-                )
-            # If a TypeError is thrown because some data is unavailable, just
-            # don't make that PlaceVectorApp and print a debugging message.
-            except (TypeError, ValueError, AttributeError):
-                print('Note: Inadequate data for PlaceVectorApp creation:',
-                      instance.name)
-
-    def get_data(self):
-        return ProcessedData(placevectors=self.placevectors,
-                             placevectorapps=self.placevectorapps,
-                             demographicprofiles=self.demographicprofiles)
-
-
+        # for instance in all_results:
+        #     try:
+        #         # Construct a PlaceVector and append it to self.PlaceVectors.
+        #         self.placevectorapps.append(
+        #             PlaceVectorApp(
+        #                 instance.name,
+        #                 instance.county,
+        #                 instance.data.B01003_1,       
+        #                 instance.data.B19301_1,    
+        #                 instance.geoheader.ALAND_SQMI,
+        #                 instance.data.B25035_1,
+        #                 dict(medians),
+        #                 dict(standard_deviations)
+        #             )
+        #         )
+        #     # If a TypeError is thrown because some data is unavailable, just
+        #     # don't make that PlaceVectorApp and print a debugging message.
+        #     except (TypeError, ValueError, AttributeError):
+        #         print('Note: Inadequate data for PlaceVectorApp creation:',
+        #               instance.name)
