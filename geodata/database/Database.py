@@ -4,6 +4,7 @@ from model.PlaceCounty import PlaceCounty
 from model.ColumnHeader import get_ch_columns
 from datainterface.DemographicProfile import DemographicProfile
 from initialize_sqlalchemy import Base, engine, session
+from itertools import islice
 import sqlite3
 import csv
 
@@ -39,11 +40,15 @@ class Database:
         split_geo_name = geo_name.split(', ')
         return split_geo_name[-1]
 
+    def dbapi_qm_substr(self, columns_len):
+        '''Get the DBAPI question mark substring'''
+        return ', '.join(['?'] * columns_len)
+
     def create_table(self, table_name, columns, column_defs, rows):
         '''Create a table for use by geodata.'''
         # DBAPI question mark substring
         columns_len = len(column_defs) - 1
-        question_mark_substr = ', '.join(['?'] * columns_len)
+        question_mark_substr = self.dbapi_qm_substr(columns_len)
 
         # CREATE TABLE statement
         self.c.execute('''CREATE TABLE %s
@@ -53,10 +58,29 @@ class Database:
         self.c.executemany('INSERT INTO %s(%s) VALUES (%s)' % (
             table_name, ', '.join(columns), question_mark_substr), rows)
 
-    def debug_output(self, table_name):
+    def debug_output_table(self, table_name):
+        '''Print debug information for a table.'''
         print('%s table:' % table_name, '\n')
         for row in self.c.execute('SELECT * FROM %s LIMIT 5' % table_name):
             print(row)
+        print()
+
+    def debug_output_list(self, list_name):
+        '''Print debug information for a list.'''
+        print('%s:' % list_name, '\n')
+        for row in getattr(self, list_name)[:5]:
+            print(row)
+        print()
+
+    def take(self, n, iterable):
+        '''Return first n items of the iterable as a list'''
+        return list(islice(iterable, n))
+
+    def debug_output_dict(self, dict_name):
+        '''Print debug information for a dictionary.'''
+        print('%s:' % dict_name, '\n')
+        for key, value in self.take(5, getattr(self, dict_name).items()):
+            print(key + ':', value)
         print()
     
     ###########################################################################
@@ -97,7 +121,7 @@ class Database:
         self.create_table(this_table_name, columns, column_defs, rows)
 
         # Debug output
-        self.debug_output(this_table_name)
+        self.debug_output_table(this_table_name)
 
         # places ##############################################################
         this_table_name = 'places'
@@ -138,120 +162,108 @@ class Database:
         self.create_table(this_table_name, columns, column_defs, rows)
 
         # Debug output
-        self.debug_output(this_table_name)
+        self.debug_output_table(this_table_name)
 
-        # # Debug output for ColumnHeaders and PlaceCounties ####################
+        # Specify what data we need ###########################################
 
-        # print('Column headers:', '\n')
+        # Specify table_ids and line numbers that have the data we need.
+        # See data/ACS_5yr_Seq_Table_Number_Lookup.txt
+        self.line_numbers_dict = {
+            'B01003': ['1'],   # TOTAL POPULATION
+            'B19301': ['1'],   # PER CAPITA INCOME IN THE PAST 12 MONTHS (IN
+                               # 2018 INFLATION-ADJUSTED DOLLARS)
+            'B02001': ['2',    # RACE - White alone
+                       '3',    # RACE - Black or African American alone
+                       '5'],   # RACE - Asian alone
+            'B03002': ['12'],  # HISPANIC OR LATINO ORIGIN BY RACE - Hispanic
+                               # or Latino
+            # EDUCATIONAL ATTAINMENT FOR THE POPULATION 25 YEARS AND OVER
+            'B15003': ['1',    # Total:
+                       '22',   # Bachelor's degree
+                       '23',   # Master's degree
+                       '24',   # Professional school degree
+                       '25'],  # Doctorate degree
+            'B25035': ['1'],   # Median year structure built
+            'B25058': ['1'],   # Median contract rent (of renter-occupied
+                               # housing units)
+            'B25077': ['1'],   # Median value (of owner-occupied housing units)
+        }
 
-        # # Print the first five column headers for debugging purposes.
-        # for instance in session.query(ColumnHeader).limit(5):
-        #     print(instance)
+        # Get needed table metadata.
+        self.table_metadata = []
 
-        # print()
+        for table_id, line_numbers in self.line_numbers_dict.items():
+            self.table_metadata += self.c.execute('''SELECT * FROM table_metadata
+                WHERE table_id = ? AND (line_number IN (%s) OR line_number = '')''' % (
+                self.dbapi_qm_substr(len(line_numbers)) ),
+                [table_id] + line_numbers)
 
-        # print('PlaceCounties:', '\n')
+        self.debug_output_list('table_metadata')
 
-        # # Print the five largest places in California for debugging purposes.
-        # for instance in session.query(PlaceCounty).limit(5):
-        #     print(instance)
+        # Obtain needed sequence numbers                                  #####
+        self.sequence_numbers = dict()
 
-        # print()
+        for table_metadata_row in self.table_metadata:
+            table_id = table_metadata_row[2]
+            sequence_number = table_metadata_row[3]
 
-        # # Prepare needed data #################################################
+            # Create the key for the table_id if it doesn't exist.
+            if table_id not in self.sequence_numbers.keys():
+                self.sequence_numbers[table_id] = []
 
-        # # Specify table_ids and line numbers that have the data we needed.
-        # # See data/ACS_5yr_Seq_Table_Number_Lookup.txt
-        # line_numbers_dict = {
-        #     'B01003': ['1'],   # TOTAL POPULATION
-        #     'B19301': ['1'],   # PER CAPITA INCOME IN THE PAST 12 MONTHS (IN
-        #                        # 2018 INFLATION-ADJUSTED DOLLARS)
-        #     'B02001': ['2',    # RACE - White alone
-        #                '3',    # RACE - Black or African American alone
-        #                '5'],   # RACE - Asian alone
-        #     'B03002': ['12'],  # HISPANIC OR LATINO ORIGIN BY RACE - Hispanic
-        #                        # or Latino
-        #     # EDUCATIONAL ATTAINMENT FOR THE POPULATION 25 YEARS AND OVER
-        #     'B15003': ['1',    # Total:
-        #                '22',   # Bachelor's degree
-        #                '23',   # Master's degree
-        #                '24',   # Professional school degree
-        #                '25'],  # Doctorate degree
-        #     'B25035': ['1'],   # Median year structure built
-        #     'B25058': ['1'],   # Median contract rent (of renter-occupied
-        #                        # housing units)
-        #     'B25077': ['1'],   # Median value (of owner-occupied housing units)
-        # }
+            self.sequence_numbers[table_id].append(sequence_number)
 
-        # # Select relevant column headers.
-        # column_headers = session.query(ColumnHeader) \
-        #     .filter(ColumnHeader.table_id.in_(
-        #         line_numbers_dict.keys()
-        #         )).all()
+        # Remove duplicate sequence numbers
+        for key, value in self.sequence_numbers.items():
+            self.sequence_numbers[key] = list(dict.fromkeys(value))
 
-        # # Obtain needed sequence numbers                                  #####
-        # sequence_numbers = dict()
+        self.debug_output_dict('sequence_numbers')
 
-        # # New algorithm. Assumes all members of a table are always in the same
-        # # sequence:
-        # for column_header in column_headers:
-        #     table_id = column_header.table_id
-        #     line_number = column_header.line_number
-        #     # If we needed the line number for that table_id, set the
-        #     # sequence_number for table_id to the sequence number for that
-        #     # column_header.
-        #     if line_number in line_numbers_dict[table_id]:
-        #         sequence_numbers[table_id] = column_header.sequence_number
+        # Obtain needed files                                             #####
+        self.files = dict()
 
-        # print('Needed sequence numbers:', sequence_numbers)
+        for table_id, sequence_numbers in self.sequence_numbers.items():
+            if table_id not in self.files.keys():
+                self.files[table_id] = []
 
-        # # Obtain needed files                                             #####
+            for state in self.states:
+                this_path = self.path + 'e20185' + state + sequence_number \
+                            + '000.txt'
+                self.files[table_id].append(this_path)
+        
+        self.debug_output_dict('files')
 
-        # files = dict()
+        # Obtain needed positions                                         #####
+        self.positions = dict()
+        last_start_position = ''
+        last_line_number = ''
 
-        # for table_id, sequence_number in sequence_numbers.items():
-        #     files[table_id] = []
-        #     for state in self.states:
-        #         files[table_id].append(
-        #             path + 'e20185' + state + sequence_number + '000.txt')
+        for table_metadata_row in self.table_metadata:
+            table_id = table_metadata_row[2]
+            start_position = table_metadata_row[5]
+            line_number = table_metadata_row[4]
 
-        # print('Needed files:', files)
+            # If the table_id hasn't been added to the keys yet, set the key
+            # to a list containing 5 (the position for LOGRECNO).
+            if table_id not in self.positions.keys():
+                self.positions[table_id] = [5]
 
-        # # Obtain needed positions                                         #####
-        # positions = dict()
+            # Once we hit our start_position, get it and subtract one since
+            # they start at one, not zero.
+            if start_position:
+                last_start_position = int(start_position) - 1
 
-        # # Has the logrecno been added to the columns? We only want to add it
-        # # once.
-        # logrecno_added = False
+            # If we hit a line number and it's a line number we need, get it,
+            # add it to the start_position, then subtract one again since
+            # line numbers also start at zero.
+            elif line_number in self.line_numbers_dict[table_id]:
+                last_line_number = int(line_number)
+                self.positions[table_id].append(last_start_position\
+                     + last_line_number - 1)
+        
+        self.debug_output_dict('positions')
 
-        # # New algorithm
-        # for column_header in column_headers:
-        #     # Get table_id
-        #     table_id = column_header.table_id
-
-        #     # Add LOGRECNO only for the first table_id
-        #     if table_id not in positions.keys():
-        #         if not logrecno_added:
-        #             positions[table_id] = [5]
-        #             logrecno_added = True
-        #         else:
-        #             positions[table_id] = []
-
-        #     # Once we hit our start_position, get it and subtract one since
-        #     # they start at one, not zero.
-        #     if column_header.start_position:
-        #         start_position = int(column_header.start_position) - 1
-
-        #     # If we hit a line number and it's a line number we need, get it,
-        #     # add it to the start_position, then subtract one again since
-        #     # line numbers also start at zero.
-        #     elif column_header.line_number in line_numbers_dict[table_id]:
-        #         line_number = int(column_header.line_number)
-        #         positions[table_id].append(start_position + line_number - 1)
-
-        # print('Needed positions:', positions)
-
-        # # Obtain needed column names                                      #####
+        # Obtain needed column names                                      #####
 
         # column_name_dict = dict()
         # column_names = []
