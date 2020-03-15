@@ -35,47 +35,90 @@ class PlaceVector:
         # Raw subcomponents - Raw values of each subcomponent
         self.rs = dict()
 
-        # Population density
-        self.rs['population_density']  = int(population) / float(land_area_sqmi)
-        self.rs['per_capita_income'] = int(per_capita_income)
-        self.rs['white_alone'] = float(white_alone) / float(population) * 100.0
-        self.rs['black_alone'] = float(black_alone) / float(population) * 100.0
-        self.rs['asian_alone'] = float(asian_alone) / float(population) * 100.0
-        self.rs['hispanic_or_latino_alone'] = float(hispanic_or_latino_alone) / float(population) * 100.0
-        self.rs['bachelors_degree_or_higher'] = ( int(bachelors_degree) \
-            + int(masters_degree) + int(professional_school_degree) \
-            + int(doctorate_degree) ) / int(population_25_years_or_older)  * 100.0
-        self.rs['graduate_degree_or_higher'] = ( int(masters_degree) \
-            + int(professional_school_degree) + int(doctorate_degree) ) \
-            / int(population_25_years_or_older)  * 100.0
+        if population != 0:
+            self.rs['population_density'] = int(population) / float(land_area_sqmi)
+            self.rs['per_capita_income'] = int(per_capita_income)
+            self.rs['white_alone'] = float(white_alone) / float(population) * 100.0
+            self.rs['black_alone'] = float(black_alone) / float(population) * 100.0
+            self.rs['asian_alone'] = float(asian_alone) / float(population) * 100.0
+            self.rs['hispanic_or_latino_alone'] = float(hispanic_or_latino_alone) / float(population) * 100.0
+            if int(population_25_years_or_older) != 0:
+                self.rs['bachelors_degree_or_higher'] = ( int(bachelors_degree) \
+                    + int(masters_degree) + int(professional_school_degree) \
+                    + int(doctorate_degree) ) / int(population_25_years_or_older)  * 100.0
+                self.rs['graduate_degree_or_higher'] = ( int(masters_degree) \
+                    + int(professional_school_degree) + int(doctorate_degree) ) \
+                    / int(population_25_years_or_older)  * 100.0
+            else:
+                self.rs['bachelors_degree_or_higher'] = 0.0
+                self.rs['graduate_degree_or_higher'] = 0.0
+
+        else:
+            self.rs['population_density'] = 0.0
+            self.rs['per_capita_income'] = 0
+            self.rs['white_alone'] = 0.0
+            self.rs['black_alone'] = 0.0
+            self.rs['asian_alone'] = 0.0
+            self.rs['hispanic_or_latino_alone'] = 0.0
+            self.rs['bachelors_degree_or_higher'] = 0.0
+            self.rs['graduate_degree_or_higher'] = 0.0
 
         # Get medians for each subcomponent
         self.med = dict()
 
-        self.med['population_density'] = float(medians['B01003_1']) / float(medians['ALAND_SQMI'])
-        self.med['per_capita_income'] = float(medians['B19301_1'])
-        self.med['white_alone'] = float(medians['B02001_2']) / float(medians['B01003_1']) * 100.0
-        self.med['black_alone'] = float(medians['B02001_3']) / float(medians['B01003_1']) * 100.0
-        self.med['asian_alone'] = float(medians['B02001_5']) / float(medians['B01003_1']) * 100.0
-        self.med['hispanic_or_latino_alone'] = float(medians['B03002_12']) / float(medians['B01003_1']) * 100.0
-        self.med['bachelors_degree_or_higher'] = (int(medians['B15003_22']) + int(medians['B15003_23']) \
-        + int(medians['B15003_24']) + int(medians['B15003_25'])) / float(medians['B15003_1']) * 100.0
-        self.med['graduate_degree_or_higher'] = (int(medians['B15003_23']) \
-        + int(medians['B15003_24']) + int(medians['B15003_25'])) / float(medians['B15003_1']) * 100.0
+        if population != 0:
+            self.med['population_density'] = float(medians['B01003_1']) / float(medians['ALAND_SQMI'])
+            self.med['per_capita_income'] = float(medians['B19301_1'])
+            self.med['white_alone'] = float(medians['B02001_2']) / float(medians['B01003_1']) * 100.0
+            self.med['black_alone'] = float(medians['B02001_3']) / float(medians['B01003_1']) * 100.0
+            self.med['asian_alone'] = float(medians['B02001_5']) / float(medians['B01003_1']) * 100.0
+            self.med['hispanic_or_latino_alone'] = float(medians['B03002_12']) / float(medians['B01003_1']) * 100.0
+            if int(population_25_years_or_older) != 0:
+                self.med['bachelors_degree_or_higher'] = (int(medians['B15003_22']) + int(medians['B15003_23']) \
+                + int(medians['B15003_24']) + int(medians['B15003_25'])) / float(medians['B15003_1']) * 100.0
+                self.med['graduate_degree_or_higher'] = (int(medians['B15003_23']) \
+                + int(medians['B15003_24']) + int(medians['B15003_25'])) / float(medians['B15003_1']) * 100.0
+            else:
+                self.med['bachelors_degree_or_higher'] = 0.0
+                self.med['graduate_degree_or_higher'] = 0.0
+        else:
+            self.med['population_density'] = 0.0
+            self.med['per_capita_income'] = 0
+            self.med['white_alone'] = 0.0
+            self.med['black_alone'] = 0.0
+            self.med['asian_alone'] = 0.0
+            self.med['hispanic_or_latino_alone'] = 0.0
+            self.med['bachelors_degree_or_higher'] = 0.0
+            self.med['graduate_degree_or_higher'] = 0.0
+
 
         # Get standard deviations for each subcomponent
         self.sd = dict()
 
-        self.sd['population_density'] = float(standard_deviations['B01003_1']) / float(standard_deviations['ALAND_SQMI'])
-        self.sd['per_capita_income'] = float(standard_deviations['B19301_1'])
-        self.sd['white_alone'] = float(standard_deviations['B02001_2']) / float(standard_deviations['B01003_1']) * 100.0
-        self.sd['black_alone'] = float(standard_deviations['B02001_3']) / float(standard_deviations['B01003_1']) * 100.0
-        self.sd['asian_alone'] = float(standard_deviations['B02001_5']) / float(standard_deviations['B01003_1']) * 100.0
-        self.sd['hispanic_or_latino_alone'] = float(standard_deviations['B03002_12']) / float(standard_deviations['B01003_1']) * 100.0
-        self.sd['bachelors_degree_or_higher'] = (int(standard_deviations['B15003_22']) + int(standard_deviations['B15003_23']) \
-        + int(standard_deviations['B15003_24']) + int(standard_deviations['B15003_25'])) / float(standard_deviations['B15003_1']) * 100.0
-        self.sd['graduate_degree_or_higher'] = (int(standard_deviations['B15003_23']) \
-        + int(standard_deviations['B15003_24']) + int(standard_deviations['B15003_25'])) / float(standard_deviations['B15003_1']) * 100.0
+        if population != 0:
+            self.sd['population_density'] = float(standard_deviations['B01003_1']) / float(standard_deviations['ALAND_SQMI'])
+            self.sd['per_capita_income'] = float(standard_deviations['B19301_1'])
+            self.sd['white_alone'] = float(standard_deviations['B02001_2']) / float(standard_deviations['B01003_1']) * 100.0
+            self.sd['black_alone'] = float(standard_deviations['B02001_3']) / float(standard_deviations['B01003_1']) * 100.0
+            self.sd['asian_alone'] = float(standard_deviations['B02001_5']) / float(standard_deviations['B01003_1']) * 100.0
+            self.sd['hispanic_or_latino_alone'] = float(standard_deviations['B03002_12']) / float(standard_deviations['B01003_1']) * 100.0
+            if int(population_25_years_or_older) != 0:
+                self.sd['bachelors_degree_or_higher'] = (int(standard_deviations['B15003_22']) + int(standard_deviations['B15003_23']) \
+                + int(standard_deviations['B15003_24']) + int(standard_deviations['B15003_25'])) / float(standard_deviations['B15003_1']) * 100.0
+                self.sd['graduate_degree_or_higher'] = (int(standard_deviations['B15003_23']) \
+                + int(standard_deviations['B15003_24']) + int(standard_deviations['B15003_25'])) / float(standard_deviations['B15003_1']) * 100.0
+            else:
+                self.sd['bachelors_degree_or_higher'] = 0.0
+                self.sd['graduate_degree_or_higher'] = 0.0
+        else:
+            self.sd['population_density'] = 0.0
+            self.sd['per_capita_income'] = 0
+            self.sd['white_alone'] = 0.0
+            self.sd['black_alone'] = 0.0
+            self.sd['asian_alone'] = 0.0
+            self.sd['hispanic_or_latino_alone'] = 0.0
+            self.sd['bachelors_degree_or_higher'] = 0.0
+            self.sd['graduate_degree_or_higher'] = 0.0
 
         #######################################################################
         # Calculate subcomponent scores
