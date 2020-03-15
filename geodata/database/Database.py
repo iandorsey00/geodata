@@ -1,46 +1,61 @@
 import pandas as pd
 
-from PlaceCounty import PlaceCounty
-from ColumnHeader import ColumnHeader, columns
-from DemographicProfile import DemographicProfile
+from model.PlaceCounty import PlaceCounty
+from model.ColumnHeader import create_ch_class, get_ch_columns
+from datainterface.DemographicProfile import DemographicProfile
 from initialize_sqlalchemy import Base, engine, session
 
-from model import insert_rows
+from model.model import insert_rows
 from key_hash import key_hash
 
 class Database:
-    '''Docstring goes here.'''
+    '''Creates a database for use by geodata.'''
     ###########################################################################
     # Helper methods for __init__
 
     # Get the county given a Census name string from summary level 155.
     def get_county(self, geo_name):
-        # Split the name string by ", "
-        split_geo_name = geo_name.split(", ")
+        # Split the name string by ', '
+        split_geo_name = geo_name.split(', ')
         # Get the first part, which will be of format XXX County (part)
         county_part = split_geo_name[0]
-        # Return only the part before " (part)"
+        # Return only the part before ' (part)'
         return county_part[:-7]
 
     # Get the Census place string given a Census name string.
     def get_place(self, geo_name):
-        # Split the name string by ", "
-        split_geo_name = geo_name.split(", ")
-        return ", ".join(split_geo_name[1:])
+        # Split the name string by ', '
+        if ';' in geo_name:
+            split_geo_name = geo_name.split('; ')
+        else:
+            split_geo_name = geo_name.split(', ')
+        return ', '.join(split_geo_name[1:])
 
     # Get the state name given a Sensus name string.
     def get_state(self, geo_name):
-        # Split the name string by ", "
-        split_geo_name = geo_name.split(", ")
+        # Split the name string by ', '
+        split_geo_name = geo_name.split(', ')
         return split_geo_name[-1]
     
     ###########################################################################
     # __init__
 
-    def __init__(self):
+    def __init__(self, path):
+        '''Create the database'''
+        self.states = ['al', 'ak', 'az', 'ar', 'ca', 'co', 'ct', 'dc', 'de',
+        'fl', 'ga', 'hi', 'id', 'il', 'in', 'ia', 'ks', 'ky', 'la', 'me', 'md',
+        'ma', 'mi', 'mn', 'ms', 'mo', 'mt', 'ne', 'nv', 'nh', 'nj', 'nm', 'ny',
+        'nc', 'nd', 'oh', 'ok', 'or', 'pa', 'ri', 'sc', 'sd', 'tn', 'tx', 'ut',
+        'vt', 'va', 'wa', 'wv', 'wi', 'wy']
+
         # Transfer of ColumnHeader data to database ###########################
+        self.path = path
+
+        columns = get_ch_columns(self.path)
+        ColumnHeader = create_ch_class(self.path)
+
         insert_rows(ColumnHeader,
-                   './data/ACS_5yr_Seq_Table_Number_Lookup.txt',
+                   self.path + 'ACS_5yr_Seq_Table_Number_Lookup.csv',
                    cols=columns)
 
         # Prepare PlaceCounties ###############################################
@@ -48,12 +63,16 @@ class Database:
         # Create all tables
         Base.metadata.create_all(engine)
 
+        dfs = [pd.read_csv(path + 'g20185' + state + '.csv',
+                    encoding='iso-8859-1', dtype='str', header=None)
+                for state in self.states]
         # First, put all places into a pandas DataFrame.
-        places_df = pd.read_csv('./data/g20185ca.csv', encoding='iso-8859-1',
-                                dtype='str', header=None)
+        places_df = pd.concat(dfs, axis=0)
                                 
         # Filter for rows where the summary level is 155.
         places_df = places_df.loc[places_df.iloc[:,2] == '155']
+
+        print(places_df.head())
 
         # Declare an array to hold instances of PlaceCounty.
         places = []
@@ -82,7 +101,7 @@ class Database:
 
         # Debug output for ColumnHeaders and PlaceCounties ####################
 
-        print("Column headers:", "\n")
+        print('Column headers:', '\n')
 
         # Print the first five column headers for debugging purposes.
         for instance in session.query(ColumnHeader).limit(5):
@@ -90,7 +109,7 @@ class Database:
 
         print()
 
-        print("PlaceCounties:", "\n")
+        print('PlaceCounties:', '\n')
 
         # Print the five largest places in California for debugging purposes.
         for instance in session.query(PlaceCounty).limit(5):
@@ -143,30 +162,39 @@ class Database:
             if line_number in line_numbers_dict[table_id]:
                 sequence_numbers[table_id] = column_header.sequence_number
 
-        print("Needed sequence numbers:", sequence_numbers)
+        print('Needed sequence numbers:', sequence_numbers)
 
         # Obtain needed files                                             #####
 
         files = dict()
 
         for table_id, sequence_number in sequence_numbers.items():
-            files[table_id] = "./data/e20185ca" + sequence_number + "000.txt"
+            files[table_id] = []
+            for state in self.states:
+                files[table_id].append(
+                    path + 'e20185' + state + sequence_number + '000.txt')
 
-        print("Needed files:", files)
+        print('Needed files:', files)
 
         # Obtain needed positions                                         #####
-
         positions = dict()
+
+        # Has the logrecno been added to the columns? We only want to add it
+        # once.
+        logrecno_added = False
 
         # New algorithm
         for column_header in column_headers:
             # Get table_id
             table_id = column_header.table_id
 
-            # Set positions[table_id] to a list containing 5 (the position for
-            # LOGRECNO) if the key table_id doesn't yet exist.
+            # Add LOGRECNO only for the first table_id
             if table_id not in positions.keys():
-                positions[table_id] = [5]
+                if not logrecno_added:
+                    positions[table_id] = [5]
+                    logrecno_added = True
+                else:
+                    positions[table_id] = []
 
             # Once we hit our start_position, get it and subtract one since
             # they start at one, not zero.
@@ -180,24 +208,29 @@ class Database:
                 line_number = int(column_header.line_number)
                 positions[table_id].append(start_position + line_number - 1)
 
-        print("Needed positions:", positions)
+        print('Needed positions:', positions)
 
         # Obtain needed column names                                      #####
 
         column_name_dict = dict()
         column_names = []
+        logrecno_added = False
 
         for id, line_numbers in line_numbers_dict.items():
             # If it's not in the table yet, initialize a new list with 'LOGRECNO'
-            column_name_dict[id] = ['LOGRECNO']
+            if not logrecno_added:
+                column_name_dict[id] = ['LOGRECNO']
+                logrecno_added = True
+            else:
+                column_name_dict[id] = []
             # Add the table_id, plus and underscore, plus a line number
             for line_number in line_numbers:
                 column_name = id + '_' + line_number
                 column_name_dict[id].append(column_name)
                 column_names.append(column_name)
 
-        print("Needed column names by table_id:", column_name_dict)
-        print("Needed column names:", column_names)
+        print('Needed column names by table_id:', column_name_dict)
+        print('Needed column names:', column_names)
         print()
 
         # Organize data #######################################################
@@ -206,32 +239,35 @@ class Database:
         data_dfs = {}
 
         for id, line_number in line_numbers_dict.items():
-            # Add column 5 because we need the logrecnos.
-            data_dfs[id] = pd.read_csv(files[id], usecols=positions[id],
-                names=column_name_dict[id], dtype='str', header=None)
+            dfs = [pd.read_csv(f, usecols=positions[id],
+                                names=column_name_dict[id],
+                                dtype='str', header=None, engine='python') \
+                    for f in files[id]]
+            data_dfs[id] = pd.concat(dfs, axis=0)
 
         # Merge the values of data_dfs together for easier insertion into our
         # Data SQL table.
         # First, declare a placeholder.
-        merged_df = pd.DataFrame()
+        # merged_df = pd.DataFrame()
+        merged_df = pd.concat(data_dfs.values(), axis=1)
 
-        for df in data_dfs.values():
-            # At first, just assign df to merged_df.
-            if merged_df.empty:
-                merged_df = df
-            # For future iterations, merge the DataFrames together.
-            else:
-                merged_df = merged_df.set_index('LOGRECNO') \
-                            .join(df.set_index('LOGRECNO'))
-                merged_df = merged_df.reset_index()
+        # for df in data_dfs.values():
+        #     # At first, just assign df to merged_df.
+        #     if merged_df.empty:
+        #         merged_df = df
+        #     # For future iterations, merge the DataFrames together.
+        #     else:
+        #         merged_df = merged_df.set_index('LOGRECNO') \
+        #                     .join(df.set_index('LOGRECNO'))
+        #         merged_df = merged_df.reset_index()
 
-        print("Merged Data class data:", "\n")
+        print('Merged Data class data:', '\n')
         print(merged_df.head())
         print()
 
         # Create our new model ################################################
 
-        from Data import create_data_class
+        from model.Data import create_data_class
         from sqlalchemy.orm import relationship
 
         Data = create_data_class(merged_df)
@@ -260,7 +296,7 @@ class Database:
 
         session.commit()
 
-        print("Data instances:", "\n")
+        print('Data instances:', '\n')
 
         # Print the Data for debugging purposes.
         for instance in session.query(Data).limit(5):
@@ -274,7 +310,9 @@ class Database:
         # is that we need to get the land area so that we can calculate
         # population and housing unit densities.
 
-        from GeoHeader import GeoHeader
+        from model.GeoHeader import create_geoheader_class
+
+        GeoHeader = create_geoheader_class(self.path)
 
         # Create the table in the database
         Base.metadata.create_all(engine)
@@ -282,16 +320,18 @@ class Database:
         PlaceCounty.geoheader = relationship('GeoHeader', uselist=False, \
             back_populates='placecounty')
 
-        insert_rows(GeoHeader, './data/2019_Gaz_place_national.txt', sep='\t',
+        insert_rows(GeoHeader, path + '2019_Gaz_place_national.txt', sep='\t',
                     dtype='str')
 
         session.commit()
 
-        print("Geoheaders:", "\n")
+        print('Geoheaders:', '\n')
 
         # Print some GeoHeaders for debugging purposes.
         for instance in session.query(GeoHeader).limit(5):
             print(instance)
+
+        print()
 
         # DemographicProfiles #################################################
 
@@ -303,44 +343,49 @@ class Database:
         self.demographicprofiles = []
 
         for instance in all_results:
-            self.demographicprofiles.append(DemographicProfile(instance))
+            try:
+                self.demographicprofiles.append(DemographicProfile(instance))
+            except AttributeError:
+                print('AttributeError:', instance)
 
-        print()
-        print("First five DemographicProfiles:", "\n")
+        print('First five DemographicProfiles:', '\n')
 
         for demographicprofile in self.demographicprofiles[:5]:
             print(str(demographicprofile))
 
-        print("DataFrames:", "\n")
+        print('DataFrames:', '\n')
 
         # Prepare a DataFrame into which we can insert rows.
         query_df = pd.DataFrame(columns=column_names + ['ALAND_SQMI'])
 
         for instance in session.query(PlaceCounty):
-            # Load data into a list first.
-            to_append = [
-                        instance.data.B01003_1,
-                        instance.data.B19301_1,
-                        instance.data.B02001_2,
-                        instance.data.B02001_3,
-                        instance.data.B02001_5,
-                        instance.data.B03002_12,
-                        instance.data.B15003_1,
-                        instance.data.B15003_22,
-                        instance.data.B15003_23,
-                        instance.data.B15003_24,
-                        instance.data.B15003_25,
-                        instance.data.B25035_1,
-                        instance.data.B25058_1,
-                        instance.data.B25077_1,
-                        instance.geoheader.ALAND_SQMI,
-                        ]
+            try: 
+                # Load data into a list first.
+                to_append = [
+                            instance.data.B01003_1,
+                            instance.data.B19301_1,
+                            instance.data.B02001_2,
+                            instance.data.B02001_3,
+                            instance.data.B02001_5,
+                            instance.data.B03002_12,
+                            instance.data.B15003_1,
+                            instance.data.B15003_22,
+                            instance.data.B15003_23,
+                            instance.data.B15003_24,
+                            instance.data.B15003_25,
+                            instance.data.B25035_1,
+                            instance.data.B25058_1,
+                            instance.data.B25077_1,
+                            instance.geoheader.ALAND_SQMI,
+                            ]
             
-            # In order to insert rows into the DataFrame, first convert the
-            # list into a Pandas series.
-            a_series = pd.Series(to_append, index = query_df.columns)
-            # Next, append the series to the DataFrame.
-            query_df = query_df.append(a_series, ignore_index=True)
+                # In order to insert rows into the DataFrame, first convert the
+                # list into a Pandas series.
+                a_series = pd.Series(to_append, index = query_df.columns)
+                # Next, append the series to the DataFrame.
+                query_df = query_df.append(a_series, ignore_index=True)
+            except AttributeError:
+                print('AttributeError:', instance)
 
         # Convert all data into numeric data, even if there are errors.
         query_df = query_df.apply(pd.to_numeric, errors='coerce')
@@ -349,19 +394,19 @@ class Database:
         print()
 
         # Print some debug information.
-        print("Medians:", "\n")
+        print('Medians:', '\n')
         medians = query_df.median()
         print(dict(medians))
         print()
 
-        print("Standard deviations:", "\n")
+        print('Standard deviations:', '\n')
         standard_deviations = query_df.std()
         print(dict(standard_deviations))
         print()
 
         # PlaceVectors ########################################################
 
-        from PlaceVector import PlaceVector
+        from datainterface.PlaceVector import PlaceVector
 
         self.placevectors = []
 
@@ -390,13 +435,13 @@ class Database:
                 )
             # If a TypeError is thrown because some data is unavailable, just
             # don't make that PlaceVector and print a debugging message.
-            except (TypeError, ValueError):
-                print("Note: Inadequate data for PlaceVector creation:",
+            except (TypeError, ValueError, AttributeError):
+                print('Note: Inadequate data for PlaceVector creation:',
                       instance.name)
 
         # PlaceVectorApps #####################################################
 
-        from PlaceVectorApp import PlaceVectorApp
+        from datainterface.PlaceVectorApp import PlaceVectorApp
 
         self.placevectorapps = []
 
@@ -417,8 +462,8 @@ class Database:
                 )
             # If a TypeError is thrown because some data is unavailable, just
             # don't make that PlaceVectorApp and print a debugging message.
-            except (TypeError, ValueError):
-                print("Note: Inadequate data for PlaceVectorApp creation:",
+            except (TypeError, ValueError, AttributeError):
+                print('Note: Inadequate data for PlaceVectorApp creation:',
                       instance.name)
 
     def get_data(self):

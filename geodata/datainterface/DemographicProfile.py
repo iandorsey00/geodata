@@ -133,7 +133,7 @@ class DemographicProfile:
             self.c['other_race'] = 0.0          # Technically not a race, but included in the race category
             self.c['hispanic_or_latino'] = 0.0
 
-        if self.rc['population_25_years_and_older'] != 0:
+        if self.rc['population_25_years_and_older'] != 0 and self.rc['population'] != 0:
             # Education category - Percentages of the population 25 years and older
             self.c['population_25_years_and_older'] = self.rc['population_25_years_and_older'] / self.rc['population'] * 100.0
             self.c['bachelors_degree_or_higher'] = self.rc['bachelors_degree_or_higher'] / self.rc['population_25_years_and_older'] * 100.0

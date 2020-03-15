@@ -1,90 +1,13 @@
-from database import Database
-import getopt
+from database.Database import Database
+import argparse
 import sys
 import pickle
 import numpy
 from geodata_typecast import gdt, gdtf, gdti
 
-# Display help information.
-def display_help():
-    '''Print the help screen.'''
-    # print('Basic usage:       geodata option')
-    # print('Options:')
-    # print()
-    # print('  -h|--help                              Display this information.')
-    # print('  -c|--create-database                   Create a new database.')
-    # print()
-    # print('PlaceVector usage: geodata -p|-a pv_query')
-    # print('PlaceVector usage: geodata --placevectors=pv_query')
-    # print('PlaceVector usage: geodata --placevectorapps=pv_query')
-    # print()
-    # print('Options:')
-    # print()
-    # print('  -p pv_query|--placevectors=pv_query    Compare PlaceVectors.')
-    # print('  -a pv_query|--placevectorapps=pv_query Compare PlaceVectorApps.')
-    # print()
-    # print('pv_query: PlaceVector queries')
-    # print()
-    # print('    "place[|county]"')
-    # print()
-    # print('Compare the PlaceVector associated with place (required) with')
-    # print('PlaceVectors in county (optional). If county is not specified,')
-    # print('Compare the PlaceVector with all others in the state.')
-    # print()
-    # print('In each case, the closest PlaceVectors will be printed.')
-    # print()
-    # print('Example: geodata -p "Los Angeles city, California"')
-    # print('         Get the closest PlaceVectors to Los Angeles, CA.')
-    # print()
-    # print('Example: geodata -a "San Diego city, California|Los Angeles County"')
-    # print('         Get the closest PlaceVectorsApps to San Diego, CA in Los')
-    # print('         Angeles County, CA.')
-    # print()
-    # print('DemographicProfile usage: geodata -d "place_str"')
-    # print('DemographicProfile usage: geodata --demographicprofile="place_str"')
-    # print()
-    # print('Get the DemographicProfile for a place.')
-    # print()
-    # print('Example: geodata -d "San Francisco city, California"')
-    # print('         Get the DemographicProfile for San Francisco, CA.')
-    # print()
-    # print('Superlative usage:     geodata -s "superlative_query"')
-    # print('Superlative usage:     geodata --superlative="superlative_query"')
-    # print('Antisuperlative usage: geodata -n "superlative_query"')
-    # print('Antisuperlative usage: geodata -antisuperlative="superlative_query"')
-    # print()
-    # print('Print the top (or bottom) 30 places with by component or compound')
-    # print('value.')
-    # print()
-    # print('superlative_query')
-    # print()
-    # print('    comp_name:c|cc[:filter_pop[:filter_county]]')
-    # print()
-    # print('See documentation.')
-    # print()
-    # print('Example: geodata -s "per_capita_income:c:50000"')
-    # print('         Get the top 30 places in California by per capita income')
-    # print('         with a population of over 50,000.')
-    # print()
-    # print('Example: geodata -n "bachelors_degree_or_higher:cc:0:Orange County"')
-    # print('         Get the bottom 30 places in California by percent of the')
-    # print("         population over 25 with a bachelor's degree or higher in")
-    # print('         Orange County.')
-    print('Usage:')
-    print('  geodata (ld|loaddata) ...')
-    print('  geodata (db|database) ...')
-    print('  geodata (v|view) ...')
-    print('  (For each command above, use -h or --help for more information.)')
-    print('  geodata -h | --help')
-    print('  geodata -v | --version')
-    print()
-    print('Options:')
-    print('  -h --help     Show this screen.')
-    print('  -v --version  Show version.')
-
 # Create and save a database.
-def create_database():
-    pickle.dump(Database(), open('./bin/default.db', 'wb'))
+def create_database(args):
+    pickle.dump(Database(args.path), open('./bin/default.db', 'wb'))
 
 # Load a database.
 def load_database():
@@ -253,53 +176,99 @@ def superlatives(arg, anti=False):
         print(sl_print_row(sl))
     print(divider())
     
-# Process options and arguments.
-try:
-    opts, args = getopt.getopt(sys.argv[1:],
-                               'hcp:a:d:s:n:',
-                               ['help', 'create-database', 'placevectors=',
-                               'placevectorapps=', 'demographicprofile=',
-                               'superlatives=', 'antisuperlatives='])
-# If there was an error with processing arguments, display help information,
-# then exit.
-except getopt.GetoptError:
-    display_help()
-    sys.exit(2)
+# # Process options and arguments.
+# try:
+#     opts, args = getopt.getopt(sys.argv[1:],
+#                                'hcp:a:d:s:n:',
+#                                ['help', 'create-database', 'placevectors=',
+#                                'placevectorapps=', 'demographicprofile=',
+#                                'superlatives=', 'antisuperlatives='])
+# # If there was an error with processing arguments, display help information,
+# # then exit.
+# except getopt.GetoptError:
+#     display_help()
+#     sys.exit(2)
 
-# Determine what to do based on command line args.
-for opt, arg in opts:
-    # Basics ##################################################################
-    # Display help.
-    if   opt in ('-h', '--help'):
-        display_help()
-        sys.exit(0)
-    # Create a database.
-    elif opt in ('-c', '--create-database'):
-        create_database()
-        sys.exit(0)
+# # Determine what to do based on command line args.
+# for opt, arg in opts:
+#     # Basics ##################################################################
+#     # Display help.
+#     if   opt in ('-h', '--help'):
+#         display_help()
+#         sys.exit(0)
+#     # Create a database.
+#     elif opt in ('-c', '--create-database'):
+#         create_database()
+#         sys.exit(0)
 
-    # PlaceVectors ############################################################
-    # Compare PlaceVectors
-    elif opt in ('-p', '--placevectors'):
-        compare_placevectors(arg)
-        sys.exit(0)
-    # Compare PlaceVectorApps
-    elif opt in ('-a', '--placevectorapps'):
-        compare_placevectors(arg, 'placevectorapp')
-        sys.exit(0)
+#     # PlaceVectors ############################################################
+#     # Compare PlaceVectors
+#     elif opt in ('-p', '--placevectors'):
+#         compare_placevectors(arg)
+#         sys.exit(0)
+#     # Compare PlaceVectorApps
+#     elif opt in ('-a', '--placevectorapps'):
+#         compare_placevectors(arg, 'placevectorapp')
+#         sys.exit(0)
 
-    # DemographicProfiles #####################################################
-    elif opt in ('-d', '--demographicprofile'):
-        get_dp(arg)
-        sys.exit(0)
+#     # DemographicProfiles #####################################################
+#     elif opt in ('-d', '--demographicprofile'):
+#         get_dp(arg)
+#         sys.exit(0)
 
-    # Superlatives and antisuperlatives #######################################
-    elif opt in ('-s', '--superlatives'):
-        superlatives(arg)
-        sys.exit(0)
-    elif opt in ('-n', '--antisuperlatives'):
-        superlatives(arg, anti=True)
-        sys.exit(0)
+#     # Superlatives and antisuperlatives #######################################
+#     elif opt in ('-s', '--superlatives'):
+#         superlatives(arg)
+#         sys.exit(0)
+#     elif opt in ('-n', '--antisuperlatives'):
+#         superlatives(arg, anti=True)
+#         sys.exit(0)
 
-# Currently, this app compares PlaceVectors by default.
-compare_placevectors()
+# # Currently, this app compares PlaceVectors by default.
+# compare_placevectors()
+
+###############################################################################
+# Argument parsing
+
+# Create the top-level argument parser
+parser = argparse.ArgumentParser(
+    description='Displays information for geographies in the U.S.')
+# Create top-level subparsers
+subparsers = parser.add_subparsers(
+    help='enter geodata <subcommand> -h for more information.')
+
+# Top-level subparser
+# Create the parsor for the "createdb" command
+createdb_parser = subparsers.add_parser('createdb', aliases=['c'])
+createdb_parser.add_argument('path', help='path to data files')
+createdb_parser.set_defaults(func=create_database)
+
+# Create the parser for the "view" command
+view_parsers = subparsers.add_parser('view', aliases=['v'])
+# Create subparsers for the "view" command
+view_subparsers = view_parsers.add_subparsers(
+    help='enter geodata view <subcommand> -h for more information.')
+
+# View subparser
+# Create parsors for the view command command
+# DemographicProfiles #########################################################
+dp_parsor = view_subparsers.add_parser('dp',
+    description='View a DemographicProfile.')
+dp_parsor.add_argument('census_place_string', help='the exact place name')
+
+# PlaceVectors ################################################################
+pv_parsor = view_subparsers.add_parser('pv',
+    description='View PlaceVectors nearest to a PlaceVector.')
+pv_parsor.add_argument('census_place_string', help='the exact place name')
+pv_parsor.add_argument('context', help='group to compare with')
+
+# PlaceVectorApps #############################################################
+pva_parsor = view_subparsers.add_parser('pva',
+    description='View PlaceVectorApps nearest to a PlaceVectorApp')
+pva_parsor.add_argument('census_place_string', help='the exact place name')
+pva_parsor.add_argument('context', help='group to compare with')
+sl_parsor = view_subparsers.add_parser('sl')
+asl_parsor = view_subparsers.add_parser('asl')
+
+args = parser.parse_args()
+args.func(args)
