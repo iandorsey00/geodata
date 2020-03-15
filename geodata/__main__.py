@@ -40,7 +40,7 @@ def initalize_database():
 # type options:
 #   placevector         PlaceVector (default)
 #   placevectorapp      PlaceVectorApp
-def compare_placevectors(geo, type='placevector'):
+def compare_placevectors(args, type='placevector'):
     d = initalize_database()
 
     if type == 'placevector':
@@ -49,7 +49,7 @@ def compare_placevectors(geo, type='placevector'):
         pv_list = d.placevectorapps
 
     # Split the geos with a pipe
-    geo_split = geo.split('|')
+    geo_split = args.census_place_string.split('|')
 
     search_name = geo_split[0]
 
@@ -85,9 +85,10 @@ def compare_placevectors(geo, type='placevector'):
         print("Distance:", comparison_pv.distance(closest_pv))
 
 # Get DemographicProfiles
-def get_dp(place):
+def get_dp(args):
     d = initalize_database()
 
+    place = args.census_place_string
     dp = list(filter(lambda x: x.name == place, d.demographicprofiles))[0]
     print(str(dp))
 
@@ -175,57 +176,6 @@ def superlatives(arg, anti=False):
     for sl in sls[:30]:
         print(sl_print_row(sl))
     print(divider())
-    
-# # Process options and arguments.
-# try:
-#     opts, args = getopt.getopt(sys.argv[1:],
-#                                'hcp:a:d:s:n:',
-#                                ['help', 'create-database', 'placevectors=',
-#                                'placevectorapps=', 'demographicprofile=',
-#                                'superlatives=', 'antisuperlatives='])
-# # If there was an error with processing arguments, display help information,
-# # then exit.
-# except getopt.GetoptError:
-#     display_help()
-#     sys.exit(2)
-
-# # Determine what to do based on command line args.
-# for opt, arg in opts:
-#     # Basics ##################################################################
-#     # Display help.
-#     if   opt in ('-h', '--help'):
-#         display_help()
-#         sys.exit(0)
-#     # Create a database.
-#     elif opt in ('-c', '--create-database'):
-#         create_database()
-#         sys.exit(0)
-
-#     # PlaceVectors ############################################################
-#     # Compare PlaceVectors
-#     elif opt in ('-p', '--placevectors'):
-#         compare_placevectors(arg)
-#         sys.exit(0)
-#     # Compare PlaceVectorApps
-#     elif opt in ('-a', '--placevectorapps'):
-#         compare_placevectors(arg, 'placevectorapp')
-#         sys.exit(0)
-
-#     # DemographicProfiles #####################################################
-#     elif opt in ('-d', '--demographicprofile'):
-#         get_dp(arg)
-#         sys.exit(0)
-
-#     # Superlatives and antisuperlatives #######################################
-#     elif opt in ('-s', '--superlatives'):
-#         superlatives(arg)
-#         sys.exit(0)
-#     elif opt in ('-n', '--antisuperlatives'):
-#         superlatives(arg, anti=True)
-#         sys.exit(0)
-
-# # Currently, this app compares PlaceVectors by default.
-# compare_placevectors()
 
 ###############################################################################
 # Argument parsing
@@ -255,12 +205,14 @@ view_subparsers = view_parsers.add_subparsers(
 dp_parsor = view_subparsers.add_parser('dp',
     description='View a DemographicProfile.')
 dp_parsor.add_argument('census_place_string', help='the exact place name')
+dp_parsor.set_defaults(func=get_dp)
 
 # PlaceVectors ################################################################
 pv_parsor = view_subparsers.add_parser('pv',
     description='View PlaceVectors nearest to a PlaceVector.')
 pv_parsor.add_argument('census_place_string', help='the exact place name')
-pv_parsor.add_argument('context', help='group to compare with')
+# pv_parsor.add_argument('context', help='group to compare with')
+pv_parsor.set_defaults(func=compare_placevectors)
 
 # PlaceVectorApps #############################################################
 pva_parsor = view_subparsers.add_parser('pva',

@@ -23,13 +23,13 @@ class Database:
         return county_part[:-7]
 
     # Get the Census place string given a Census name string.
-    def get_place(self, geo_name):
-        # Split the name string by ', '
-        if ';' in geo_name:
-            split_geo_name = geo_name.split('; ')
-        else:
-            split_geo_name = geo_name.split(', ')
-        return ', '.join(split_geo_name[1:])
+    # def get_place(self, geo_name):
+    #     # Split the name string by ', '
+    #     if ';' in geo_name:
+    #         split_geo_name = geo_name.split('; ')
+    #     else:
+    #         split_geo_name = geo_name.split(', ')
+    #     return ', '.join(split_geo_name[1:])
 
     # Get the state name given a Sensus name string.
     def get_state(self, geo_name):
@@ -70,7 +70,7 @@ class Database:
         places_df = pd.concat(dfs, axis=0)
                                 
         # Filter for rows where the summary level is 155.
-        places_df = places_df.loc[places_df.iloc[:,2] == '155']
+        places_df = places_df.loc[places_df.iloc[:,2] == '160']
 
         print(places_df.head())
 
@@ -83,11 +83,11 @@ class Database:
 
             # LOGRECNO matches a geo entry with its data.
             _logrecno = data[4]
-            _geo_id = data[48][7:14]
+            _geo_id = data[48][7:]
             _state = self.get_state(data[49])
-            _name = self.get_place(data[49])
+            _name = data[49]
             _key = key_hash(_name)
-            _county = self.get_county(data[49])
+            _county = ''
             # For now, look up the population using pandas.
             # Create the models.
             places.append(PlaceCounty(logrecno=_logrecno, geo_id=_geo_id,
