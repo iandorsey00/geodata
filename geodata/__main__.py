@@ -1,17 +1,18 @@
 from database.Database import Database
 import argparse
 import sys
-import pickle
 import numpy
+import pickle
 from geodata_typecast import gdt, gdtf, gdti
 
 # Create and save a database.
 def create_database(args):
-    pickle.dump(Database(args.path), open('./bin/default.db', 'wb'))
+    d = Database(args.path)
+    pickle.dump(d.get_products(), open('./bin/default.geodata', 'wb'))
 
 # Load a database.
 def load_database():
-    with open('./bin/default.db', 'rb') as f:
+    with open('./bin/default.geodata', 'rb') as f:
         return pickle.load(f)
 
 def initalize_database():
@@ -44,9 +45,9 @@ def compare_placevectors(args, type='placevector'):
     d = initalize_database()
 
     if type == 'placevector':
-        pv_list = d.placevectors
+        pv_list = d['placevectors']
     elif type == 'placevectorapp':
-        pv_list = d.placevectorapps
+        pv_list = d['placevectorapps']
 
     # Split the geos with a pipe
     geo_split = args.census_place_string.split('|')
@@ -84,17 +85,21 @@ def compare_placevectors(args, type='placevector'):
         print(closest_pv)
         print("Distance:", comparison_pv.distance(closest_pv))
 
+def compare_placevectorapps(args):
+    compare_placevectors(args, type='placevectorapp')
+
 # Get DemographicProfiles
 def get_dp(args):
     d = initalize_database()
 
     place = args.census_place_string
-    dp = list(filter(lambda x: x.name == place, d.demographicprofiles))[0]
+    dp = list(filter(lambda x: x.name == place, d['demographicprofiles']))[0]
     print(str(dp))
 
 # Superlatives and antisuperlatives
-def superlatives(arg, anti=False):
+def superlatives(args, anti=False):
     d = initalize_database()
+    arg = args.arg
 
     # Use the colon (:) to seperate subargs
     filter_str = ':'
@@ -153,7 +158,7 @@ def superlatives(arg, anti=False):
     
     # Remove numpy.nans because they interfere with sorted()
     no_nans = list(filter(lambda x: not \
-        numpy.isnan(getattr(x, sort_by)[comp_name]), d.demographicprofiles))
+        numpy.isnan(getattr(x, sort_by)[comp_name]), d['demographicprofiles']))
 
     # If there's a filter pop, remove all places underneath it.
     if filter_pop:
@@ -171,11 +176,14 @@ def superlatives(arg, anti=False):
 
     # Print the header and places with their information.
     print(divider())
-    print(sl_print_headers(d.demographicprofiles[0]))
+    print(sl_print_headers(d['demographicprofiles'][0]))
     print(divider())
     for sl in sls[:30]:
         print(sl_print_row(sl))
     print(divider())
+
+def antisuperlatives(args):
+    superlatives(args, anti=True)
 
 ###############################################################################
 # Argument parsing
@@ -218,9 +226,18 @@ pv_parsor.set_defaults(func=compare_placevectors)
 pva_parsor = view_subparsers.add_parser('pva',
     description='View PlaceVectorApps nearest to a PlaceVectorApp')
 pva_parsor.add_argument('census_place_string', help='the exact place name')
-pva_parsor.add_argument('context', help='group to compare with')
-sl_parsor = view_subparsers.add_parser('sl')
-asl_parsor = view_subparsers.add_parser('asl')
+# pva_parsor.add_argument('context', help='group to compare with')
+pva_parsor.set_defaults(func=compare_placevectorapps)
+sl_parsor = view_subparsers.add_parser('sl',
+    description='View places that rank highest with regard to a certain characteristic.')
+sl_parsor.add_argument('arg', help='the component that you want to rank')
+sl_parsor.set_defaults(func=superlatives)
+
+asl_parsor = view_subparsers.add_parser('asl',
+    description='View places that rank highest with regard to a certain characteristic.')
+asl_parsor.add_argument('arg', help='the component that you want to rank')
+asl_parsor.set_defaults(func=antisuperlatives)
+
 
 args = parser.parse_args()
 args.func(args)

@@ -634,3 +634,10 @@ class Database:
 
         # Debug output
         self.debug_output_list('placevectorapps')
+
+    def get_products(self):
+        return {
+            'placevectors': self.placevectors,
+            'placevectorapps': self.placevectorapps,
+            'demographicprofiles': self.demographicprofiles,
+            }
