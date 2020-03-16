@@ -1,12 +1,10 @@
-#
-# initialize_sqlalchemy.py
-#
-# This file ensures all other files use the same SQLAlchemy session and Base.
-#
-# Other files should import engine, session, and Base when needed. Use:
-#
-#     from sqlalchemy import Base, session, engine
-#
+'''
+This file ensures all other files use the same SQLAlchemy session and Base.
+
+Other files should import engine, session, and Base when needed. Use:
+
+    from initialize_sqlalchemy import Base, session, engine
+'''
 
 # The engine
 from sqlalchemy import create_engine

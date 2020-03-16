@@ -9,7 +9,7 @@ with open('README.md') as f:
 
 setup(
     name='geodata',
-    version='0.1a0',
+    version='0.1a1',
     description='A program for getting information about and comparing geographies',
     long_description=readme,
     long_description_content_type='text/markdown',

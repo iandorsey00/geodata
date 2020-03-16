@@ -1,11 +1,9 @@
-#
-# PlaceVector.py
-#
-# A standard 8-dimensional vector used to compare places with others.
-#
-# The closer one PlaceVector's euclidean distance is to another, the more
-# similar two places representing them are.
-#
+'''
+A standard 8-dimensional vector used to compare places with others.
+
+The closer one PlaceVector's euclidean distance is to another, the more
+demographically similar two places representing them are.
+'''
 
 class PlaceVector:
     '''A standard 8-dimensional vector used to compare places with others.'''
@@ -220,8 +218,8 @@ class PlaceVector:
         self.ws['bachelors_degree_or_higher'] = self.s['bachelors_degree_or_higher'] / 2
         self.ws['graduate_degree_or_higher'] = self.s['graduate_degree_or_higher'] / 2
 
-    # Calculate the euclidean distance between place vectors.
     def distance(self, other):
+        '''Calculate the euclidean distance between place vectors.'''
         distance = 0
 
         # Square the difference of each subcomponent, then add them together.
@@ -233,7 +231,7 @@ class PlaceVector:
         # Return the square root of that sum.
         return math.sqrt(distance)
 
-    # Display subcomponent scores
     def __repr__(self):
+        '''Display subcomponent scores.'''
         return 'PlaceVector(' + self.name + '\ns:' \
             + ', '.join([str((i,j)) for i,j in self.s.items()]) + ')'

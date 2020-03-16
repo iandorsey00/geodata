@@ -10,22 +10,22 @@
 #
 
 # declarative_base() is the class which all models inherit.
-from initialize_sqlalchemy import Base
+# from initialize_sqlalchemy import Base
 
-from sqlalchemy import Column, Integer, String, Index
-from sqlalchemy.orm import relationship
+# from sqlalchemy import Column, Integer, String, Index
+# from sqlalchemy.orm import relationship
 
-class PlaceCounty(Base):
-    __tablename__ = 'place_counties'
+# class PlaceCounty(Base):
+#     __tablename__ = 'place_counties'
 
-    id = Column(Integer, primary_key=True)
-    logrecno = Column(String)
-    geo_id = Column(String)
-    key = Column(String)
-    state = Column(String)
-    county = Column(String)
-    name = Column(String)
+#     id = Column(Integer, primary_key=True)
+#     logrecno = Column(String)
+#     geo_id = Column(String)
+#     key = Column(String)
+#     state = Column(String)
+#     county = Column(String)
+#     name = Column(String)
 
-    def __repr__(self):
-            return "<PlaceCounty(geo_id='%s', key='%s', state='%s', county='%s', name='%s')>" % (
-                self.geo_id, self.key, self.state, self.county, self.name)
+#     def __repr__(self):
+#             return "<PlaceCounty(geo_id='%s', key='%s', state='%s', county='%s', name='%s')>" % (
+#                 self.geo_id, self.key, self.state, self.county, self.name)

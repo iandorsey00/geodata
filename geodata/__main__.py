@@ -5,20 +5,21 @@ import numpy
 import pickle
 from geodata_typecast import gdt, gdtf, gdti
 
-# Create and save a database.
-def create_database(args):
+def create_data_products(args):
+    '''Generate and save data products.'''
     d = Database(args.path)
     pickle.dump(d.get_products(), open('./bin/default.geodata', 'wb'))
 
-# Load a database.
-def load_database():
+def load_data_products():
+    '''Load data products.'''
     with open('./bin/default.geodata', 'rb') as f:
         return pickle.load(f)
 
 def initalize_database():
+    '''Load data products or create them if they don't exist.'''
     # Try to open the default database, located at ../bin/default.db.
     try:
-        d = load_database()
+        d = load_data_products()
         return d
     # If there is no such database...
     except FileNotFoundError:
@@ -30,18 +31,20 @@ def initalize_database():
 
         # If the user wants to create a database, enter 'y'.
         if response == 'y':
-            create_database()
-            d = load_database()
+            create_data_products()
+            d = load_data_products()
             return d
         # Otherwise, exit.
         else:
             sys.exit(0)
 
-# Compare certain types of PlaceVectors.
-# type options:
-#   placevector         PlaceVector (default)
-#   placevectorapp      PlaceVectorApp
 def compare_placevectors(args, type='placevector'):
+    '''
+    Compare certain types of PlaceVectors.
+    type options:
+    placevector         PlaceVector (default)
+    placevectorapp      PlaceVectorApp
+    '''
     d = initalize_database()
 
     if type == 'placevector':
@@ -86,18 +89,19 @@ def compare_placevectors(args, type='placevector'):
         print("Distance:", comparison_pv.distance(closest_pv))
 
 def compare_placevectorapps(args):
+    '''Compare PlaceVectorApps.'''
     compare_placevectors(args, type='placevectorapp')
 
-# Get DemographicProfiles
 def get_dp(args):
+    '''Get DemographicProfiles.'''
     d = initalize_database()
 
     place = args.census_place_string
     dp = list(filter(lambda x: x.name == place, d['demographicprofiles']))[0]
     print(str(dp))
 
-# Superlatives and antisuperlatives
 def superlatives(args, anti=False):
+    '''Get superlatives and antisuperlatives.'''
     d = initalize_database()
     arg = args.arg
 
@@ -183,10 +187,11 @@ def superlatives(args, anti=False):
     print(divider())
 
 def antisuperlatives(args):
+    '''Wrapper function for antisuperlatives.'''
     superlatives(args, anti=True)
 
 ###############################################################################
-# Argument parsing
+# Argument parsing with argparse
 
 # Create the top-level argument parser
 parser = argparse.ArgumentParser(
@@ -199,7 +204,7 @@ subparsers = parser.add_subparsers(
 # Create the parsor for the "createdb" command
 createdb_parser = subparsers.add_parser('createdb', aliases=['c'])
 createdb_parser.add_argument('path', help='path to data files')
-createdb_parser.set_defaults(func=create_database)
+createdb_parser.set_defaults(func=create_data_products)
 
 # Create the parser for the "view" command
 view_parsers = subparsers.add_parser('view', aliases=['v'])
@@ -228,16 +233,19 @@ pva_parsor = view_subparsers.add_parser('pva',
 pva_parsor.add_argument('census_place_string', help='the exact place name')
 # pva_parsor.add_argument('context', help='group to compare with')
 pva_parsor.set_defaults(func=compare_placevectorapps)
+
+# Superlatives ################################################################
 sl_parsor = view_subparsers.add_parser('sl',
     description='View places that rank highest with regard to a certain characteristic.')
 sl_parsor.add_argument('arg', help='the component that you want to rank')
 sl_parsor.set_defaults(func=superlatives)
 
+# Antisuperlatives ############################################################
 asl_parsor = view_subparsers.add_parser('asl',
     description='View places that rank highest with regard to a certain characteristic.')
 asl_parsor.add_argument('arg', help='the component that you want to rank')
 asl_parsor.set_defaults(func=antisuperlatives)
 
-
+# Parse arguments
 args = parser.parse_args()
 args.func(args)

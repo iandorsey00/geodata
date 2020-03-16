@@ -1,21 +1,20 @@
 import pandas as pd
 
-from model.PlaceCounty import PlaceCounty
 from model.ColumnHeader import get_ch_columns
 from model.GeoHeader import get_geoheader_columns
+
 from datainterface.DemographicProfile import DemographicProfile
 from initialize_sqlalchemy import Base, engine, session
+
 from itertools import islice
 import sqlite3
 import csv
 
 from geodata_typecast import gdt, gdti, gdtf
-
-from model.model import insert_rows
 from key_hash import key_hash
 
 class Database:
-    '''Creates a database for use by geodata.'''
+    '''Creates data products for use by geodata.'''
     ###########################################################################
     # Helper methods for __init__
 
@@ -461,7 +460,7 @@ class Database:
             for debug in self.c.execute('SELECT COUNT(*) FROM data'):
                 display_data_identifier = table_id
                 print('Processing for', display_data_identifier,
-                    'complete.', debug[0], 'rows.')
+                    'complete (' + str(debug[0]), 'rows).')
 
         print()
         # Debug output
@@ -607,6 +606,8 @@ class Database:
                 print('Note: Inadequate data for PlaceVector creation:',
                       row['NAME'])
 
+        print()
+
         # Debug output
         self.debug_output_list('placevectors')
 
@@ -632,10 +633,13 @@ class Database:
                 print('Note: Inadequate data for PlaceVectorApp creation:',
                       row['NAME'])
 
+        print()
+
         # Debug output
         self.debug_output_list('placevectorapps')
 
     def get_products(self):
+        '''Return a dictionary of products.'''
         return {
             'placevectors': self.placevectors,
             'placevectorapps': self.placevectorapps,

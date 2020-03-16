@@ -1,9 +1,7 @@
-#
-# DemographicProfile.py
-#
-# A set of components intended to describe a specific geography or compare
-# small numbers of geographies.
-#
+'''
+Intended to describe a specific geography or compare small numbers of
+geographies.
+'''
 
 from geodata_typecast import gdt, gdti, gdtf
 
@@ -19,6 +17,9 @@ class DemographicProfile:
         # Row headers - Row labels
 
         self.rh = dict()
+
+        # Geography
+        self.rh['land_area'] = 'Land area'
 
         # Population category
         self.rh['population'] = 'Total population'
@@ -52,11 +53,11 @@ class DemographicProfile:
         # Raw components - Data that comes directly from the Census data files
         self.rc = dict()
 
+        # Geography category
+        self.rc['land_area'] = gdtf(db_row['ALAND_SQMI'])
+
         # Population category
         self.rc['population'] = gdt(db_row['B01003_1'])
-
-        # Geographic category
-        self.rc['land_area'] = gdtf(db_row['ALAND_SQMI'])
 
         # Race category
         self.rc['white_alone'] = gdt(db_row['B02001_2'])
@@ -108,14 +109,14 @@ class DemographicProfile:
 
         self.c = dict()
 
+        # Geography category
+        # No compounds for this category.
+
         if self.rc['land_area'] != 0:
             # Population category
             self.c['population_density'] = self.rc['population'] / self.rc['land_area']
         else:
             self.c['population_density'] = 0.0
-
-        # Geographic category
-        # No compound for this category.
 
         if self.rc['population'] != 0:
             # Race category - Percentages of the total population
@@ -167,36 +168,45 @@ class DemographicProfile:
         self.iam = ' '
 
     def __repr__(self):
+        '''Display a representation of the DemographicProfile class'''
         return "DemographicProfile(key='%s', name='%s', county='%s')" % (
             self.key, self.name, self.county)
 
     def dp_full_row_str(self, content):
+        '''Return a line with just one string'''
         return self.iam + content.ljust(54) + self.iam + '\n'
 
     def divider(self):
+        '''Return a divider'''
         return '-' * 69 + '\n'
 
     def blank_line(self):
+        '''Return a blank line'''
         return '\n'
     
     def dp_row_str(self, record_col, component_col, compound_col):
+        '''Return a row with a header, compound, and component'''
         return self.iam + record_col.ljust(35) + self.iam \
             + component_col.rjust(15) + self.iam + compound_col.rjust(15) \
             + self.iam + '\n'
 
     def dp_row_std(self, key):
+        '''Return a row with the most common characteristics'''
         return self.dp_row_str(self.rh[key], self.fc[key], self.fcd[key])
 
-    # For rows without a compound
     def dp_row_nc(self, key):
+        '''Return a row without a compound'''
         return self.dp_row_str(self.rh[key], '', self.fc[key])
 
     def __str__(self):
+        '''Return table'''
         # + self.dp_full_row_str(self.county) \
         # + self.dp_full_row_str(self.key) \
         return self.divider() \
              + self.dp_full_row_str(self.name) \
              + self.divider() \
+             + self.dp_full_row_str('GEOGRAPHY') \
+             + self.dp_row_nc('land_area') \
              + self.dp_full_row_str('POPULATION') \
              + self.dp_row_nc('population') \
              + self.dp_row_str(self.rh['population_density'], '', self.fcd['population_density']) \

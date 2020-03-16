@@ -129,8 +129,8 @@ class PlaceVectorApp:
 
         self.ws['median_year_structure_built'] = self.s['median_year_structure_built']
 
-    # Calculate the euclidean distance between place vectors.
     def distance(self, other):
+        '''Calculate the euclidean distance between place vectors.'''
         distance = 0
 
         # Square the difference of each subcomponent, then add them together.
@@ -142,7 +142,7 @@ class PlaceVectorApp:
         # Return the square root of that sum.
         return math.sqrt(distance)
 
-    # Display subcomponent scores
     def __repr__(self):
+        '''Display subcomponent scores.'''
         return 'PlaceVectorApp(' + self.name + '\ns:' \
             + ', '.join([str((i,j)) for i,j in self.s.items()]) + ')'

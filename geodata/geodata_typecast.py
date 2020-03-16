@@ -1,17 +1,9 @@
-#
-# geodata_typecast.py
-#
-# Aggressive, error-tolerant typecasting to clean up dirty data and suit the
-# needs of geodata.
-#
-
 import string
 import pandas as pd
 import numpy
 
-# Shorten the function name so that it can be used better when doing complex
-# calculations
 def gdt(input_str, dtype='default', verbose=False, no_digits=numpy.nan):
+    '''Aggressive, error-tolerant typecasting to clean up dirty data.'''
     # Handle None values.
     if input_str is None:
         fs = ''
@@ -54,10 +46,10 @@ def gdt(input_str, dtype='default', verbose=False, no_digits=numpy.nan):
     elif dtype == 'float':
         return float(fs)
 
-# A wrapper function to return ints only.
 def gdti(input_str, verbose=False, no_digits=numpy.nan):
+    '''A wrapper function that only returns ints.'''
     return gdt(input_str, dtype='int', verbose=False, no_digits=numpy.nan)
 
-# A wrapper function to return ints only.
 def gdtf(input_str, verbose=False, no_digits=numpy.nan):
+    '''A wrapper function that only returns floats.'''
     return gdt(input_str, dtype='float', verbose=False, no_digits=numpy.nan)

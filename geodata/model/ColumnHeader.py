@@ -10,7 +10,7 @@ import pandas as pd
 # from sqlalchemy import Column, Integer, String, Index
 
 def get_ch_columns(path):
-    '''Obtain columns for the column headers'''
+    '''Obtain columns for table_metadata'''
     columns = list(pd.read_csv(path + 'ACS_5yr_Seq_Table_Number_Lookup.csv',
         nrows=1, dtype='str').columns)
 
@@ -20,6 +20,7 @@ def get_ch_columns(path):
 
     return columns
 
+# Old code
 # def create_ch_class(path):
 #     '''Dynamically create the ColumnHeader class'''
 #     columns = get_ch_columns(path)

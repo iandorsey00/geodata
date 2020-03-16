@@ -1,6 +1,4 @@
 '''
-key_hash.py
-
 Transforms place name strings to consistent hashes.
 
 The challenge for joining data for geographies from different datasets is
