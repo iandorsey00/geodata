@@ -2,6 +2,7 @@ import pandas as pd
 
 from model.PlaceCounty import PlaceCounty
 from model.ColumnHeader import get_ch_columns
+from model.GeoHeader import get_geoheader_columns
 from datainterface.DemographicProfile import DemographicProfile
 from initialize_sqlalchemy import Base, engine, session
 from itertools import islice
@@ -44,10 +45,16 @@ class Database:
         '''Get the DBAPI question mark substring'''
         return ', '.join(['?'] * columns_len)
 
-    def create_table(self, table_name, columns, column_defs, rows):
+    def dbapi_update_qm_substr(self, columns_len):
+        '''Get the DBAPI question mark substring for UPDATE stmts'''
+        return ', '.join(['? = ?'] * columns_len)
+
+    # ido = id_offset: Set it to one if there is an id that columns should
+    # ignore. Otherwise, if there is no seperate id column, set it 0.
+    def create_table(self, table_name, columns, column_defs, rows, ido=1):
         '''Create a table for use by geodata.'''
         # DBAPI question mark substring
-        columns_len = len(column_defs) - 1
+        columns_len = len(column_defs) - ido
         question_mark_substr = self.dbapi_qm_substr(columns_len)
 
         # CREATE TABLE statement
@@ -164,6 +171,33 @@ class Database:
         # Debug output
         self.debug_output_table(this_table_name)
 
+        # geoheaders ##########################################################
+        this_table_name = 'geoheaders'
+
+        # The primary reason we are interested in the 2019 National Gazetteer
+        # is that we need to get the land area so that we can calculate
+        # population and housing unit densities.
+
+        columns = get_geoheader_columns(self.path)
+        column_defs = list(map(lambda x: x + ' TEXT', columns))
+        column_defs[1] += ' PRIMARY KEY'
+
+        # Get rows from CSV
+        this_path = self.path + '2019_Gaz_place_national.txt'
+        rows = []
+
+        with open(this_path, 'rt') as f:
+            rows = list(csv.reader(f, delimiter='\t'))
+
+        for row in rows:
+            row[-1] = row[-1].strip()
+
+        # Create table
+        self.create_table(this_table_name, columns, column_defs, rows, ido=0)
+
+        # Debug output
+        self.debug_output_table(this_table_name)
+
         # Specify what data we need ###########################################
 
         # Specify table_ids and line numbers that have the data we need.
@@ -246,7 +280,7 @@ class Database:
             # If the table_id hasn't been added to the keys yet, set the key
             # to a list containing 5 (the position for LOGRECNO).
             if table_id not in self.positions.keys():
-                self.positions[table_id] = [5]
+                self.positions[table_id] = [2, 4, 5]
 
             # Once we hit our start_position, get it and subtract one since
             # they start at one, not zero.
@@ -263,128 +297,119 @@ class Database:
         
         self.debug_output_dict('positions')
 
-        # Obtain needed column names                                      #####
+        # Obtain needed data_identifiers                                  #####
+        self.data_identifiers = dict()
+        self.data_identifiers_list = ['STATE', 'SEQUENCE_NUMBER', 'LOGRECNO']
 
-        # column_name_dict = dict()
-        # column_names = []
-        # logrecno_added = False
+        for table_id, line_numbers in self.line_numbers_dict.items():
+            # If there is no such key, start with 'LOGRECNO'
+            if table_id not in self.data_identifiers.keys():
+                self.data_identifiers[table_id] = \
+                    ['STATE', 'SEQUENCE_NUMBER', 'LOGRECNO']
 
-        # for id, line_numbers in line_numbers_dict.items():
-        #     # If it's not in the table yet, initialize a new list with 'LOGRECNO'
-        #     if not logrecno_added:
-        #         column_name_dict[id] = ['LOGRECNO']
-        #         logrecno_added = True
-        #     else:
-        #         column_name_dict[id] = []
-        #     # Add the table_id, plus and underscore, plus a line number
-        #     for line_number in line_numbers:
-        #         column_name = id + '_' + line_number
-        #         column_name_dict[id].append(column_name)
-        #         column_names.append(column_name)
+            # Add the data_identifiers.
+            # Format: <table_id>_<line_number>
+            for line_number in line_numbers:
+                this_data_identifier = table_id + '_' + line_number
+                self.data_identifiers[table_id].append(this_data_identifier)
+                self.data_identifiers_list.append(this_data_identifier)
+        
+        # Add LAREA_SQMI for use later.
+        self.data_identifiers_list += ['LAREA_SQMI']
 
-        # print('Needed column names by table_id:', column_name_dict)
-        # print('Needed column names:', column_names)
-        # print()
+        self.debug_output_dict('data_identifiers')
+        self.debug_output_list('data_identifiers_list')
 
-        # # Organize data #######################################################
+        # data ################################################################
+        this_table_name = 'data'
 
-        # # Get ready to store data in a dictionary of dataframes.
-        # data_dfs = {}
+        print('Processing data table. This might take a while.')
+        print()
 
-        # for id, line_number in line_numbers_dict.items():
-        #     dfs = [pd.read_csv(f, usecols=positions[id],
-        #                         names=column_name_dict[id],
-        #                         dtype='str', header=None, engine='python') \
-        #             for f in files[id]]
-        #     data_dfs[id] = pd.concat(dfs, axis=0)
+        columns = self.data_identifiers_list
+        column_defs = list(map(lambda x: x + ' TEXT', columns))
+        column_defs.append('PRIMARY KEY(STATE, SEQUENCE_NUMBER, LOGRECNO)')
 
-        # # Merge the values of data_dfs together for easier insertion into our
-        # # Data SQL table.
-        # # First, declare a placeholder.
-        # # merged_df = pd.DataFrame()
-        # merged_df = pd.concat(data_dfs.values(), axis=1)
+        # CREATE TABLE statement
+        self.c.execute('''CREATE TABLE %s
+                          (%s)''' % (this_table_name, ', '.join(column_defs)))
 
-        # # for df in data_dfs.values():
-        # #     # At first, just assign df to merged_df.
-        # #     if merged_df.empty:
-        # #         merged_df = df
-        # #     # For future iterations, merge the DataFrames together.
-        # #     else:
-        # #         merged_df = merged_df.set_index('LOGRECNO') \
-        # #                     .join(df.set_index('LOGRECNO'))
-        # #         merged_df = merged_df.reset_index()
+        # Record whether or not we're on the first statement of the function
+        # below.
+        first_line_number = True
 
-        # print('Merged Data class data:', '\n')
-        # print(merged_df.head())
-        # print()
+        # Iterate through table_ids
+        for table_id, line_numbers in self.line_numbers_dict.items():
+            # Iterate through line_numbers
+            for idx, line_number in enumerate(line_numbers):
+                # Get ID columns (STATE, SEQUENCE_NUMBER, LOGRECNO) plus the
+                # column for the current line_number
+                columns = self.data_identifiers[table_id][:3] \
+                          + [self.data_identifiers[table_id][3+idx]]
+                # Set the question mark substring.
+                question_mark_substr = self.dbapi_qm_substr(len(columns))
 
-        # # Create our new model ################################################
+                # <table_id>_<line_number> = one data identifier.
+                # e.g. B01003_1 (Total population)
 
-        # from model.Data import create_data_class
-        # from sqlalchemy.orm import relationship
+                # Now, iterate through each file (there is only one file per
+                # table per state; we will now iterate through the files
+                # for each state.)
+                for file in self.files[table_id]:
+                    rows = []
 
-        # Data = create_data_class(merged_df)
+                    # Read from each CSV file
+                    with open(file, 'rt') as f:
+                        csv_rows = csv.reader(f)
 
-        # # Create the table in the database
-        # Base.metadata.create_all(engine)
+                        # Iterate through the rows of the file.
+                        for csv_row in csv_rows:
+                            this_row = []
+                            # Iterate through positions. We will grab
+                            # the ID positions plus THE ONE data position
+                            # for the current line number.
+                            for position in self.positions[table_id][:3] \
+                                            + [self.positions[table_id][3+idx]]:
+                                position = int(position)
+                                # Append data for that positions.
+                                this_row.append(csv_row[position])
 
-        # # Add relationship to PlaceCounty
-        # PlaceCounty.data = relationship('Data', uselist=False,
-        #     back_populates='placecounty')
+                            # For the first iteration, leave the order as it
+                            # is. We will be doing INSERT statements.
+                            if first_line_number:
+                                rows.append(this_row)
+                            # Otherwise, adjust the order for an UPDATE
+                            # statement.
+                            else:
+                                rows.append(this_row[3:] + this_row[:3])
 
-        # data_rows = []
+                    if first_line_number:
+                        # Insert rows into table
+                        self.c.executemany('INSERT INTO %s(%s) VALUES (%s)' % (
+                            this_table_name, ', '.join(columns),
+                            question_mark_substr), rows)
+                    else:
+                        # UPDATE rows for each data_identifier by (STATE,
+                        # SEQUENCE_NUMBER, LOGRECNO) combination.
+                        for idx, data_identifier in \
+                        enumerate(self.data_identifiers[table_id][3:]):
+                            self.c.executemany('''UPDATE %s SET %s = ?
+                WHERE STATE = ? AND SEQUENCE_NUMBER = ? AND LOGRECNO = ?''' % (
+                                this_table_name, data_identifier), rows)
 
-        # for index, data in merged_df.iterrows():
-        #     # Create column header models
-        #     record = Data()
+                # END iteration for the first line number. No more row
+                # inserting.
+                first_line_number = False
 
-        #     for column in merged_df.columns:
-        #         # Dynamically assign data to each attribute
-        #         setattr(record, column, data[column])
-            
-        #     data_rows.append(record)
+                # Print the count for debug purposes. Should be around ~200,000
+                for debug in self.c.execute('SELECT COUNT(*) FROM data'):
+                    display_data_identifier = table_id + '_' + line_number
+                    print('Processing for', display_data_identifier,
+                        'complete.', debug[0], 'rows.')
 
-        # # Add column headers to database
-        # session.add_all(data_rows)
-
-        # session.commit()
-
-        # print('Data instances:', '\n')
-
-        # # Print the Data for debugging purposes.
-        # for instance in session.query(Data).limit(5):
-        #     print(instance)
-
-        # print()
-
-        # # GeoHeaders ##########################################################
-
-        # # The primary reason we are interested in the 2019 National Gazetteer
-        # # is that we need to get the land area so that we can calculate
-        # # population and housing unit densities.
-
-        # from model.GeoHeader import create_geoheader_class
-
-        # GeoHeader = create_geoheader_class(self.path)
-
-        # # Create the table in the database
-        # Base.metadata.create_all(engine)
-
-        # PlaceCounty.geoheader = relationship('GeoHeader', uselist=False, \
-        #     back_populates='placecounty')
-
-        # insert_rows(GeoHeader, path + '2019_Gaz_place_national.txt', sep='\t',
-        #             dtype='str')
-
-        # session.commit()
-
-        # print('Geoheaders:', '\n')
-
-        # # Print some GeoHeaders for debugging purposes.
-        # for instance in session.query(GeoHeader).limit(5):
-        #     print(instance)
-
-        # print()
+        print()
+        # Debug output
+        self.debug_output_table(this_table_name)
 
         # # DemographicProfiles #################################################
 
