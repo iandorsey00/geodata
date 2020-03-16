@@ -10,6 +10,7 @@ class DemographicProfile:
     def __init__(self, db_row):
 
         self.name = db_row['NAME']
+        self.state = db_row['STATE_ABBREV']
         # self.county = db_row['county
         # self.key = db_row['KEY
 

@@ -57,12 +57,12 @@ def compare_placevectors(args, type='placevector'):
 
     search_name = geo_split[0]
 
-    # See if the is a filter_county specified. If not, set it to an empty
+    # See if the is a filter_state specified. If not, set it to an empty
     # string.
     if len(geo_split) > 1:
-        filter_county = geo_split[1]
+        filter_state = geo_split[1]
     else:
-        filter_county = ''
+        filter_state = ''
 
     # Obtain the PlaceVector for which we entered a name.
     comparison_pv = \
@@ -71,9 +71,9 @@ def compare_placevectors(args, type='placevector'):
     print("The most demographically similar places are:")
     print()
 
-    # Filter by county if a filter_county was specified.
-    if filter_county != '':
-        filtered_pvs = list(filter(lambda x: x.county == filter_county,
+    # Filter by county if a filter_state was specified.
+    if args.context:
+        filtered_pvs = list(filter(lambda x: x.state == args.context,
                             pv_list))
     else:
         filtered_pvs = pv_list
@@ -103,28 +103,13 @@ def get_dp(args):
 def superlatives(args, anti=False):
     '''Get superlatives and antisuperlatives.'''
     d = initalize_database()
-    arg = args.arg
 
-    # Use the colon (:) to seperate subargs
-    filter_str = ':'
-    # Determine how many args
-    args = len(arg.split(filter_str))
+    comp_name = args.comp_name
+    data_type = args.data_type
 
-    # Assign comp_name (component_name), data_type, filter_pop, and
-    # filter_county based on position and arg count
-    if args == 2:
-        comp_name, data_type = arg.split(filter_str)
-        filter_pop = None
-        filter_county = None
-    elif args == 3:
-        comp_name, data_type, filter_pop = arg.split(filter_str)
-        filter_county = None
-    elif args == 4:
-        comp_name, data_type, filter_pop, filter_county = arg.split(filter_str)
-
-    # If a filter_pop was specified, parse it.
-    if filter_pop:
-        filter_pop = gdti(filter_pop)
+    # If a pop_filter was specified, parse it.
+    if args.pop_filter:
+        args.pop_filter = gdti(args.pop_filter)
 
     # Determine whether we want components (values that come straight from
     # Census data files) or compounds (values that can only be obtained by
@@ -145,8 +130,8 @@ def superlatives(args, anti=False):
 
     # Print the header
     def sl_print_headers(dpi):
-        if filter_county:
-            return iam + ('Place in ' + filter_county).ljust(45) + iam \
+        if args.context:
+            return iam + ('Place in ' + args.context).ljust(45) + iam \
                 + getattr(dpi, 'rh')['population'].rjust(20) + iam \
                 + getattr(dpi, 'rh')[comp_name].rjust(20)
         else:
@@ -156,7 +141,7 @@ def superlatives(args, anti=False):
 
     # Print a row
     def sl_print_row(dpi):
-        return iam + getattr(dpi, 'name').ljust(45) + iam \
+        return iam + getattr(dpi, 'name').ljust(45)[:45] + iam \
                + getattr(dpi, 'fc')['population'].rjust(20) + iam \
                + getattr(dpi, print_)[comp_name].rjust(20)
     
@@ -165,14 +150,14 @@ def superlatives(args, anti=False):
         numpy.isnan(getattr(x, sort_by)[comp_name]), d['demographicprofiles']))
 
     # If there's a filter pop, remove all places underneath it.
-    if filter_pop:
+    if args.pop_filter:
         no_nans = list(filter(lambda x: \
-        getattr(x, 'rc')['population'] >= filter_pop, no_nans))
+        getattr(x, 'rc')['population'] >= pop_filter, no_nans))
 
-    # If there's a filter_county, remove all places outside that county.
-    if filter_county:
+    # If there's a filter_state, remove all places outside that county.
+    if args.context:
         no_nans = list(filter(lambda x: \
-        getattr(x, 'county') == filter_county, no_nans))
+        getattr(x, 'state') == args.context, no_nans))
 
     # Sort our DemographicProfile instances by component or compound specified.
     sls = sorted(no_nans, key=lambda x: \
@@ -224,26 +209,32 @@ dp_parsor.set_defaults(func=get_dp)
 pv_parsor = view_subparsers.add_parser('pv',
     description='View PlaceVectors nearest to a PlaceVector.')
 pv_parsor.add_argument('census_place_string', help='the exact place name')
-# pv_parsor.add_argument('context', help='group to compare with')
+pv_parsor.add_argument('-c', '--context', help='state to compare with')
 pv_parsor.set_defaults(func=compare_placevectors)
 
 # PlaceVectorApps #############################################################
 pva_parsor = view_subparsers.add_parser('pva',
     description='View PlaceVectorApps nearest to a PlaceVectorApp')
 pva_parsor.add_argument('census_place_string', help='the exact place name')
-# pva_parsor.add_argument('context', help='group to compare with')
+pva_parsor.add_argument('-c', '--context', help='state to compare with')
 pva_parsor.set_defaults(func=compare_placevectorapps)
 
 # Superlatives ################################################################
 sl_parsor = view_subparsers.add_parser('sl',
     description='View places that rank highest with regard to a certain characteristic.')
-sl_parsor.add_argument('arg', help='the component that you want to rank')
+sl_parsor.add_argument('comp_name', help='the comp that you want to rank')
+sl_parsor.add_argument('data_type', help='whether comp is a component or a compound')
+sl_parsor.add_argument('-p', '--pop_filter', help='filter by population')
+sl_parsor.add_argument('-c', '--context', help='use geographies within state')
 sl_parsor.set_defaults(func=superlatives)
 
 # Antisuperlatives ############################################################
 asl_parsor = view_subparsers.add_parser('asl',
     description='View places that rank highest with regard to a certain characteristic.')
-asl_parsor.add_argument('arg', help='the component that you want to rank')
+asl_parsor.add_argument('comp_name', help='the comp that you want to rank')
+asl_parsor.add_argument('data_type', help='whether comp is a component or a compound')
+asl_parsor.add_argument('-p', '--pop_filter', help='filter by population')
+asl_parsor.add_argument('-c', '--context', help='use geographies within state')
 asl_parsor.set_defaults(func=antisuperlatives)
 
 # Parse arguments

@@ -17,6 +17,7 @@ class PlaceVectorApp:
         ):
 
         self.name = db_row['NAME']
+        self.state = db_row['STATE_ABBREV']
         # self.county = county
 
         population = db_row['B01003_1']
