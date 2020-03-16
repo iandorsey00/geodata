@@ -222,7 +222,7 @@ class Database:
                         [x[4],                  # LOGRECNO
                         x[48][7:],              # GEOID
                         self.get_state(x[49]),  # STATE
-                        self.state_abbrevs[self.get_state(x[49])],
+                        self.state_abbrevs[self.get_state(x[49])].lower(),
                                                 # STATE_ABBREV
                         x[49]],                 # NAME
                         rows
@@ -490,7 +490,7 @@ class Database:
                 return 'data.' + column
 
         # Remove duplicates
-        columns = list(dict.fromkeys(columns))
+        self.columns = list(dict.fromkeys(columns))
         ub_columns = list(map(deambigify, columns))
 
         # Column definitions
@@ -513,6 +513,7 @@ class Database:
             this_table_name, ', '.join(ub_columns)))
 
         # Debug output
+        self.debug_output_list('columns')
         self.debug_output_table(this_table_name)
 
         # Database: Apply changes #############################################
@@ -537,77 +538,73 @@ class Database:
 
         self.debug_output_list('demographicprofiles')
 
-        # print('First five DemographicProfiles:', '\n')
+        # Medians and standard deviations #####################################
 
-        # for demographicprofile in self.demographicprofiles[:5]:
-        #     print(str(demographicprofile))
-
-        # # Prepare a DataFrame into which we can insert rows.
-        # rows = []
-
-        # for instance in session.query(PlaceCounty):
-        #     try: 
-        #         # # Load data into a list first.
-        #         # to_append = [
-        #         #             instance.data.B01003_1,
-        #         #             instance.data.B19301_1,
-        #         #             instance.data.B02001_2,
-        #         #             instance.data.B02001_3,
-        #         #             instance.data.B02001_5,
-        #         #             instance.data.B03002_12,
-        #         #             instance.data.B15003_1,
-        #         #             instance.data.B15003_22,
-        #         #             instance.data.B15003_23,
-        #         #             instance.data.B15003_24,
-        #         #             instance.data.B15003_25,
-        #         #             instance.data.B25035_1,
-        #         #             instance.data.B25058_1,
-        #         #             instance.data.B25077_1,
-        #         #             instance.geoheader.ALAND_SQMI,
-        #         #             ]
+        # Prepare a DataFrame into which we can insert rows.
+        rows = []
+        for row in self.c.execute('SELECT * from geodata'):
+            try: 
+                # # Load data into a list first.
+                # to_append = [
+                #             instance.data.B01003_1,
+                #             instance.data.B19301_1,
+                #             instance.data.B02001_2,
+                #             instance.data.B02001_3,
+                #             instance.data.B02001_5,
+                #             instance.data.B03002_12,
+                #             instance.data.B15003_1,
+                #             instance.data.B15003_22,
+                #             instance.data.B15003_23,
+                #             instance.data.B15003_24,
+                #             instance.data.B15003_25,
+                #             instance.data.B25035_1,
+                #             instance.data.B25058_1,
+                #             instance.data.B25077_1,
+                #             instance.geoheader.ALAND_SQMI,
+                #             ]
             
-        #         # # In order to insert rows into the DataFrame, first convert the
-        #         # # list into a Pandas series.
-        #         # a_series = pd.Series(to_append, index = query_df.columns)
-        #         # # Next, append the series to the DataFrame.
-        #         # query_df = query_df.append(a_series, ignore_index=True)
-        #         rows.append([[
-        #                     instance.data.B01003_1,
-        #                     instance.data.B19301_1,
-        #                     instance.data.B02001_2,
-        #                     instance.data.B02001_3,
-        #                     instance.data.B02001_5,
-        #                     instance.data.B03002_12,
-        #                     instance.data.B15003_1,
-        #                     instance.data.B15003_22,
-        #                     instance.data.B15003_23,
-        #                     instance.data.B15003_24,
-        #                     instance.data.B15003_25,
-        #                     instance.data.B25035_1,
-        #                     instance.data.B25058_1,
-        #                     instance.data.B25077_1,
-        #                     instance.geoheader.ALAND_SQMI,
-        #                     ]])
-        #     except AttributeError:
-        #         print('AttributeError:', instance)
+                # # In order to insert rows into the DataFrame, first convert the
+                # # list into a Pandas series.
+                # a_series = pd.Series(to_append, index = query_df.columns)
+                # # Next, append the series to the DataFrame.
+                # query_df = query_df.append(a_series, ignore_index=True)
+                rows.append([[
+                            row['B01003_1'],
+                            row['B19301_1'],
+                            row['B02001_2'],
+                            row['B02001_3'],
+                            row['B02001_5'],
+                            row['B03002_12'],
+                            row['B15003_1'],
+                            row['B15003_22'],
+                            row['B15003_23'],
+                            row['B15003_24'],
+                            row['B15003_25'],
+                            row['B25035_1'],
+                            row['B25058_1'],
+                            row['B25077_1'],
+                            row['ALAND_SQMI'],
+                            ]])
+            except AttributeError:
+                print('AttributeError:', instance)
 
-        # # Convert all data into numeric data, even if there are errors.
-        # query_df = pd.DataFrame(rows, columns=column_names + ['ALAND_SQMI'])
+        # Convert all data into numeric data, even if there are errors.
+        query_df = pd.DataFrame(rows, columns=column_names + ['ALAND_SQMI'])
 
-        # print('DataFrames:', '\n')
-        # print(query_df.head())
-        # print()
+        print('DataFrames:', '\n')
+        print(query_df.head())
+        print()
 
-        # # Print some debug information.
-        # print('Medians:', '\n')
-        # medians = query_df.median()
-        # print(dict(medians))
-        # print()
+        # Print some debug information.
+        print('Medians:', '\n')
+        medians = df.median()
+        print(dict(medians))
+        print()
 
-        # print('Standard deviations:', '\n')
-        # standard_deviations = query_df.std()
-        # print(dict(standard_deviations))
-        # print()
+        print('Standard deviations:', '\n')
+        standard_deviations = df.std()
+        print(dict(standard_deviations))
+        print()
 
         # # PlaceVectors ########################################################
 
