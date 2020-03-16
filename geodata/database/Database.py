@@ -38,7 +38,10 @@ class Database:
     # Get the state name given a Sensus name string.
     def get_state(self, geo_name):
         # Split the name string by ', '
-        split_geo_name = geo_name.split(', ')
+        if ';' in geo_name:
+            split_geo_name = geo_name.split('; ')
+        else:
+            split_geo_name = geo_name.split(', ')
         return split_geo_name[-1]
 
     def dbapi_qm_substr(self, columns_len):
@@ -101,6 +104,66 @@ class Database:
         'nc', 'nd', 'oh', 'ok', 'or', 'pa', 'ri', 'sc', 'sd', 'tn', 'tx', 'ut',
         'vt', 'va', 'wa', 'wv', 'wi', 'wy']
 
+        self.state_abbrevs = {
+            'Alaska': 'AK',
+            'Alabama': 'AL',
+            'Arkansas': 'AR',
+            'American Samoa': 'AS',
+            'Arizona': 'AZ',
+            'California': 'CA',
+            'Colorado': 'CO',
+            'Connecticut': 'CT',
+            'District of Columbia': 'DC',
+            'Delaware': 'DE',
+            'Florida': 'FL',
+            'Georgia': 'GA',
+            'Guam': 'GU',
+            'Hawaii': 'HI',
+            'Iowa': 'IA',
+            'Idaho': 'ID',
+            'Illinois': 'IL',
+            'Indiana': 'IN',
+            'Kansas': 'KS',
+            'Kentucky': 'KY',
+            'Louisiana': 'LA',
+            'Massachusetts': 'MA',
+            'Maryland': 'MD',
+            'Maine': 'ME',
+            'Michigan': 'MI',
+            'Minnesota': 'MN',
+            'Missouri': 'MO',
+            'Northern Mariana Islands': 'MP',
+            'Mississippi': 'MS',
+            'Montana': 'MT',
+            'National': 'NA',
+            'North Carolina': 'NC',
+            'North Dakota': 'ND',
+            'Nebraska': 'NE',
+            'New Hampshire': 'NH',
+            'New Jersey': 'NJ',
+            'New Mexico': 'NM',
+            'Nevada': 'NV',
+            'New York': 'NY',
+            'Ohio': 'OH',
+            'Oklahoma': 'OK',
+            'Oregon': 'OR',
+            'Pennsylvania': 'PA',
+            'Puerto Rico': 'PR',
+            'Rhode Island': 'RI',
+            'South Carolina': 'SC',
+            'South Dakota': 'SD',
+            'Tennessee': 'TN',
+            'Texas': 'TX',
+            'Utah': 'UT',
+            'Virginia': 'VA',
+            'Virgin Islands': 'VI',
+            'Vermont': 'VT',
+            'Washington': 'WA',
+            'Wisconsin': 'WI',
+            'West Virginia': 'WV',
+            'Wyoming': 'WY'
+        }
+
         # Initialize ##########################################################
 
         self.path = path
@@ -138,10 +201,12 @@ class Database:
             'LOGRECNO',
             'GEOID',
             'STATE',
+            'STATE_ABBREV',
             'NAME',
             ]
+        self.places_columns = columns
         column_defs = list(map(lambda x: x + ' TEXT', columns))
-        column_defs.insert(0, 'id INTEGER PRIMARY KEY')
+        column_defs[1] += ' PRIMARY KEY'
 
         # Get rows from CSV
         rows = []
@@ -154,19 +219,22 @@ class Database:
         rows = list(filter(lambda x: x[2] == '160', rows))
         rows = list(
                     map(lambda x:
-                        [x[4],
-                        x[48][7:],
-                        self.get_state(x[49]),
-                        x[49]], rows
+                        [x[4],                  # LOGRECNO
+                        x[48][7:],              # GEOID
+                        self.get_state(x[49]),  # STATE
+                        self.state_abbrevs[self.get_state(x[49])],
+                                                # STATE_ABBREV
+                        x[49]],                 # NAME
+                        rows
                     )
                 )
 
         # DBAPI question mark substring
-        columns_len = len(column_defs) - 1
+        columns_len = len(column_defs)
         question_mark_substr = ', '.join(['?'] * columns_len)
 
         # Create table
-        self.create_table(this_table_name, columns, column_defs, rows)
+        self.create_table(this_table_name, columns, column_defs, rows, ido=0)
 
         # Debug output
         self.debug_output_table(this_table_name)
@@ -179,6 +247,8 @@ class Database:
         # population and housing unit densities.
 
         columns = get_geoheader_columns(self.path)
+        columns[-1] = columns[-1].strip()
+        self.geoheaders_columns = columns
         column_defs = list(map(lambda x: x + ' TEXT', columns))
         column_defs[1] += ' PRIMARY KEY'
 
@@ -313,9 +383,6 @@ class Database:
                 this_data_identifier = table_id + '_' + line_number
                 self.data_identifiers[table_id].append(this_data_identifier)
                 self.data_identifiers_list.append(this_data_identifier)
-        
-        # Add LAREA_SQMI for use later.
-        self.data_identifiers_list += ['LAREA_SQMI']
 
         self.debug_output_dict('data_identifiers')
         self.debug_output_list('data_identifiers_list')
@@ -327,6 +394,7 @@ class Database:
         print()
 
         columns = self.data_identifiers_list
+        self.data_columns = columns
         column_defs = list(map(lambda x: x + ' TEXT', columns))
         column_defs.append('PRIMARY KEY(STATE, SEQUENCE_NUMBER, LOGRECNO)')
 
@@ -371,8 +439,12 @@ class Database:
                             for position in self.positions[table_id][:3] \
                                             + [self.positions[table_id][3+idx]]:
                                 position = int(position)
-                                # Append data for that positions.
-                                this_row.append(csv_row[position])
+                                if position == 2:
+                                    # Upper case the state for conistancy.
+                                    this_row.append(csv_row[position].upper())
+                                else:
+                                    # Append data for that position.
+                                    this_row.append(csv_row[position])
 
                             # For the first iteration, leave the order as it
                             # is. We will be doing INSERT statements.
@@ -411,7 +483,57 @@ class Database:
         # Debug output
         self.debug_output_table(this_table_name)
 
-        # # DemographicProfiles #################################################
+        # geodata #############################################################
+        this_table_name = 'geodata'
+
+        # Combine data from places, geoheaders, and data into a single table.
+        
+        # Combine columns
+        columns = self.places_columns + self.geoheaders_columns \
+                  + self.data_columns
+        
+        # # Unambiguous columns
+        # ub_places_columns = list(map(lambda x: 'places.' + x, self.places_columns))
+        # ub_geoheaders_columns = list(map(lambda x: 'geoheaders.' + x, self.geoheaders_columns))
+        # ub_data_columns = list(map(lambda x: 'data.' + x, self.data_columns))
+        # ub_columns = ub_places_columns + ub_geoheaders_columns + ub_data_columns
+
+        # Make columns names unambigious
+        def deambigify(column):
+            if column in self.places_columns:
+                return 'places.' + column
+            elif column in self.geoheaders_columns:
+                return 'geoheaders.' + column
+            elif column in self.data_columns:
+                return 'data.' + column
+
+        # Remove duplicates
+        columns = list(dict.fromkeys(columns))
+        ub_columns = list(map(deambigify, columns))
+
+        # Column definitions
+        column_defs = list(map(lambda x: x + ' TEXT', columns))
+        column_defs[1] += ' PRIMARY KEY'
+
+        # DBAPI question mark substring
+        columns_len = len(column_defs)
+        question_mark_substr = self.dbapi_qm_substr(columns_len)
+
+        # CREATE TABLE statement
+        self.c.execute('''CREATE TABLE %s
+                          (%s)''' % (this_table_name, ', '.join(column_defs)))
+
+        # Insert rows into merged table
+        self.c.execute('''INSERT INTO %s
+        SELECT %s FROM places
+        JOIN geoheaders ON places.GEOID = geoheaders.GEOID
+        JOIN data ON places.LOGRECNO = data.LOGRECNO AND places.STATE_ABBREV = data.STATE''' % (
+            this_table_name, ', '.join(ub_columns)))
+
+        # Debug output
+        self.debug_output_table(this_table_name)
+
+        # DemographicProfiles #################################################
 
         # # Get rows of data
         # first_five = session.query(PlaceCounty).limit(5)
