@@ -9,11 +9,11 @@ from geodata_typecast import gdt, gdti, gdtf
 
 class DemographicProfile:
     '''Used to display data for a geography.'''
-    def __init__(self, geo_instance):
+    def __init__(self, db_row):
 
-        self.name = geo_instance.name
-        self.county = geo_instance.county
-        self.key = geo_instance.key
+        self.name = db_row['NAME']
+        # self.county = db_row['county
+        # self.key = db_row['KEY
 
         #######################################################################
         # Row headers - Row labels
@@ -53,36 +53,36 @@ class DemographicProfile:
         self.rc = dict()
 
         # Population category
-        self.rc['population'] = gdt(geo_instance.data.B01003_1)
+        self.rc['population'] = gdt(db_row['B01003_1'])
 
         # Geographic category
-        self.rc['land_area'] = gdtf(geo_instance.geoheader.ALAND_SQMI)
+        self.rc['land_area'] = gdtf(db_row['ALAND_SQMI'])
 
         # Race category
-        self.rc['white_alone'] = gdt(geo_instance.data.B02001_2)
-        self.rc['black_alone'] = gdt(geo_instance.data.B02001_3)
-        self.rc['asian_alone'] = gdt(geo_instance.data.B02001_5)
-        self.rc['other_race'] = gdt(geo_instance.data.B01003_1) \
-            - gdt(geo_instance.data.B02001_2) - gdt(geo_instance.data.B02001_3) \
-            - gdt(geo_instance.data.B02001_5)
+        self.rc['white_alone'] = gdt(db_row['B02001_2'])
+        self.rc['black_alone'] = gdt(db_row['B02001_3'])
+        self.rc['asian_alone'] = gdt(db_row['B02001_5'])
+        self.rc['other_race'] = gdt(db_row['B01003_1']) \
+            - gdt(db_row['B02001_2']) - gdt(db_row['B02001_3']) \
+            - gdt(db_row['B02001_5'])
         # Technically not a race, but included in the race category
-        self.rc['hispanic_or_latino'] = gdt(geo_instance.data.B03002_12)
+        self.rc['hispanic_or_latino'] = gdt(db_row['B03002_12'])
 
         # Education category
-        self.rc['population_25_years_and_older'] = gdt(geo_instance.data.B15003_1)
-        self.rc['bachelors_degree_or_higher'] = gdt(geo_instance.data.B15003_22) \
-            + gdt(geo_instance.data.B15003_23) + gdt(geo_instance.data.B15003_24) \
-            + gdt(geo_instance.data.B15003_25)
-        self.rc['graduate_degree_or_higher'] = gdt(geo_instance.data.B15003_23) \
-           + gdt(geo_instance.data.B15003_24) + gdt(geo_instance.data.B15003_25)
+        self.rc['population_25_years_and_older'] = gdt(db_row['B15003_1'])
+        self.rc['bachelors_degree_or_higher'] = gdt(db_row['B15003_22']) \
+            + gdt(db_row['B15003_23']) + gdt(db_row['B15003_24']) \
+            + gdt(db_row['B15003_25'])
+        self.rc['graduate_degree_or_higher'] = gdt(db_row['B15003_23']) \
+           + gdt(db_row['B15003_24']) + gdt(db_row['B15003_25'])
 
         # Income category
-        self.rc['per_capita_income'] = gdt(geo_instance.data.B19301_1)
+        self.rc['per_capita_income'] = gdt(db_row['B19301_1'])
 
         # Housing category
-        self.rc['median_year_structure_built'] = gdt(geo_instance.data.B25035_1)
-        self.rc['median_value'] = gdt(geo_instance.data.B25077_1)
-        self.rc['median_rent'] = gdt(geo_instance.data.B25058_1)
+        self.rc['median_year_structure_built'] = gdt(db_row['B25035_1'])
+        self.rc['median_value'] = gdt(db_row['B25077_1'])
+        self.rc['median_rent'] = gdt(db_row['B25058_1'])
 
         #######################################################################
         # Formatted components: Thousands seperaters, dollar signs, etc.
@@ -192,10 +192,10 @@ class DemographicProfile:
         return self.dp_row_str(self.rh[key], '', self.fc[key])
 
     def __str__(self):
+        # + self.dp_full_row_str(self.county) \
+        # + self.dp_full_row_str(self.key) \
         return self.divider() \
              + self.dp_full_row_str(self.name) \
-             + self.dp_full_row_str(self.county) \
-             + self.dp_full_row_str(self.key) \
              + self.divider() \
              + self.dp_full_row_str('POPULATION') \
              + self.dp_row_nc('population') \

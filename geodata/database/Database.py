@@ -330,10 +330,11 @@ class Database:
             if table_id not in self.files.keys():
                 self.files[table_id] = []
 
-            for state in self.states:
-                this_path = self.path + 'e20185' + state + sequence_number \
-                            + '000.txt'
-                self.files[table_id].append(this_path)
+            for sequence_number in sequence_numbers:
+                for state in self.states:
+                    this_path = self.path + 'e20185' + state + sequence_number \
+                                + '000.txt'
+                    self.files[table_id].append(this_path)
         
         self.debug_output_dict('files')
 
@@ -350,7 +351,7 @@ class Database:
             # If the table_id hasn't been added to the keys yet, set the key
             # to a list containing 5 (the position for LOGRECNO).
             if table_id not in self.positions.keys():
-                self.positions[table_id] = [2, 4, 5]
+                self.positions[table_id] = [2, 5]
 
             # Once we hit our start_position, get it and subtract one since
             # they start at one, not zero.
@@ -369,13 +370,13 @@ class Database:
 
         # Obtain needed data_identifiers                                  #####
         self.data_identifiers = dict()
-        self.data_identifiers_list = ['STATE', 'SEQUENCE_NUMBER', 'LOGRECNO']
+        self.data_identifiers_list = ['STATE', 'LOGRECNO']
 
         for table_id, line_numbers in self.line_numbers_dict.items():
             # If there is no such key, start with 'LOGRECNO'
             if table_id not in self.data_identifiers.keys():
                 self.data_identifiers[table_id] = \
-                    ['STATE', 'SEQUENCE_NUMBER', 'LOGRECNO']
+                    ['STATE', 'LOGRECNO']
 
             # Add the data_identifiers.
             # Format: <table_id>_<line_number>
@@ -396,88 +397,69 @@ class Database:
         columns = self.data_identifiers_list
         self.data_columns = columns
         column_defs = list(map(lambda x: x + ' TEXT', columns))
-        column_defs.append('PRIMARY KEY(STATE, SEQUENCE_NUMBER, LOGRECNO)')
+        column_defs.append('PRIMARY KEY(STATE, LOGRECNO)')
 
         # CREATE TABLE statement
         self.c.execute('''CREATE TABLE %s
                           (%s)''' % (this_table_name, ', '.join(column_defs)))
 
+        # Map indices (idx) to elements from list
+        def idx_map(idxs, list):
+            ld = dict(enumerate(list))
+            return [ld[i] for i in idxs]
+
+        # Assist with changing the order of the elements around for the
+        # INSERT statement below.
+        def flip_els(rows):
+            return list(
+                map(
+                    lambda x: x[2:] + x[:2], rows
+                    )
+                )
+
         # Record whether or not we're on the first statement of the function
         # below.
-        first_line_number = True
+        first_table_id = True
 
         # Iterate through table_ids
         for table_id, line_numbers in self.line_numbers_dict.items():
-            # Iterate through line_numbers
-            for idx, line_number in enumerate(line_numbers):
-                # Get ID columns (STATE, SEQUENCE_NUMBER, LOGRECNO) plus the
-                # column for the current line_number
-                columns = self.data_identifiers[table_id][:3] \
-                          + [self.data_identifiers[table_id][3+idx]]
-                # Set the question mark substring.
+            columns = self.data_identifiers[table_id]
+            rows = []
+
+            # Iterate through files
+            for file in self.files[table_id]:
+                # Read from each CSV file
+                with open(file, 'rt') as f:
+                    csv_rows = csv.reader(f)
+
+                    for csv_row in csv_rows:
+                        # Get elements at self.positions[table_id] for each row
+                        rows.append(idx_map(self.positions[table_id], csv_row))
+
+            if first_table_id:
                 question_mark_substr = self.dbapi_qm_substr(len(columns))
+                # Insert rows into table
+                self.c.executemany('INSERT INTO %s(%s) VALUES (%s)' % (
+                    this_table_name, ', '.join(columns),
+                    question_mark_substr), rows)
 
-                # <table_id>_<line_number> = one data identifier.
-                # e.g. B01003_1 (Total population)
+                first_table_id = False
+            else:
+                set_clause = list(
+                    map(
+                        lambda x: x + ' = ?',
+                        self.data_identifiers[table_id][2:]
+                        )
+                    )
+                self.c.executemany('''UPDATE %s SET %s
+                    WHERE STATE = ? AND LOGRECNO = ?''' % (
+                    this_table_name, ', '.join(set_clause)), flip_els(rows))
 
-                # Now, iterate through each file (there is only one file per
-                # table per state; we will now iterate through the files
-                # for each state.)
-                for file in self.files[table_id]:
-                    rows = []
-
-                    # Read from each CSV file
-                    with open(file, 'rt') as f:
-                        csv_rows = csv.reader(f)
-
-                        # Iterate through the rows of the file.
-                        for csv_row in csv_rows:
-                            this_row = []
-                            # Iterate through positions. We will grab
-                            # the ID positions plus THE ONE data position
-                            # for the current line number.
-                            for position in self.positions[table_id][:3] \
-                                            + [self.positions[table_id][3+idx]]:
-                                position = int(position)
-                                if position == 2:
-                                    # Upper case the state for conistancy.
-                                    this_row.append(csv_row[position].upper())
-                                else:
-                                    # Append data for that position.
-                                    this_row.append(csv_row[position])
-
-                            # For the first iteration, leave the order as it
-                            # is. We will be doing INSERT statements.
-                            if first_line_number:
-                                rows.append(this_row)
-                            # Otherwise, adjust the order for an UPDATE
-                            # statement.
-                            else:
-                                rows.append(this_row[3:] + this_row[:3])
-
-                    if first_line_number:
-                        # Insert rows into table
-                        self.c.executemany('INSERT INTO %s(%s) VALUES (%s)' % (
-                            this_table_name, ', '.join(columns),
-                            question_mark_substr), rows)
-                    else:
-                        # UPDATE rows for each data_identifier by (STATE,
-                        # SEQUENCE_NUMBER, LOGRECNO) combination.
-                        for idx, data_identifier in \
-                        enumerate(self.data_identifiers[table_id][3:]):
-                            self.c.executemany('''UPDATE %s SET %s = ?
-                WHERE STATE = ? AND SEQUENCE_NUMBER = ? AND LOGRECNO = ?''' % (
-                                this_table_name, data_identifier), rows)
-
-                # END iteration for the first line number. No more row
-                # inserting.
-                first_line_number = False
-
-                # Print the count for debug purposes. Should be around ~200,000
-                for debug in self.c.execute('SELECT COUNT(*) FROM data'):
-                    display_data_identifier = table_id + '_' + line_number
-                    print('Processing for', display_data_identifier,
-                        'complete.', debug[0], 'rows.')
+            # Print the count for debug purposes. Should be around ~200,000
+            for debug in self.c.execute('SELECT COUNT(*) FROM data'):
+                display_data_identifier = table_id
+                print('Processing for', display_data_identifier,
+                    'complete.', debug[0], 'rows.')
 
         print()
         # Debug output
@@ -492,11 +474,11 @@ class Database:
         columns = self.places_columns + self.geoheaders_columns \
                   + self.data_columns
         
-        # # Unambiguous columns
-        # ub_places_columns = list(map(lambda x: 'places.' + x, self.places_columns))
-        # ub_geoheaders_columns = list(map(lambda x: 'geoheaders.' + x, self.geoheaders_columns))
-        # ub_data_columns = list(map(lambda x: 'data.' + x, self.data_columns))
-        # ub_columns = ub_places_columns + ub_geoheaders_columns + ub_data_columns
+        # Unambiguous columns
+        ub_places_columns = list(map(lambda x: 'places.' + x, self.places_columns))
+        ub_geoheaders_columns = list(map(lambda x: 'geoheaders.' + x, self.geoheaders_columns))
+        ub_data_columns = list(map(lambda x: 'data.' + x, self.data_columns))
+        ub_columns = ub_places_columns + ub_geoheaders_columns + ub_data_columns
 
         # Make columns names unambigious
         def deambigify(column):
@@ -533,20 +515,27 @@ class Database:
         # Debug output
         self.debug_output_table(this_table_name)
 
+        # Database: Apply changes #############################################
+
+        # Commit changes
+        self.conn.commit()
+
+        # Row factory
+        self.conn.row_factory = sqlite3.Row
+        self.c = self.conn.cursor()
+
         # DemographicProfiles #################################################
 
-        # # Get rows of data
-        # first_five = session.query(PlaceCounty).limit(5)
-        # all_results = session.query(PlaceCounty)
+        # Create a placeholder for DemographicProfiles
+        self.demographicprofiles = []
 
-        # # Create a placeholder for DemographicProfiles
-        # self.demographicprofiles = []
+        for row in self.c.execute('SELECT * from geodata'):
+            try:
+                self.demographicprofiles.append(DemographicProfile(row))
+            except AttributeError as e:
+                print('AttributeError:', tuple(row))
 
-        # for instance in all_results:
-        #     try:
-        #         self.demographicprofiles.append(DemographicProfile(instance))
-        #     except AttributeError:
-        #         print('AttributeError:', instance)
+        self.debug_output_list('demographicprofiles')
 
         # print('First five DemographicProfiles:', '\n')
 
