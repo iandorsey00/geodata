@@ -610,29 +610,27 @@ class Database:
         # Debug output
         self.debug_output_list('placevectors')
 
-        # # PlaceVectorApps #####################################################
+        # PlaceVectorApps #####################################################
 
-        # from datainterface.PlaceVectorApp import PlaceVectorApp
+        from datainterface.PlaceVectorApp import PlaceVectorApp
 
-        # self.placevectorapps = []
+        self.placevectorapps = []
 
-        # for instance in all_results:
-        #     try:
-        #         # Construct a PlaceVector and append it to self.PlaceVectors.
-        #         self.placevectorapps.append(
-        #             PlaceVectorApp(
-        #                 instance.name,
-        #                 instance.county,
-        #                 instance.data.B01003_1,       
-        #                 instance.data.B19301_1,    
-        #                 instance.geoheader.ALAND_SQMI,
-        #                 instance.data.B25035_1,
-        #                 dict(medians),
-        #                 dict(standard_deviations)
-        #             )
-        #         )
-        #     # If a TypeError is thrown because some data is unavailable, just
-        #     # don't make that PlaceVectorApp and print a debugging message.
-        #     except (TypeError, ValueError, AttributeError):
-        #         print('Note: Inadequate data for PlaceVectorApp creation:',
-        #               instance.name)
+        for row in self.c.execute('SELECT * from geodata'):
+            try:
+                # Construct a PlaceVector and append it to self.PlaceVectors.
+                self.placevectorapps.append(
+                    PlaceVectorApp(
+                        row,
+                        dict(medians),
+                        dict(standard_deviations)
+                    )
+                )
+            # If a TypeError is thrown because some data is unavailable, just
+            # don't make that PlaceVectorApp and print a debugging message.
+            except (TypeError, ValueError, AttributeError):
+                print('Note: Inadequate data for PlaceVectorApp creation:',
+                      row['NAME'])
+
+        # Debug output
+        self.debug_output_list('placevectorapps')

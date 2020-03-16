@@ -11,18 +11,18 @@ class PlaceVectorApp:
     '''A 3-dimensional vector used to compare place appearances.'''
     def __init__(
         self,
-        name,
-        county,
-        population,
-        per_capita_income,
-        land_area_sqmi,
-        median_year_structure_built,
+        db_row,
         medians,
         standard_deviations
         ):
 
-        self.name = name
-        self.county = county
+        self.name = db_row['NAME']
+        # self.county = county
+
+        population = db_row['B01003_1']
+        land_area_sqmi = db_row['ALAND_SQMI']
+        per_capita_income = db_row['B19301_1']
+        median_year_structure_built = db_row['B25035_1']
 
         # Raw subcomponents - Raw values of each subcomponent
         self.rs = dict()
@@ -144,5 +144,5 @@ class PlaceVectorApp:
 
     # Display subcomponent scores
     def __repr__(self):
-        return 'PlaceVectorApp(' + self.name + ': ' + self.county + '\ns:' \
+        return 'PlaceVectorApp(' + self.name + '\ns:' \
             + ', '.join([str((i,j)) for i,j in self.s.items()]) + ')'
