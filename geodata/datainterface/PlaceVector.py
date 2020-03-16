@@ -11,26 +11,26 @@ class PlaceVector:
     '''A standard 8-dimensional vector used to compare places with others.'''
     def __init__(
         self,
-        name,
-        county,
-        population,
-        per_capita_income,
-        white_alone,
-        black_alone,
-        asian_alone,
-        hispanic_or_latino_alone,
-        population_25_years_or_older,
-        bachelors_degree,
-        masters_degree,
-        professional_school_degree,
-        doctorate_degree,
-        land_area_sqmi,
+        db_row,
         medians,
         standard_deviations
         ):
 
-        self.name = name
-        self.county = county
+        self.name = db_row['NAME']
+        # self.county = county
+
+        population = db_row['B01003_1']
+        land_area_sqmi = db_row['ALAND_SQMI']
+        per_capita_income = db_row['B19301_1']
+        white_alone = db_row['B02001_2']
+        black_alone = db_row['B02001_3']
+        asian_alone = db_row['B02001_5']
+        hispanic_or_latino = db_row['B03002_12']
+        population_25_years_or_older = db_row['B15003_1']
+        bachelors_degree = db_row['B15003_22']
+        masters_degree = db_row['B15003_23']
+        professional_school_degree = db_row['B15003_24']
+        doctorate_degree = db_row['B15003_25']
 
         # Raw subcomponents - Raw values of each subcomponent
         self.rs = dict()
@@ -41,7 +41,7 @@ class PlaceVector:
             self.rs['white_alone'] = float(white_alone) / float(population) * 100.0
             self.rs['black_alone'] = float(black_alone) / float(population) * 100.0
             self.rs['asian_alone'] = float(asian_alone) / float(population) * 100.0
-            self.rs['hispanic_or_latino_alone'] = float(hispanic_or_latino_alone) / float(population) * 100.0
+            self.rs['hispanic_or_latino'] = float(hispanic_or_latino) / float(population) * 100.0
             if int(population_25_years_or_older) != 0:
                 self.rs['bachelors_degree_or_higher'] = ( int(bachelors_degree) \
                     + int(masters_degree) + int(professional_school_degree) \
@@ -59,7 +59,7 @@ class PlaceVector:
             self.rs['white_alone'] = 0.0
             self.rs['black_alone'] = 0.0
             self.rs['asian_alone'] = 0.0
-            self.rs['hispanic_or_latino_alone'] = 0.0
+            self.rs['hispanic_or_latino'] = 0.0
             self.rs['bachelors_degree_or_higher'] = 0.0
             self.rs['graduate_degree_or_higher'] = 0.0
 
@@ -72,7 +72,7 @@ class PlaceVector:
             self.med['white_alone'] = float(medians['B02001_2']) / float(medians['B01003_1']) * 100.0
             self.med['black_alone'] = float(medians['B02001_3']) / float(medians['B01003_1']) * 100.0
             self.med['asian_alone'] = float(medians['B02001_5']) / float(medians['B01003_1']) * 100.0
-            self.med['hispanic_or_latino_alone'] = float(medians['B03002_12']) / float(medians['B01003_1']) * 100.0
+            self.med['hispanic_or_latino'] = float(medians['B03002_12']) / float(medians['B01003_1']) * 100.0
             if int(population_25_years_or_older) != 0:
                 self.med['bachelors_degree_or_higher'] = (int(medians['B15003_22']) + int(medians['B15003_23']) \
                 + int(medians['B15003_24']) + int(medians['B15003_25'])) / float(medians['B15003_1']) * 100.0
@@ -87,7 +87,7 @@ class PlaceVector:
             self.med['white_alone'] = 0.0
             self.med['black_alone'] = 0.0
             self.med['asian_alone'] = 0.0
-            self.med['hispanic_or_latino_alone'] = 0.0
+            self.med['hispanic_or_latino'] = 0.0
             self.med['bachelors_degree_or_higher'] = 0.0
             self.med['graduate_degree_or_higher'] = 0.0
 
@@ -101,7 +101,7 @@ class PlaceVector:
             self.sd['white_alone'] = float(standard_deviations['B02001_2']) / float(standard_deviations['B01003_1']) * 100.0
             self.sd['black_alone'] = float(standard_deviations['B02001_3']) / float(standard_deviations['B01003_1']) * 100.0
             self.sd['asian_alone'] = float(standard_deviations['B02001_5']) / float(standard_deviations['B01003_1']) * 100.0
-            self.sd['hispanic_or_latino_alone'] = float(standard_deviations['B03002_12']) / float(standard_deviations['B01003_1']) * 100.0
+            self.sd['hispanic_or_latino'] = float(standard_deviations['B03002_12']) / float(standard_deviations['B01003_1']) * 100.0
             if int(population_25_years_or_older) != 0:
                 self.sd['bachelors_degree_or_higher'] = (int(standard_deviations['B15003_22']) + int(standard_deviations['B15003_23']) \
                 + int(standard_deviations['B15003_24']) + int(standard_deviations['B15003_25'])) / float(standard_deviations['B15003_1']) * 100.0
@@ -116,7 +116,7 @@ class PlaceVector:
             self.sd['white_alone'] = 0.0
             self.sd['black_alone'] = 0.0
             self.sd['asian_alone'] = 0.0
-            self.sd['hispanic_or_latino_alone'] = 0.0
+            self.sd['hispanic_or_latino'] = 0.0
             self.sd['bachelors_degree_or_higher'] = 0.0
             self.sd['graduate_degree_or_higher'] = 0.0
 
@@ -209,7 +209,7 @@ class PlaceVector:
         self.ws['white_alone'] = self.s['white_alone'] / 4
         self.ws['black_alone'] = self.s['black_alone'] / 4
         self.ws['asian_alone'] = self.s['asian_alone'] / 4
-        self.ws['hispanic_or_latino_alone'] = self.s['hispanic_or_latino_alone'] / 4
+        self.ws['hispanic_or_latino'] = self.s['hispanic_or_latino'] / 4
 
         #
         # The education component:
@@ -235,5 +235,5 @@ class PlaceVector:
 
     # Display subcomponent scores
     def __repr__(self):
-        return 'PlaceVector(' + self.name + ': ' + self.county + '\ns:' \
+        return 'PlaceVector(' + self.name + '\ns:' \
             + ', '.join([str((i,j)) for i,j in self.s.items()]) + ')'

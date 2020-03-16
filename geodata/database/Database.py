@@ -9,6 +9,8 @@ from itertools import islice
 import sqlite3
 import csv
 
+from geodata_typecast import gdt, gdti, gdtf
+
 from model.model import insert_rows
 from key_hash import key_hash
 
@@ -490,7 +492,8 @@ class Database:
                 return 'data.' + column
 
         # Remove duplicates
-        self.columns = list(dict.fromkeys(columns))
+        columns = list(dict.fromkeys(columns))
+        self.columns = columns
         ub_columns = list(map(deambigify, columns))
 
         # Column definitions
@@ -536,6 +539,7 @@ class Database:
             except AttributeError as e:
                 print('AttributeError:', tuple(row))
 
+        # Debug output
         self.debug_output_list('demographicprofiles')
 
         # Medians and standard deviations #####################################
@@ -544,55 +548,30 @@ class Database:
         rows = []
         for row in self.c.execute('SELECT * from geodata'):
             try: 
-                # # Load data into a list first.
-                # to_append = [
-                #             instance.data.B01003_1,
-                #             instance.data.B19301_1,
-                #             instance.data.B02001_2,
-                #             instance.data.B02001_3,
-                #             instance.data.B02001_5,
-                #             instance.data.B03002_12,
-                #             instance.data.B15003_1,
-                #             instance.data.B15003_22,
-                #             instance.data.B15003_23,
-                #             instance.data.B15003_24,
-                #             instance.data.B15003_25,
-                #             instance.data.B25035_1,
-                #             instance.data.B25058_1,
-                #             instance.data.B25077_1,
-                #             instance.geoheader.ALAND_SQMI,
-                #             ]
-            
-                # # In order to insert rows into the DataFrame, first convert the
-                # # list into a Pandas series.
-                # a_series = pd.Series(to_append, index = query_df.columns)
-                # # Next, append the series to the DataFrame.
-                # query_df = query_df.append(a_series, ignore_index=True)
-                rows.append([[
-                            row['B01003_1'],
-                            row['B19301_1'],
-                            row['B02001_2'],
-                            row['B02001_3'],
-                            row['B02001_5'],
-                            row['B03002_12'],
-                            row['B15003_1'],
-                            row['B15003_22'],
-                            row['B15003_23'],
-                            row['B15003_24'],
-                            row['B15003_25'],
-                            row['B25035_1'],
-                            row['B25058_1'],
-                            row['B25077_1'],
-                            row['ALAND_SQMI'],
-                            ]])
+                rows.append([
+                            gdt(row['ALAND_SQMI']),
+                            gdt(row['B01003_1']),
+                            gdt(row['B19301_1']),
+                            gdt(row['B02001_2']),
+                            gdt(row['B02001_3']),
+                            gdt(row['B02001_5']),
+                            gdt(row['B03002_12']),
+                            gdt(row['B15003_1']),
+                            gdt(row['B15003_22']),
+                            gdt(row['B15003_23']),
+                            gdt(row['B15003_24']),
+                            gdt(row['B15003_25']),
+                            gdt(row['B25035_1']),
+                            gdt(row['B25058_1']),
+                            gdt(row['B25077_1']),
+                            ])
             except AttributeError:
                 print('AttributeError:', instance)
 
-        # Convert all data into numeric data, even if there are errors.
-        query_df = pd.DataFrame(rows, columns=column_names + ['ALAND_SQMI'])
+        df = pd.DataFrame(rows, columns=[self.columns[11]] + self.columns[15:])
 
         print('DataFrames:', '\n')
-        print(query_df.head())
+        print(df.head())
         print()
 
         # Print some debug information.
@@ -606,40 +585,30 @@ class Database:
         print(dict(standard_deviations))
         print()
 
-        # # PlaceVectors ########################################################
+        # PlaceVectors ########################################################
 
-        # from datainterface.PlaceVector import PlaceVector
+        from datainterface.PlaceVector import PlaceVector
 
-        # self.placevectors = []
+        self.placevectors = []
 
-        # for instance in all_results:
-        #     try:
-        #         # Construct a PlaceVector and append it to self.PlaceVectors.
-        #         self.placevectors.append(
-        #             PlaceVector(
-        #                 instance.name,
-        #                 instance.county,
-        #                 instance.data.B01003_1,       
-        #                 instance.data.B19301_1,       
-        #                 instance.data.B02001_2,       
-        #                 instance.data.B02001_3,       
-        #                 instance.data.B02001_5,       
-        #                 instance.data.B03002_12,      
-        #                 instance.data.B15003_1,       
-        #                 instance.data.B15003_22,      
-        #                 instance.data.B15003_23,      
-        #                 instance.data.B15003_24,      
-        #                 instance.data.B15003_25,      
-        #                 instance.geoheader.ALAND_SQMI,
-        #                 dict(medians),
-        #                 dict(standard_deviations)
-        #             )
-        #         )
-        #     # If a TypeError is thrown because some data is unavailable, just
-        #     # don't make that PlaceVector and print a debugging message.
-        #     except (TypeError, ValueError, AttributeError):
-        #         print('Note: Inadequate data for PlaceVector creation:',
-        #               instance.name)
+        for row in self.c.execute('SELECT * from geodata'):
+            try:
+                # Construct a PlaceVector and append it to self.PlaceVectors.
+                self.placevectors.append(
+                    PlaceVector(
+                        row,
+                        dict(medians),
+                        dict(standard_deviations)
+                    )
+                )
+            # If a TypeError is thrown because some data is unavailable, just
+            # don't make that PlaceVector and print a debugging message.
+            except (TypeError, ValueError, AttributeError):
+                print('Note: Inadequate data for PlaceVector creation:',
+                      row['NAME'])
+
+        # Debug output
+        self.debug_output_list('placevectors')
 
         # # PlaceVectorApps #####################################################
 
