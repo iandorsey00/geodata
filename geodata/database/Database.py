@@ -1,10 +1,10 @@
 import pandas as pd
 
-from model.ColumnHeader import get_ch_columns
-from model.GeoHeader import get_geoheader_columns
+# from model.ColumnHeader import get_tm_columns
+# from model.GeoHeader import get_gh_columns
 
 from datainterface.DemographicProfile import DemographicProfile
-from initialize_sqlalchemy import Base, engine, session
+# from initialize_sqlalchemy import Base, engine, session
 
 from itertools import islice
 import sqlite3
@@ -44,6 +44,22 @@ class Database:
         else:
             split_geo_name = geo_name.split(', ')
         return split_geo_name[-1]
+
+    def get_tm_columns(self, path):
+        '''Obtain columns for table_metadata'''
+        columns = list(pd.read_csv(path + 'ACS_5yr_Seq_Table_Number_Lookup.csv',
+            nrows=1, dtype='str').columns)
+
+        # Convert column headers to snake_case
+        columns = list(map(lambda x: x.lower(), columns))
+        columns = list(map(lambda x: x.replace(' ', '_'), columns))
+
+        return columns
+
+    def get_gh_columns(self, path):
+        '''Obtain columns for the geoheaders table.'''
+        return list(pd.read_csv(path + '2019_Gaz_place_national.txt',
+            sep='\t', nrows=1, dtype='str').columns)
 
     def dbapi_qm_substr(self, columns_len):
         '''Get the DBAPI question mark substring'''
@@ -177,7 +193,7 @@ class Database:
         this_table_name = 'table_metadata'
 
         # Process column definitions
-        columns = get_ch_columns(self.path)
+        columns = self.get_tm_columns(self.path)
         column_defs = list(map(lambda x: x + ' TEXT', columns))
         column_defs.insert(0, 'id INTEGER PRIMARY KEY')
 
@@ -247,7 +263,7 @@ class Database:
         # is that we need to get the land area so that we can calculate
         # population and housing unit densities.
 
-        columns = get_geoheader_columns(self.path)
+        columns = self.get_gh_columns(self.path)
         columns[-1] = columns[-1].strip()
         self.geoheaders_columns = columns
         column_defs = list(map(lambda x: x + ' TEXT', columns))

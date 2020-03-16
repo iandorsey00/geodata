@@ -5,20 +5,20 @@
 # created because it has lots of columns.
 #
 
-import pandas as pd
+# import pandas as pd
 # from initialize_sqlalchemy import Base
 # from sqlalchemy import Column, Integer, String, Index
 
-def get_ch_columns(path):
-    '''Obtain columns for table_metadata'''
-    columns = list(pd.read_csv(path + 'ACS_5yr_Seq_Table_Number_Lookup.csv',
-        nrows=1, dtype='str').columns)
+# def get_ch_columns(path):
+#     '''Obtain columns for table_metadata'''
+#     columns = list(pd.read_csv(path + 'ACS_5yr_Seq_Table_Number_Lookup.csv',
+#         nrows=1, dtype='str').columns)
 
-    # Convert column headers to snake_case
-    columns = list(map(lambda x: x.lower(), columns))
-    columns = list(map(lambda x: x.replace(' ', '_'), columns))
+#     # Convert column headers to snake_case
+#     columns = list(map(lambda x: x.lower(), columns))
+#     columns = list(map(lambda x: x.replace(' ', '_'), columns))
 
-    return columns
+#     return columns
 
 # Old code
 # def create_ch_class(path):

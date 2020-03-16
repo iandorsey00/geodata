@@ -26,7 +26,7 @@ class DemographicProfile:
         self.rh['population_density'] = 'Population density'
 
         # Geographic category
-        self.rh['land_area'] = 'Land area (in square miles)'
+        self.rh['land_area'] = 'Land area'
 
         # Race category
         self.rh['white_alone'] = '    White alone'
@@ -96,7 +96,7 @@ class DemographicProfile:
             elif key not in ['median_year_structure_built', 'land_area']:
                 self.fc[key] = '$' + f'{self.rc[key]:,}'
             elif key == 'land_area':
-                self.fc[key] = f'{self.rc[key]:,.1f}'
+                self.fc[key] = f'{self.rc[key]:,.1f}' + ' sqmi'
             else: # key == 'median_year_structure_built'
                 self.fc[key] = str(self.rc[key])
 
@@ -206,7 +206,7 @@ class DemographicProfile:
              + self.dp_full_row_str(self.name) \
              + self.divider() \
              + self.dp_full_row_str('GEOGRAPHY') \
-             + self.dp_row_nc('land_area') \
+             + self.dp_row_str(self.rh['land_area'], '', self.fc['land_area']) \
              + self.dp_full_row_str('POPULATION') \
              + self.dp_row_nc('population') \
              + self.dp_row_str(self.rh['population_density'], '', self.fcd['population_density']) \

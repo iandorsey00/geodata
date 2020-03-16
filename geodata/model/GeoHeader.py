@@ -4,15 +4,15 @@
 # Store geographical data about geographies.
 #
 
-import pandas as pd
+# import pandas as pd
 # from initialize_sqlalchemy import Base
 # from sqlalchemy import Column, Integer, String, Index, ForeignKey
 # from sqlalchemy.orm import relationship
 
-def get_geoheader_columns(path):
-    '''Obtain columns for the geoheaders table.'''
-    return list(pd.read_csv(path + '2019_Gaz_place_national.txt',
-        sep='\t', nrows=1, dtype='str').columns)
+# def get_geoheader_columns(path):
+#     '''Obtain columns for the geoheaders table.'''
+#     return list(pd.read_csv(path + '2019_Gaz_place_national.txt',
+#         sep='\t', nrows=1, dtype='str').columns)
 
 # def create_geoheader_class(path):
 #     # Obtain column headers for the column headers
