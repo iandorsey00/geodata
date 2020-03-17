@@ -171,53 +171,53 @@ in the context (the same goes for `PlaceVectorApp`s). Some examples of usage:
     $ python3 geodata v pv "Cupertino city, California" -c ny
     The most demographically similar places are:
 
-    PlaceVector(Manhasset Hills CDP, New York
-    s:('population_density', 100), ('per_capita_income', 100), ('white_alone', 27), ('black_alone', 52), ('asian_alone', 100), ('hispanic_or_latino', 54), ('bachelors_degree_or_higher', 83), ('graduate_degree_or_higher', 98))
-    Distance: 5.482928049865327
     PlaceVector(Hartsdale CDP, New York
-    s:('population_density', 100), ('per_capita_income', 100), ('white_alone', 37), ('black_alone', 56), ('asian_alone', 89), ('hispanic_or_latino', 58), ('bachelors_degree_or_higher', 88), ('graduate_degree_or_higher', 100))
-    Distance: 6.73609679265374
+    s:('population_density', 92), ('per_capita_income', 94), ('white_alone', 37), ('black_alone', 54), ('asian_alone', 76), ('hispanic_or_latino', 56), ('bachelors_degree_or_higher', 75), ('graduate_degree_or_higher', 89))
+    Distance: 9.182183836103478
     PlaceVector(Thomaston village, New York
-    s:('population_density', 100), ('per_capita_income', 100), ('white_alone', 40), ('black_alone', 51), ('asian_alone', 100), ('hispanic_or_latino', 42), ('bachelors_degree_or_higher', 85), ('graduate_degree_or_higher', 100))
-    Distance: 7.232738070744716
+    s:('population_density', 100), ('per_capita_income', 91), ('white_alone', 40), ('black_alone', 50), ('asian_alone', 91), ('hispanic_or_latino', 42), ('bachelors_degree_or_higher', 73), ('graduate_degree_or_higher', 90))
+    Distance: 12.462443580614517
+    PlaceVector(Manhasset Hills CDP, New York
+    s:('population_density', 99), ('per_capita_income', 89), ('white_alone', 27), ('black_alone', 51), ('asian_alone', 100), ('hispanic_or_latino', 53), ('bachelors_degree_or_higher', 72), ('graduate_degree_or_higher', 82))
+    Distance: 12.891373084353738
     PlaceVector(University Gardens CDP, New York
-    s:('population_density', 100), ('per_capita_income', 100), ('white_alone', 32), ('black_alone', 50), ('asian_alone', 100), ('hispanic_or_latino', 54), ('bachelors_degree_or_higher', 81), ('graduate_degree_or_higher', 90))
-    Distance: 8.5
-    PlaceVector(Roslyn Heights CDP, New York
-    s:('population_density', 100), ('per_capita_income', 100), ('white_alone', 38), ('black_alone', 58), ('asian_alone', 97), ('hispanic_or_latino', 58), ('bachelors_degree_or_higher', 80), ('graduate_degree_or_higher', 91))
-    Distance: 9.75
-    PlaceVector(Merritt Park CDP, New York
-    s:('population_density', 95), ('per_capita_income', 94), ('white_alone', 32), ('black_alone', 59), ('asian_alone', 100), ('hispanic_or_latino', 53), ('bachelors_degree_or_higher', 83), ('graduate_degree_or_higher', 97))
-    Distance: 10.253048327204938
+    s:('population_density', 100), ('per_capita_income', 92), ('white_alone', 32), ('black_alone', 50), ('asian_alone', 100), ('hispanic_or_latino', 52), ('bachelors_degree_or_higher', 71), ('graduate_degree_or_higher', 77))
+    Distance: 13.77497731395591
+    PlaceVector(Searingtown CDP, New York
+    s:('population_density', 88), ('per_capita_income', 91), ('white_alone', 31), ('black_alone', 50), ('asian_alone', 100), ('hispanic_or_latino', 18), ('bachelors_degree_or_higher', 71), ('graduate_degree_or_higher', 79))
+    Distance: 14.091220671041953
+    PlaceVector(Larchmont village, New York
+    s:('population_density', 95), ('per_capita_income', 100), ('white_alone', 52), ('black_alone', 51), ('asian_alone', 57), ('hispanic_or_latino', 52), ('bachelors_degree_or_higher', 81), ('graduate_degree_or_higher', 100))
+    Distance: 15.037453241822567
 
     $ python3 geodata v pva "Sunnyvale city, California"
     The most demographically similar places are:
 
+    PlaceVectorApp(Sunnyvale city, California
+    s:('population_density', 100), ('per_capita_income', 91), ('median_year_structure_built', 49))
+    Distance: 0.0
+    PlaceVectorApp(Redondo Beach city, California
+    s:('population_density', 100), ('per_capita_income', 87), ('median_year_structure_built', 49))
+    Distance: 4.0
+    PlaceVectorApp(Alexandria city, Virginia
+    s:('population_density', 100), ('per_capita_income', 87), ('median_year_structure_built', 49))
+    Distance: 4.0
     PlaceVectorApp(Campbell city, California
-    s:('population_density', 100), ('per_capita_income', 100), ('median_year_structure_built', 50))
-    Distance: 0.0
-    PlaceVectorApp(Cupertino city, California
-    s:('population_density', 100), ('per_capita_income', 100), ('median_year_structure_built', 50))
-    Distance: 0.0
-    PlaceVectorApp(Dana Point city, California
-    s:('population_density', 100), ('per_capita_income', 100), ('median_year_structure_built', 50))
-    Distance: 0.0
+    s:('population_density', 100), ('per_capita_income', 87), ('median_year_structure_built', 47))
+    Distance: 4.47213595499958
+    PlaceVectorApp(Bal Harbour village, Florida
+    s:('population_density', 100), ('per_capita_income', 86), ('median_year_structure_built', 51))
+    Distance: 5.385164807134504
     PlaceVectorApp(Foster City city, California
-    s:('population_density', 100), ('per_capita_income', 100), ('median_year_structure_built', 50))
-    Distance: 0.0
-    PlaceVectorApp(Marina del Rey CDP, California
-    s:('population_density', 100), ('per_capita_income', 100), ('median_year_structure_built', 50))
-    Distance: 0.0
-    PlaceVectorApp(Mountain View city, California
-    s:('population_density', 100), ('per_capita_income', 100), ('median_year_structure_built', 50))
-    Distance: 0.0
+    s:('population_density', 100), ('per_capita_income', 97), ('median_year_structure_built', 51))
+    Distance: 6.324555320336759
 
 `PlaceVector`s and `PlaceVectorApp`s model places as multidimensional vectors
 with their components being scores of 0 to 100. Each component represents a
 demographic characteristic of a place, and the conversion of each component's
 raw information to its score involves the median and standard deviation for that
 component. Most often, 0 is scored as 0, the median value for that component
-is scored as 50, and two standard deviations above the median is scored as
+is scored as 50, and three standard deviations above the median is scored as
 100.
 
 The most useful thing about `PlaceVector`s and their components is that
@@ -237,12 +237,12 @@ as follows:
   proportional value between 0 and 50, with 0 representing 0 and 50 representing
   the median.
 * If the raw data is at the median, the score will be 50.
-* If the raw data is between the median and two standard deviations above the
+* If the raw data is between the median and three standard deviations above the
   median, its score will be 50 plus the proportion above the median with two
   standard deviations times 50. In simple terms, we are give the score a
   proportional value between 50 and 100, with 50 representing the median and
   100 representing two standard deviations above the median.
-* If the raw data is at or above two standard deviations above the median,
+* If the raw data is at or above three standard deviations above the median,
   the score will be 100.
 
 #### `PlaceVector`s
