@@ -54,11 +54,11 @@ is by executing:
 
     $ pip3 install pandas sqlalchemy
 
-4. You're now ready to checkout geodata with git. Execute, for example:
+5. You're now ready to checkout geodata with git. Execute, for example:
 
     git checkout git@github.com:iandorsey00/geodata
 
-5. Now at the top level directory, execute
+6. Now at the top level directory, execute
 
     python3 geodata createdb /path/to/data/dir
 
