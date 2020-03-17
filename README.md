@@ -140,7 +140,7 @@ will most likely *not* result in a sum of 100 percent.
 
 Usage for `PlaceVector`s:
 
-    usage: geodata view pv [-h] [-c CONTEXT] census_place_string
+    usage: geodata view pv [-h] [-p POP_FILTER] [-c CONTEXT] census_place_string
 
     View PlaceVectors nearest to a PlaceVector.
 
@@ -149,12 +149,14 @@ Usage for `PlaceVector`s:
 
     optional arguments:
       -h, --help            show this help message and exit
+      -p POP_FILTER, --pop_filter POP_FILTER
+                            filter by population
       -c CONTEXT, --context CONTEXT
                             state to compare with
 
 Usage for `PlaceVectorApp`s:
 
-    usage: geodata view pva [-h] [-c CONTEXT] census_place_string
+    usage: geodata view pva [-h] [-p POP_FILTER] [-c CONTEXT] census_place_string
 
     View PlaceVectorApps nearest to a PlaceVectorApp
 
@@ -163,6 +165,8 @@ Usage for `PlaceVectorApp`s:
 
     optional arguments:
       -h, --help            show this help message and exit
+      -p POP_FILTER, --pop_filter POP_FILTER
+                            filter by population
       -c CONTEXT, --context CONTEXT
                             state to compare with
 
@@ -173,49 +177,55 @@ this point in development, the option for the optional argument `CONTEXT` is a
 lowercase state abbreviation (such as `ca`). Support for counties will be added
 in the future. When a `CONTEXT` is specified, the `PlaceVector` that
 `census_place_string` represents will only be compared to other `PlaceVector`s
-in the context (the same goes for `PlaceVectorApp`s). Some examples of usage:
+in the context (the same goes for `PlaceVectorApp`s).
 
-    $ python3 geodata v pv "Cupertino city, California" -c ny
+Filtering by population is also supported. The number after the optional `-p`
+option (long form: `--pop_filter`) will limit PlaceVector(App)s for comparison
+to those with a population of that number or more.
+
+Some examples of usage:
+
+    $ python3 geodata v pv "Cupertino city, California" -p 20000 -c ny
     The most demographically similar places are:
 
-    PlaceVector(Hartsdale CDP, New York
-    s:('population_density', 92), ('per_capita_income', 94), ('white_alone', 37), ('black_alone', 54), ('asian_alone', 76), ('hispanic_or_latino', 56), ('bachelors_degree_or_higher', 75), ('graduate_degree_or_higher', 89))
-    Distance: 9.182183836103478
-    PlaceVector(Thomaston village, New York
-    s:('population_density', 100), ('per_capita_income', 91), ('white_alone', 40), ('black_alone', 50), ('asian_alone', 91), ('hispanic_or_latino', 42), ('bachelors_degree_or_higher', 73), ('graduate_degree_or_higher', 90))
-    Distance: 12.462443580614517
-    PlaceVector(Manhasset Hills CDP, New York
-    s:('population_density', 99), ('per_capita_income', 89), ('white_alone', 27), ('black_alone', 51), ('asian_alone', 100), ('hispanic_or_latino', 53), ('bachelors_degree_or_higher', 72), ('graduate_degree_or_higher', 82))
-    Distance: 12.891373084353738
-    PlaceVector(University Gardens CDP, New York
-    s:('population_density', 100), ('per_capita_income', 92), ('white_alone', 32), ('black_alone', 50), ('asian_alone', 100), ('hispanic_or_latino', 52), ('bachelors_degree_or_higher', 71), ('graduate_degree_or_higher', 77))
-    Distance: 13.77497731395591
-    PlaceVector(Searingtown CDP, New York
-    s:('population_density', 88), ('per_capita_income', 91), ('white_alone', 31), ('black_alone', 50), ('asian_alone', 100), ('hispanic_or_latino', 18), ('bachelors_degree_or_higher', 71), ('graduate_degree_or_higher', 79))
-    Distance: 14.091220671041953
-    PlaceVector(Larchmont village, New York
-    s:('population_density', 95), ('per_capita_income', 100), ('white_alone', 52), ('black_alone', 51), ('asian_alone', 57), ('hispanic_or_latino', 52), ('bachelors_degree_or_higher', 81), ('graduate_degree_or_higher', 100))
-    Distance: 15.037453241822567
+    PlaceVector(Plainview CDP, New York, population: 25,902
+    s:('population_density', 85), ('per_capita_income', 90), ('white_alone', 49), ('black_alone', 47), ('asian_alone', 70), ('hispanic_or_latino', 51), ('bachelors_degree_or_higher', 72), ('graduate_degree_or_higher', 79))
+    Distance: 16.97608612136496
+    PlaceVector(Garden City village, New York, population: 22,533
+    s:('population_density', 82), ('per_capita_income', 100), ('white_alone', 53), ('black_alone', 51), ('asian_alone', 54), ('hispanic_or_latino', 51), ('bachelors_degree_or_higher', 77), ('graduate_degree_or_higher', 85))
+    Distance: 18.63967542635869
+    PlaceVector(Rockville Centre village, New York, population: 24,442
+    s:('population_density', 100), ('per_capita_income', 90), ('white_alone', 51), ('black_alone', 54), ('asian_alone', 53), ('hispanic_or_latino', 54), ('bachelors_degree_or_higher', 70), ('graduate_degree_or_higher', 78))
+    Distance: 20.239194648009097
+    PlaceVector(White Plains city, New York, population: 58,040
+    s:('population_density', 97), ('per_capita_income', 79), ('white_alone', 37), ('black_alone', 58), ('asian_alone', 60), ('hispanic_or_latino', 64), ('bachelors_degree_or_higher', 66), ('graduate_degree_or_higher', 73))
+    Distance: 25.279685520195855
+    PlaceVector(Long Beach city, New York, population: 33,509
+    s:('population_density', 100), ('per_capita_income', 80), ('white_alone', 49), ('black_alone', 54), ('asian_alone', 54), ('hispanic_or_latino', 55), ('bachelors_degree_or_higher', 65), ('graduate_degree_or_higher', 71))
+    Distance: 27.02545096756019
+    PlaceVector(North Bellmore CDP, New York, population: 20,269
+    s:('population_density', 100), ('per_capita_income', 77), ('white_alone', 52), ('black_alone', 50), ('asian_alone', 59), ('hispanic_or_latino', 52), ('bachelors_degree_or_higher', 64), ('graduate_degree_or_higher', 70))
+    Distance: 29.039843319136555
 
     $ python3 geodata v pva "Sunnyvale city, California"
     The most demographically similar places are:
 
-    PlaceVectorApp(Sunnyvale city, California
+    PlaceVectorApp(Sunnyvale city, California, population: 152,323
     s:('population_density', 100), ('per_capita_income', 91), ('median_year_structure_built', 49))
     Distance: 0.0
-    PlaceVectorApp(Redondo Beach city, California
+    PlaceVectorApp(Redondo Beach city, California, population: 67,700
     s:('population_density', 100), ('per_capita_income', 87), ('median_year_structure_built', 49))
     Distance: 4.0
-    PlaceVectorApp(Alexandria city, Virginia
+    PlaceVectorApp(Alexandria city, Virginia, population: 156,505
     s:('population_density', 100), ('per_capita_income', 87), ('median_year_structure_built', 49))
     Distance: 4.0
-    PlaceVectorApp(Campbell city, California
+    PlaceVectorApp(Campbell city, California, population: 42,470
     s:('population_density', 100), ('per_capita_income', 87), ('median_year_structure_built', 47))
     Distance: 4.47213595499958
-    PlaceVectorApp(Bal Harbour village, Florida
+    PlaceVectorApp(Bal Harbour village, Florida, population: 3,000
     s:('population_density', 100), ('per_capita_income', 86), ('median_year_structure_built', 51))
     Distance: 5.385164807134504
-    PlaceVectorApp(Foster City city, California
+    PlaceVectorApp(Foster City city, California, population: 33,784
     s:('population_density', 100), ('per_capita_income', 97), ('median_year_structure_built', 51))
     Distance: 6.324555320336759
 

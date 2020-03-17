@@ -19,6 +19,7 @@ class PlaceVector:
         # self.county = county
 
         population = db_row['B01003_1']
+        self.population = int(population)
         land_area_sqmi = db_row['ALAND_SQMI']
         per_capita_income = db_row['B19301_1']
         white_alone = db_row['B02001_2']
@@ -234,5 +235,5 @@ class PlaceVector:
 
     def __repr__(self):
         '''Display subcomponent scores.'''
-        return 'PlaceVector(' + self.name + '\ns:' \
+        return 'PlaceVector(' + self.name + ', population: ' + f'{self.population:,}' + '\ns:' \
             + ', '.join([str((i,j)) for i,j in self.s.items()]) + ')'

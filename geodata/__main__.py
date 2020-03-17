@@ -71,16 +71,21 @@ def compare_placevectors(args, type='placevector'):
     print("The most demographically similar places are:")
     print()
 
-    # Filter by county if a filter_state was specified.
-    if args.context:
-        filtered_pvs = list(filter(lambda x: x.state == args.context,
-                            pv_list))
-    else:
-        filtered_pvs = pv_list
+    # Filter by arguments:
+    if args.context or args.pop_filter:
+        # Context
+        if args.context:
+            pv_list = list(filter(lambda x: x.state == args.context,
+                                pv_list))
+        # Population
+        if args.pop_filter:
+            pop_filter = gdt(args.pop_filter)
+            pv_list = list(filter(lambda x: x.population > pop_filter,
+                                pv_list))
 
     # Get the closest PlaceVectors.
     # In other words, get the most demographically similar places.
-    closest_pvs = sorted(filtered_pvs,
+    closest_pvs = sorted(pv_list,
         key=lambda x: comparison_pv.distance(x))[:6]
 
     # Print these PlaceVectors
@@ -217,6 +222,7 @@ dp_parsor.set_defaults(func=get_dp)
 pv_parsor = view_subparsers.add_parser('pv',
     description='View PlaceVectors nearest to a PlaceVector.')
 pv_parsor.add_argument('census_place_string', help='the exact place name')
+pv_parsor.add_argument('-p', '--pop_filter', help='filter by population')
 pv_parsor.add_argument('-c', '--context', help='state to compare with')
 pv_parsor.set_defaults(func=compare_placevectors)
 
@@ -224,6 +230,7 @@ pv_parsor.set_defaults(func=compare_placevectors)
 pva_parsor = view_subparsers.add_parser('pva',
     description='View PlaceVectorApps nearest to a PlaceVectorApp')
 pva_parsor.add_argument('census_place_string', help='the exact place name')
+pva_parsor.add_argument('-p', '--pop_filter', help='filter by population')
 pva_parsor.add_argument('-c', '--context', help='state to compare with')
 pva_parsor.set_defaults(func=compare_placevectorapps)
 
