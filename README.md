@@ -15,7 +15,7 @@ currently only places are supported.)
 * Allow users to easily view both data available directly from Census files
 (called "component data" in this program) and the data normally only available
 by performing mathematical operations (called "compound data" in this program).
-* Allow users to group data by counties (a future goal).
+* Allow users to group places and their data by counties (a future goal).
 
 ## Setup
 
@@ -46,7 +46,7 @@ the files from the subfolders to your data directory. If you are using Linux,
 3. Download the 2019 National Places Gazetteer Files, available
 [here from the U.S. Census Bureau](https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2019_Gazetteer/2019_Gaz_place_national.zip)
 (1.0 MB). This files contains geographic data, such as land area and geographic
-coordinates.
+coordinates. Extract it and place it in your data directory.
 
 4. This project depends on [pandas](https://pandas.pydata.org/) and
 [SQLAlchemy](https://www.sqlalchemy.org/). Install these first. One way to do so
@@ -54,7 +54,7 @@ is by executing:
 
         $ pip3 install pandas sqlalchemy
 
-5. You're now ready to checkout geodata with git. Execute, for example:
+5. You're now ready to check out geodata with git. Execute, for example:
 
         $ git checkout git@github.com:iandorsey00/geodata
 
@@ -124,6 +124,11 @@ areas, it's generally "CDP." For example:
 * New York city, New York
 * Bethesda CDP, Maryland
 
+Note that the percentages within the race subcategory might not add up to
+exactly 100 percent due to rounding. Also, because Hispanic or Latino origin
+is considered a seperate category from race, adding them to race categories
+will most likely *not* result in a sum of 100 percent.
+
 #### `PlaceVector`s and `PlaceVectorApp`s
 
 Usage for `PlaceVector`s:
@@ -158,10 +163,10 @@ Usage for `PlaceVectorApp`s:
 
 See `DemographicProfiles` for information regarding `census_place_string`s. At
 this point in development, the option for the optional argument `CONTEXT` is a
-lowercase state abbreviation (such as `ca`). When a `CONTEXT` is specified,
-the `PlaceVector` that `census_place_string` represents will only be compared
-to other `PlaceVector`s in the context (the same goes for `PlaceVectorApp`s).
-Some examples of usage:
+lowercase state abbreviation (such as `ca`). Support for counties will be added
+in the future. When a `CONTEXT` is specified, the `PlaceVector` that
+`census_place_string` represents will only be compared to other `PlaceVector`s
+in the context (the same goes for `PlaceVectorApp`s). Some examples of usage:
 
     $ python3 geodata v pv "Cupertino city, California" -c ny
     The most demographically similar places are:
@@ -214,6 +219,12 @@ raw information to its score involves the median and standard deviation for that
 component. Most often, 0 is scored as 0, the median value for that component
 is scored as 50, and two standard deviations above the median is scored as
 100.
+
+The most useful thing about `PlaceVector`s and their components is that
+the their components can be used to find the
+[Euclidean distance](https://en.wikipedia.org/wiki/Euclidean_distance) between
+them. This distance represents how demographically similar two places are –
+the closer the distance, the more demographically similar the two places.
 
 #### The `PlaceVector` score calculation method in detail
 
@@ -489,19 +500,33 @@ seperate file to map the tables and their line numbers to sequence numbers.
 
 geodata currently scans over 200 data files when constructing its database.
 (That database is then used to create the data products, then it is discarded.)
-To obtain certain data, we need to know the `table_id`, then the line number
-of the table. `table_id` and line number combinations (which geodata calls
-`data_identifers`) are specified in `database.Database`. From there, geodata
-uses `ACS_5yr_Seq_Table_Number_Lookup.csv` to determine the sequence number and
-and positions (the index of the column inside the data file for that sequence).
-Each sequence maps to one data file. Each table is wholly contained inside
-one sequence and data file. geodata uses all this information to determine
-where to obtain data for a certain `data_identifier`. More documentation
-regarding the technical aspects of geodata will be written in the future.
+To obtain certain data for a certain geography, we need to know the `table_id`,
+then the line number of the table. `table_id` and line number combinations
+(which geodata calls `data_identifers`) are specified in `database.Database`.
+From there, geodata uses `ACS_5yr_Seq_Table_Number_Lookup.csv` to determine the
+sequence number and and positions (the index of the column inside the data file
+for that sequence). Each sequence maps to one data file. Each table is wholly
+contained inside one sequence and data file. geodata uses all this information
+to determine where to obtain data for a certain `data_identifier`. More
+documentation regarding the technical aspects of geodata will be written in the
+future.
 
 ## Next steps for development
 
 * Map places to counties.
+* A search function for geographies. Currently, the exact `census_name_string`
+must be entered.
 * Have `context`s support counties in addition to states.
 * Support other types of geographies other than places (state, counties, etc.).
+* Make the `data_type` argument optional for superlatives and antisuperlatives.
+* Support dumping all data to a CSV file.
 * Write more technical documentation.
+
+## Known issues
+
+* `geodata v asl median_year_sturcture_built c` doesn't return helpful
+information; there is no data available for any results.
+* Currently, geodata uses medians and standard deviations for all places in the
+United States to calculate PlaceVector scores. There are about 30,000 places in
+the United States, with a median population of 3,000. This means many places
+will have scores of 100 for some components.
