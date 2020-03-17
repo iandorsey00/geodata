@@ -137,7 +137,7 @@ def superlatives(args, anti=False):
         else:
             return iam + 'Place'.ljust(45) + iam \
                 + getattr(dpi, 'rh')['population'].rjust(20) + iam \
-                + getattr(dpi, 'rh')[comp_name].rjust(20)
+                + getattr(dpi, 'rh')[comp_name].rjust(20)[:20]
 
     # Print a row
     def sl_print_row(dpi):
@@ -158,6 +158,14 @@ def superlatives(args, anti=False):
     if args.context:
         no_nans = list(filter(lambda x: \
         getattr(x, 'state') == args.context, no_nans))
+
+    # For the median_year_structure_built component, remove values of zero and
+    # 18...
+    if args.comp_name == 'median_year_structure_built':
+        no_nans = list(filter(lambda x: not \
+        getattr(x, 'rc')['median_year_structure_built'] == 0, no_nans))
+        no_nans = list(filter(lambda x: not \
+        getattr(x, 'rc')['median_year_structure_built'] == 18, no_nans))
 
     # Sort our DemographicProfile instances by component or compound specified.
     sls = sorted(no_nans, key=lambda x: \

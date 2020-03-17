@@ -65,6 +65,13 @@ is by executing:
     This will generate geodata's data products. On my system, generating the
     database and the data products takes about one minute.
 
+### Notes
+
+* When constructing the database, there will be many notes displayed regarding
+PlaceVectors and PlaceVectorApps that couldn't be created due to insufficient
+data. This is normal; many small places in the U.S. don't have enough data
+available for PlaceVector(App)s to be constructed.
+
 ## Data products
 
 Data products are available once they they have been saved by pickle to
@@ -521,12 +528,3 @@ must be entered.
 * Make the `data_type` argument optional for superlatives and antisuperlatives.
 * Support dumping all data to a CSV file.
 * Write more technical documentation.
-
-## Known issues
-
-* `geodata v asl median_year_structure_built c` doesn't return helpful
-information; there is no data available for any results.
-* Currently, geodata uses medians and standard deviations for all places in the
-United States to calculate PlaceVector scores. There are about 30,000 places in
-the United States, with a median population of 3,000. This means many places
-will have scores of 100 for some components.
