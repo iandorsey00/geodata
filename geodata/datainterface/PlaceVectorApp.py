@@ -63,7 +63,7 @@ class PlaceVectorApp:
         # If the value for the subcomponent is at the median, the score is 50.
         #
         # If the value for the subcomponent is above the median but below
-        # two standard deviations from the median, the score is the ratio of
+        # three standard deviations from the median, the score is the ratio of
         # the value and (the median plus two standard deviations) times 100.
         # (In simple terms, we are assigning a proportional value between 50
         # and 100.)
@@ -86,16 +86,16 @@ class PlaceVectorApp:
                 )
             elif self.rs[sc] == self.med[sc]:
                 self.s[sc] = 50
-            elif self.rs[sc] > self.med[sc] and self.rs[sc] < self.med[sc] + (self.sd[sc] * 2):
+            elif self.rs[sc] > self.med[sc] and self.rs[sc] < self.med[sc] + (self.sd[sc] * 3):
                 self.s[sc] = \
                 int(
                     round( 
                             50 + (
-                            (self.rs[sc] - self.med[sc]) / (self.sd[sc] * 2)
+                            (self.rs[sc] - self.med[sc]) / (self.sd[sc] * 3)
                             ) * 50
                     )
                 )
-            else: # self.rs[sc] > self.med[sc] + (self.sd[sc] * 2)
+            else: # self.rs[sc] > self.med[sc] + (self.sd[sc] * 3)
                 self.s[sc] = 100
 
         #######################################################################

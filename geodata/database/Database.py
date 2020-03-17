@@ -1,7 +1,5 @@
 import pandas as pd
-
-# from model.ColumnHeader import get_tm_columns
-# from model.GeoHeader import get_gh_columns
+import numpy as np
 
 from datainterface.DemographicProfile import DemographicProfile
 # from initialize_sqlalchemy import Base, engine, session
@@ -10,31 +8,15 @@ from itertools import islice
 import sqlite3
 import csv
 
-from geodata_typecast import gdt, gdti, gdtf
-from key_hash import key_hash
+from tools.geodata_typecast import gdt, gdti, gdtf
+# from tools.key_hash import key_hash
+
+import sys
 
 class Database:
     '''Creates data products for use by geodata.'''
     ###########################################################################
     # Helper methods for __init__
-
-    # Get the county given a Census name string from summary level 155.
-    def get_county(self, geo_name):
-        # Split the name string by ', '
-        split_geo_name = geo_name.split(', ')
-        # Get the first part, which will be of format XXX County (part)
-        county_part = split_geo_name[0]
-        # Return only the part before ' (part)'
-        return county_part[:-7]
-
-    # Get the Census place string given a Census name string.
-    # def get_place(self, geo_name):
-    #     # Split the name string by ', '
-    #     if ';' in geo_name:
-    #         split_geo_name = geo_name.split('; ')
-    #     else:
-    #         split_geo_name = geo_name.split(', ')
-    #     return ', '.join(split_geo_name[1:])
 
     # Get the state name given a Sensus name string.
     def get_state(self, geo_name):
@@ -585,11 +567,19 @@ class Database:
 
         df = pd.DataFrame(rows, columns=[self.columns[11]] + self.columns[15:])
 
+        # Adjustments for better calculations of medians and
+        # standard deviations, and better superlatives/antisuperlatives results
+
+        # median_year_structure_built value of 0 were causing problems because
+        # all values for available data are between 1939 and the present year.
+        # Replace all 0 values with numpy.nan
+        df = df.replace({'B25035_1': {0: np.nan}})
+
+        # Print some debug information.
         print('DataFrames:', '\n')
         print(df.head())
         print()
 
-        # Print some debug information.
         print('Medians:', '\n')
         medians = df.median()
         print(dict(medians))

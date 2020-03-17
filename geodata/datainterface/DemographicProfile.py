@@ -3,7 +3,7 @@ Intended to describe a specific geography or compare small numbers of
 geographies.
 '''
 
-from geodata_typecast import gdt, gdti, gdtf
+from tools.geodata_typecast import gdt, gdti, gdtf
 
 class DemographicProfile:
     '''Used to display data for a geography.'''
@@ -11,8 +11,8 @@ class DemographicProfile:
 
         self.name = db_row['NAME']
         self.state = db_row['STATE_ABBREV']
-        # self.county = db_row['county
-        # self.key = db_row['KEY
+        # self.county = db_row['county']
+        # self.key = db_row['KEY']
 
         #######################################################################
         # Row headers - Row labels

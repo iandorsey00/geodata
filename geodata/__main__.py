@@ -3,7 +3,7 @@ import argparse
 import sys
 import numpy
 import pickle
-from geodata_typecast import gdt, gdtf, gdti
+from tools.geodata_typecast import gdt, gdtf, gdti
 
 def create_data_products(args):
     '''Generate and save data products.'''
