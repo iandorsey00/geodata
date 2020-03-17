@@ -221,7 +221,7 @@ is scored as 50, and two standard deviations above the median is scored as
 100.
 
 The most useful thing about `PlaceVector`s and their components is that
-the their components can be used to find the
+their components can be used to find the
 [Euclidean distance](https://en.wikipedia.org/wiki/Euclidean_distance) between
 them. This distance represents how demographically similar two places are –
 the closer the distance, the more demographically similar the two places.
@@ -524,7 +524,7 @@ must be entered.
 
 ## Known issues
 
-* `geodata v asl median_year_sturcture_built c` doesn't return helpful
+* `geodata v asl median_year_structure_built c` doesn't return helpful
 information; there is no data available for any results.
 * Currently, geodata uses medians and standard deviations for all places in the
 United States to calculate PlaceVector scores. There are about 30,000 places in
