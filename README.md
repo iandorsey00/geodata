@@ -31,7 +31,7 @@ the files from the subfolders to your data directory. If you are using Linux,
 `cd` into the unzipped `All_Geographies_Not_Tracts_Block_Groups` directory
  and execute:
 
-    find . -mindepth 2 -maxdepth 2 -type f -print -exec cp {} /path/to/your/data-dir/ \;
+        find . -mindepth 2 -maxdepth 2 -type f -print -exec cp {} /path/to/your/data-dir/ \;
 
 All files from all subfolders should now be in your data directory. These files
 are geodata's primary source for data.
@@ -52,15 +52,15 @@ coordinates.
 [SQLAlchemy](https://www.sqlalchemy.org/). Install these first. One way to do so
 is by executing:
 
-    $ pip3 install pandas sqlalchemy
+        $ pip3 install pandas sqlalchemy
 
 5. You're now ready to checkout geodata with git. Execute, for example:
 
-    git checkout git@github.com:iandorsey00/geodata
+        $ git checkout git@github.com:iandorsey00/geodata
 
 6. Now at the top level directory, execute
 
-    python3 geodata createdb /path/to/data/dir
+        $ python3 geodata createdb /path/to/data/dir
 
 This will generate geodata's data products. On my system, generating the
 database and the data products takes about one minute.
@@ -126,14 +126,14 @@ areas, it's generally "CDP." For example:
 
 ### `PlaceVector`s and `PlaceVectorApp`s
 
-usage: geodata view pv [-h] [-c CONTEXT] census_place_string
+    usage: geodata view pv [-h] [-c CONTEXT] census_place_string
 
-View PlaceVectors nearest to a PlaceVector.
+    View PlaceVectors nearest to a PlaceVector.
 
-positional arguments:
-  census_place_string   the exact place name
+    positional arguments:
+      census_place_string   the exact place name
 
-optional arguments:
-  -h, --help            show this help message and exit
-  -c CONTEXT, --context CONTEXT
-                        state to compare with
+    optional arguments:
+      -h, --help            show this help message and exit
+      -c CONTEXT, --context CONTEXT
+                            state to compare with
