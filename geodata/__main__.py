@@ -230,7 +230,7 @@ sl_parsor.set_defaults(func=superlatives)
 
 # Antisuperlatives ############################################################
 asl_parsor = view_subparsers.add_parser('asl',
-    description='View places that rank highest with regard to a certain characteristic.')
+    description='View places that rank lowest with regard to a certain characteristic.')
 asl_parsor.add_argument('comp_name', help='the comp that you want to rank')
 asl_parsor.add_argument('data_type', help='whether comp is a component or a compound')
 asl_parsor.add_argument('-p', '--pop_filter', help='filter by population')
