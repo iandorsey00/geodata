@@ -152,7 +152,7 @@ def superlatives(args, anti=False):
     # If there's a filter pop, remove all places underneath it.
     if args.pop_filter:
         no_nans = list(filter(lambda x: \
-        getattr(x, 'rc')['population'] >= pop_filter, no_nans))
+        getattr(x, 'rc')['population'] >= args.pop_filter, no_nans))
 
     # If there's a filter_state, remove all places outside that county.
     if args.context:
