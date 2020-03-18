@@ -623,6 +623,6 @@ must be entered.
 
 ## Known issues
 
-* Performance is currently not good. This is because the size of
+* The program is currently a bit slow. This is because the size of
 `default.geodata` (the binary file dumped by pickle) has become very large
 since grouping by counties began to be supported.
