@@ -4,15 +4,27 @@ geographies.
 '''
 
 from tools.geodata_typecast import gdt, gdti, gdtf
+from tools.CountyTools import CountyTools
+import textwrap
 
 class DemographicProfile:
     '''Used to display data for a geography.'''
-    def __init__(self, db_row):
+    def __init__(self, county_tools_instance, db_row):
 
         self.name = db_row['NAME']
         self.state = db_row['STATE_ABBREV']
-        # self.county = db_row['county']
+        self.geoid = db_row['GEOID']
         # self.key = db_row['KEY']
+
+        # CountyTools instance and county data
+        ct = county_tools_instance
+        # County GEOIDs
+        self.counties = ct.place_to_counties[self.geoid]
+        # County names (without the state)
+        self.counties_display = list(map(lambda x: ct.county_geoid_to_name[x],
+                                 ct.place_to_counties[self.geoid]))
+        self.counties_display = list(map(lambda x: x.split(', ')[0],
+                                self.counties_display))
 
         #######################################################################
         # Row headers - Row labels
@@ -175,7 +187,7 @@ class DemographicProfile:
 
     def dp_full_row_str(self, content):
         '''Return a line with just one string'''
-        return self.iam + content.ljust(54) + self.iam + '\n'
+        return self.iam + textwrap.fill(content, 67, subsequent_indent=' ') + '\n'
 
     def divider(self):
         '''Return a divider'''
@@ -205,6 +217,7 @@ class DemographicProfile:
         # + self.dp_full_row_str(self.key) \
         return self.divider() \
              + self.dp_full_row_str(self.name) \
+             + self.dp_full_row_str(', '.join(self.counties_display)) \
              + self.divider() \
              + self.dp_full_row_str('GEOGRAPHY') \
              + self.dp_row_str(self.rh['land_area'], '', self.fc['land_area']) \

@@ -9,7 +9,10 @@ import sqlite3
 import csv
 
 from tools.geodata_typecast import gdt, gdti, gdtf
+from tools.StateTools import StateTools
+from tools.CountyTools import CountyTools
 # from tools.key_hash import key_hash
+from collections import defaultdict
 
 import sys
 
@@ -17,15 +20,6 @@ class Database:
     '''Creates data products for use by geodata.'''
     ###########################################################################
     # Helper methods for __init__
-
-    # Get the state name given a Sensus name string.
-    def get_state(self, geo_name):
-        # Split the name string by ', '
-        if ';' in geo_name:
-            split_geo_name = geo_name.split('; ')
-        else:
-            split_geo_name = geo_name.split(', ')
-        return split_geo_name[-1]
 
     def get_tm_columns(self, path):
         '''Obtain columns for table_metadata'''
@@ -68,14 +62,14 @@ class Database:
             table_name, ', '.join(columns), question_mark_substr), rows)
 
     def debug_output_table(self, table_name):
-        '''Print debug information for a table.'''
+        '''Print debug information for a table'''
         print('%s table:' % table_name, '\n')
         for row in self.c.execute('SELECT * FROM %s LIMIT 5' % table_name):
             print(row)
         print()
 
     def debug_output_list(self, list_name):
-        '''Print debug information for a list.'''
+        '''Print debug information for a list'''
         print('%s:' % list_name, '\n')
         for row in getattr(self, list_name)[:5]:
             print(row)
@@ -86,86 +80,34 @@ class Database:
         return list(islice(iterable, n))
 
     def debug_output_dict(self, dict_name):
-        '''Print debug information for a dictionary.'''
+        '''Print debug information for a dictionary'''
         print('%s:' % dict_name, '\n')
         for key, value in self.take(5, getattr(self, dict_name).items()):
             print(key + ':', value)
         print()
+
+    def get_geo_csv_rows(self):
+        '''Get all rows geographic CSV files for every state'''
+        # Get rows from CSV
+        rows = []
+        # Get rows from CSV files for each state.
+        for state in self.st.get_abbrevs(lowercase=True):
+            this_path = self.path + 'g20185' + state + '.csv'
+            with open(this_path, 'rt', encoding='iso-8859-1') as f:
+                rows += list(csv.reader(f))
+        
+        return rows
     
     ###########################################################################
     # __init__
 
     def __init__(self, path):
         '''Create the database'''
-        self.states = ['al', 'ak', 'az', 'ar', 'ca', 'co', 'ct', 'dc', 'de',
-        'fl', 'ga', 'hi', 'id', 'il', 'in', 'ia', 'ks', 'ky', 'la', 'me', 'md',
-        'ma', 'mi', 'mn', 'ms', 'mo', 'mt', 'ne', 'nv', 'nh', 'nj', 'nm', 'ny',
-        'nc', 'nd', 'oh', 'ok', 'or', 'pa', 'ri', 'sc', 'sd', 'tn', 'tx', 'ut',
-        'vt', 'va', 'wa', 'wv', 'wi', 'wy']
-
-        self.state_abbrevs = {
-            'Alaska': 'AK',
-            'Alabama': 'AL',
-            'Arkansas': 'AR',
-            'American Samoa': 'AS',
-            'Arizona': 'AZ',
-            'California': 'CA',
-            'Colorado': 'CO',
-            'Connecticut': 'CT',
-            'District of Columbia': 'DC',
-            'Delaware': 'DE',
-            'Florida': 'FL',
-            'Georgia': 'GA',
-            'Guam': 'GU',
-            'Hawaii': 'HI',
-            'Iowa': 'IA',
-            'Idaho': 'ID',
-            'Illinois': 'IL',
-            'Indiana': 'IN',
-            'Kansas': 'KS',
-            'Kentucky': 'KY',
-            'Louisiana': 'LA',
-            'Massachusetts': 'MA',
-            'Maryland': 'MD',
-            'Maine': 'ME',
-            'Michigan': 'MI',
-            'Minnesota': 'MN',
-            'Missouri': 'MO',
-            'Northern Mariana Islands': 'MP',
-            'Mississippi': 'MS',
-            'Montana': 'MT',
-            'National': 'NA',
-            'North Carolina': 'NC',
-            'North Dakota': 'ND',
-            'Nebraska': 'NE',
-            'New Hampshire': 'NH',
-            'New Jersey': 'NJ',
-            'New Mexico': 'NM',
-            'Nevada': 'NV',
-            'New York': 'NY',
-            'Ohio': 'OH',
-            'Oklahoma': 'OK',
-            'Oregon': 'OR',
-            'Pennsylvania': 'PA',
-            'Puerto Rico': 'PR',
-            'Rhode Island': 'RI',
-            'South Carolina': 'SC',
-            'South Dakota': 'SD',
-            'Tennessee': 'TN',
-            'Texas': 'TX',
-            'Utah': 'UT',
-            'Virginia': 'VA',
-            'Virgin Islands': 'VI',
-            'Vermont': 'VT',
-            'Washington': 'WA',
-            'Wisconsin': 'WI',
-            'West Virginia': 'WV',
-            'Wyoming': 'WY'
-        }
-
         # Initialize ##########################################################
 
         self.path = path
+        self.st = StateTools()
+        self.ct = CountyTools(self.path)
 
         # Connect to SQLite3
         self.conn = sqlite3.connect(':memory:')
@@ -192,6 +134,41 @@ class Database:
         # Debug output
         self.debug_output_table(this_table_name)
 
+        # counties ############################################################
+        # this_table_name = 'counties'
+
+        # # Process column definitions
+        # columns = [
+        #     'GEOID',
+        #     'NAME',
+        #     ]
+        # self.counties_columns = columns
+        # column_defs = list(map(lambda x: x + ' TEXT', columns))
+        # column_defs[0] += ' PRIMARY KEY'
+
+        # # Get rows from CSV
+        # rows = self.get_geo_csv_rows()
+                
+        # # Filter for summary level code 050 (State-Places)
+        # rows = list(filter(lambda x: x[2] == '050', rows))
+        # rows = list(
+        #             map(lambda x:
+        #                 [x[48][7:],             # GEOID
+        #                 x[49]],                 # NAME
+        #                 rows
+        #             )
+        #         )
+
+        # # DBAPI question mark substring
+        # columns_len = len(column_defs)
+        # question_mark_substr = ', '.join(['?'] * columns_len)
+
+        # # Create table
+        # self.create_table(this_table_name, columns, column_defs, rows, ido=0)
+
+        # # Debug output
+        # self.debug_output_table(this_table_name)
+
         # places ##############################################################
         this_table_name = 'places'
 
@@ -208,22 +185,18 @@ class Database:
         column_defs[1] += ' PRIMARY KEY'
 
         # Get rows from CSV
-        rows = []
-        # Get rows from CSV files for each state.
-        for state in self.states:
-            this_path = path + 'g20185' + state + '.csv'
-            with open(this_path, 'rt', encoding='iso-8859-1') as f:
-                rows += list(csv.reader(f))
+        rows = self.get_geo_csv_rows()
+                
         # Filter for summary level code 160 (State-Places)
         rows = list(filter(lambda x: x[2] == '160', rows))
         rows = list(
                     map(lambda x:
-                        [x[4],                  # LOGRECNO
-                        x[48][7:],              # GEOID
-                        self.get_state(x[49]),  # STATE
-                        self.state_abbrevs[self.get_state(x[49])].lower(),
-                                                # STATE_ABBREV
-                        x[49]],                 # NAME
+                        [x[4],                     # LOGRECNO
+                        x[48][7:],                 # GEOID
+                        self.st.get_state(x[49]),  # STATE
+                        self.st.get_abbrev(self.st.get_state(x[49]), lowercase=True),
+                                                   # STATE_ABBREV
+                        x[49]],                    # NAME
                         rows
                     )
                 )
@@ -330,7 +303,7 @@ class Database:
                 self.files[table_id] = []
 
             for sequence_number in sequence_numbers:
-                for state in self.states:
+                for state in self.st.get_abbrevs(lowercase=True):
                     this_path = self.path + 'e20185' + state + sequence_number \
                                 + '000.txt'
                     self.files[table_id].append(this_path)
@@ -532,9 +505,10 @@ class Database:
 
         for row in self.c.execute('SELECT * from geodata'):
             try:
-                self.demographicprofiles.append(DemographicProfile(row))
+                self.demographicprofiles.append(DemographicProfile(self.ct, row))
             except AttributeError as e:
-                print('AttributeError:', tuple(row))
+                print('AttributeError:', e)
+                print(tuple(row))
 
         # Debug output
         self.debug_output_list('demographicprofiles')
@@ -647,7 +621,7 @@ class Database:
     def get_products(self):
         '''Return a dictionary of products.'''
         return {
-            'placevectors': self.placevectors,
-            'placevectorapps': self.placevectorapps,
-            'demographicprofiles': self.demographicprofiles,
+            'placevectors':         self.placevectors,
+            'placevectorapps':      self.placevectorapps,
+            'demographicprofiles':  self.demographicprofiles,
             }
