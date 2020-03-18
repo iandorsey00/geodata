@@ -581,6 +581,7 @@ class Database:
                 # Construct a PlaceVector and append it to self.PlaceVectors.
                 self.placevectors.append(
                     PlaceVector(
+                        self.ct,
                         row,
                         dict(medians),
                         dict(standard_deviations)
@@ -608,6 +609,7 @@ class Database:
                 # Construct a PlaceVector and append it to self.PlaceVectors.
                 self.placevectorapps.append(
                     PlaceVectorApp(
+                        self.ct,
                         row,
                         dict(medians),
                         dict(standard_deviations)

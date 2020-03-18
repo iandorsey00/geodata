@@ -27,10 +27,7 @@ def initalize_database():
     '''Load data products or create them if they don't exist.'''
     # Try to open the default database, located at ../bin/default.db.
     try:
-        start = time.time()
         d = load_data_products()
-        end = time.time()
-        print(end - start)
         return d
     # If there is no such database...
     except FileNotFoundError:
@@ -58,6 +55,10 @@ def compare_placevectors(args, type='placevector'):
     '''
     d = initalize_database()
 
+    st = d['st']
+    ct = d['ct']
+    kt = d['kt']
+
     if type == 'placevector':
         pv_list = d['placevectors']
     elif type == 'placevectorapp':
@@ -68,12 +69,13 @@ def compare_placevectors(args, type='placevector'):
 
     search_name = geo_split[0]
 
-    # See if the is a filter_state specified. If not, set it to an empty
-    # string.
-    if len(geo_split) > 1:
-        filter_state = geo_split[1]
-    else:
-        filter_state = ''
+    summary_level = '160'
+
+    if args.context:
+        if ':' in args.context:
+            summary_level = '050'
+        else:
+            summary_level = '040'
 
     # Obtain the PlaceVector for which we entered a name.
     comparison_pv = \
@@ -83,16 +85,22 @@ def compare_placevectors(args, type='placevector'):
     print()
 
     # Filter by arguments:
-    if args.context or args.pop_filter:
-        # Context
-        if args.context:
-            pv_list = list(filter(lambda x: x.state == args.context,
-                                pv_list))
-        # Population
-        if args.pop_filter:
-            pop_filter = gdt(args.pop_filter)
-            pv_list = list(filter(lambda x: x.population > pop_filter,
-                                pv_list))
+    if summary_level == '050':
+        key = 'us:' + args.context + '/county'
+        county_name = kt.key_to_county_name[key]
+        county_geoid = ct.county_name_to_geoid[county_name]
+
+        pv_list = list(filter(lambda x: \
+        county_geoid in getattr(x, 'counties'), pv_list))
+    elif summary_level == '040':
+        pv_list = list(filter(lambda x: x.state == args.context,
+                            pv_list))
+
+    # Population
+    if args.pop_filter:
+        pop_filter = gdt(args.pop_filter)
+        pv_list = list(filter(lambda x: x.population > pop_filter,
+                            pv_list))
 
     # Get the closest PlaceVectors.
     # In other words, get the most demographically similar places.

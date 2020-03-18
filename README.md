@@ -72,6 +72,104 @@ PlaceVectors and PlaceVectorApps that couldn't be created due to insufficient
 data. This is normal; many small places in the U.S. don't have enough data
 available for PlaceVector(App)s to be constructed.
 
+## Argument types
+
+### `context`s
+Usage:
+
+    -c CONTEXT
+    --context CONTEXT
+
+Optional arguments of:
+
+    geodata view pv  # PlaceVectors
+    geodata view pva # PlaceVectorApps
+    geodata view sl  # Superlatives
+    geodata view asl # Antisuperlatives
+
+A `context` specifies what group of populations to work with. When comparing
+`PlaceVector`s or `PlaceVectorApp`s, it specifies what group of geographies
+the target `PlaceVector` should be compared against. When working with
+superlatives or antisuperlatives, it specifies what group of geographies should
+be ranked.
+
+Currently, geographies can be grouped by state or by county. To group by a
+state, enter the lowercase abbreviation for the state for `CONTEXT`. To group by
+a county, enter the lowercase abbreviation for the state, followed by a colon,
+followed by the county name with all lowercase letters and no spaces. Do not
+include "county."
+
+Some examples:
+
+    -c ca
+
+In this example, the context is the state of California.
+
+    -c ca:losangeles
+    -c wa:king
+    -c va:fairfax
+
+In these examples, the contexts are Los Angeles County, California; King County,
+Washington; and Fairfax County, Virginia respectively.
+
+### `display_label`s (geography names)
+
+Mandatory and primary arguments of:
+
+    geodata view dp  # DemographicProfiles
+    geodata view pv  # PlaceVectors
+    geodata view pva # PlaceVectorApps
+
+*Note: `view` above can be abbreviated as `v`*
+
+`display_label`s must be enclosed in quotation marks, because they contain
+spaces.
+
+Simply put, the `display_label` is the name of the place. "Display label" is the
+U.S. Census Bureau's official terminology for place names; see
+[this article](https://www.census.gov/programs-surveys/geography/guidance/geo-identifiers.html).
+If you are thinking of "New York, New York," you aren't too far off. But what
+makes display_labels slightly more complicated is that you have to include the
+geography type. Geography types are most commonly "city," "town," "village," or
+"CDP." The geography type goes in between the place name and its comma. Some
+examples are:
+
+* New York city, New York
+* Bethesda CDP, Maryland
+
+A more formal syntax description would be:
+
+    PLACE_NAME GEOGRAPHY_TYPE, FULLY_EXPANDED_STATE_NAME
+
+Use the exact `display_label` to specify the target geography for
+`DemographicProfiles` and `PlaceVectors`. Searching will be supported in a
+future version of geodata. A work around for this issue is to use
+[Quickfacts](https://www.census.gov/quickfacts/fact/table/US/PST045219) or
+[data.census.gov](https://data.census.gov/cedsci/) to find the string.
+
+### `pop_filter`s (population filters)
+Usage:
+
+    -p POP_FILTER
+    --pop_filter POP_FILTER
+
+Optional arguments of:
+
+    geodata view pv  # PlaceVectors
+    geodata view pva # PlaceVectorApps
+    geodata view sl  # Superlatives
+    geodata view asl # Antisuperlatives
+
+Sometimes, we're only interested in places with a population over a certain
+threshold, say 50,000. To filter for places with population of 50,000 or more,
+specify that for `POP_FILTER` above. For example:
+
+    -p 50,000
+    -p 100000
+
+will filter for geographies with populations over 50,000 and 100,000,
+respectively.
+
 ## Data products
 
 Data products are available once they they have been saved by pickle to
@@ -79,57 +177,51 @@ Data products are available once they they have been saved by pickle to
 
 ### `DemographicProfiles`
 
-    usage: geodata view dp [-h] census_place_string
+    usage: geodata view dp [-h] display_label
 
     View a DemographicProfile.
 
     positional arguments:
-      census_place_string  the exact place name
+      display_label  the exact place name
 
     optional arguments:
-      -h, --help           show this help message and exit
+      -h, --help     show this help message and exit
 
 *Note: `view` above can be abbreviated as `v`*
+
+For information about `display_label`s, see *Argument types*.
 
 View a standarized demographic profile for any place in the United States. For
 example:
 
     $ python3 geodata v dp "San Francisco city, California"
     ---------------------------------------------------------------------
-     San Francisco city, California                         
+     San Francisco city, California
+     San Francisco County
     ---------------------------------------------------------------------
-     GEOGRAPHY                                              
+     GEOGRAPHY
      Land area                                                 46.9 sqmi 
-     POPULATION                                             
+     POPULATION
      Total population                                            870,044 
      Population density                                    18,549.9/sqmi 
-       Race                                                 
+       Race
          White alone                             406,538           46.7% 
          Black alone                              45,402            5.2% 
          Asian alone                             297,667           34.2% 
          Other                                   120,437           13.8% 
-       Hispanic or Latino (of any race)                     
+       Hispanic or Latino (of any race)
          Hispanic or Latino                      132,651           15.2% 
-     EDUCATION                                              
+     EDUCATION
      Total population 25 years and older         689,551           79.3% 
        Bachelor's degree or higher               394,004           57.1% 
        Graduate degree or higher                 157,411           22.8% 
-     INCOME                                                 
+     INCOME
      Per capita income                                           $64,157 
-     HOUSING                                                
+     HOUSING
      Median year unit built                                         1942 
      Median value                                             $1,009,500 
      Median rent                                                  $1,734 
     ---------------------------------------------------------------------
-
-Note that `census_place_string` must be in quotes. The `census_place_string`
-contains the name of the place, then a place type (most commonly "city," "town,"
-"village," or "CDP"), then a comma, then the fully expanded state name. For
-large cities, they most common place type will be "city;" for unincorporated
-areas, it's generally "CDP." For example:
-
-* New York city, New York
-* Bethesda CDP, Maryland
 
 Note that the percentages within the race subcategory might not add up to
 exactly 100 percent due to rounding. Also, because Hispanic or Latino origin
@@ -140,12 +232,12 @@ will most likely *not* result in a sum of 100 percent.
 
 Usage for `PlaceVector`s:
 
-    usage: geodata view pv [-h] [-p POP_FILTER] [-c CONTEXT] census_place_string
+    usage: geodata view pv [-h] [-p POP_FILTER] [-c CONTEXT] display_label
 
     View PlaceVectors nearest to a PlaceVector.
 
     positional arguments:
-      census_place_string   the exact place name
+      display_label         the exact place name
 
     optional arguments:
       -h, --help            show this help message and exit
@@ -156,12 +248,12 @@ Usage for `PlaceVector`s:
 
 Usage for `PlaceVectorApp`s:
 
-    usage: geodata view pva [-h] [-p POP_FILTER] [-c CONTEXT] census_place_string
+    usage: geodata view pva [-h] [-p POP_FILTER] [-c CONTEXT] display_label
 
     View PlaceVectorApps nearest to a PlaceVectorApp
 
     positional arguments:
-      census_place_string   the exact place name
+      display_label         the exact place name
 
     optional arguments:
       -h, --help            show this help message and exit
@@ -172,60 +264,52 @@ Usage for `PlaceVectorApp`s:
 
 *Note: `view` above can be abbreviated as `v`*
 
-See `DemographicProfiles` for information regarding `census_place_string`s. At
-this point in development, the option for the optional argument `CONTEXT` is a
-lowercase state abbreviation (such as `ca`). Support for counties will be added
-in the future. When a `CONTEXT` is specified, the `PlaceVector` that
-`census_place_string` represents will only be compared to other `PlaceVector`s
-in the context (the same goes for `PlaceVectorApp`s).
-
-Filtering by population is also supported. The number after the optional `-p`
-option (long form: `--pop_filter`) will limit PlaceVector(App)s for comparison
-to those with a population of that number or more.
+For information about `pop_filter`s, `context`s, and `display_label`s, see
+*Argument types*.
 
 Some examples of usage:
 
-    $ python3 geodata v pv "Cupertino city, California" -p 20000 -c ny
+    $ ppython3 geodata v pv "Cupertino city, California" -p 20000 -c ny:nassau
     The most demographically similar places are:
 
-    PlaceVector(Plainview CDP, New York, population: 25,902
+    PlaceVector(Plainview CDP, New York; Nassau County; population: 25,902
     s:('population_density', 85), ('per_capita_income', 90), ('white_alone', 49), ('black_alone', 47), ('asian_alone', 70), ('hispanic_or_latino', 51), ('bachelors_degree_or_higher', 72), ('graduate_degree_or_higher', 79))
     Distance: 16.97608612136496
-    PlaceVector(Garden City village, New York, population: 22,533
+    PlaceVector(Garden City village, New York; Nassau County; population: 22,533
     s:('population_density', 82), ('per_capita_income', 100), ('white_alone', 53), ('black_alone', 51), ('asian_alone', 54), ('hispanic_or_latino', 51), ('bachelors_degree_or_higher', 77), ('graduate_degree_or_higher', 85))
     Distance: 18.63967542635869
-    PlaceVector(Rockville Centre village, New York, population: 24,442
+    PlaceVector(Rockville Centre village, New York; Nassau County; population: 24,442
     s:('population_density', 100), ('per_capita_income', 90), ('white_alone', 51), ('black_alone', 54), ('asian_alone', 53), ('hispanic_or_latino', 54), ('bachelors_degree_or_higher', 70), ('graduate_degree_or_higher', 78))
     Distance: 20.239194648009097
-    PlaceVector(White Plains city, New York, population: 58,040
-    s:('population_density', 97), ('per_capita_income', 79), ('white_alone', 37), ('black_alone', 58), ('asian_alone', 60), ('hispanic_or_latino', 64), ('bachelors_degree_or_higher', 66), ('graduate_degree_or_higher', 73))
-    Distance: 25.279685520195855
-    PlaceVector(Long Beach city, New York, population: 33,509
+    PlaceVector(Long Beach city, New York; Nassau County; population: 33,509
     s:('population_density', 100), ('per_capita_income', 80), ('white_alone', 49), ('black_alone', 54), ('asian_alone', 54), ('hispanic_or_latino', 55), ('bachelors_degree_or_higher', 65), ('graduate_degree_or_higher', 71))
     Distance: 27.02545096756019
-    PlaceVector(North Bellmore CDP, New York, population: 20,269
+    PlaceVector(North Bellmore CDP, New York; Nassau County; population: 20,269
     s:('population_density', 100), ('per_capita_income', 77), ('white_alone', 52), ('black_alone', 50), ('asian_alone', 59), ('hispanic_or_latino', 52), ('bachelors_degree_or_higher', 64), ('graduate_degree_or_higher', 70))
     Distance: 29.039843319136555
+    PlaceVector(Massapequa CDP, New York; Nassau County; population: 21,861
+    s:('population_density', 99), ('per_capita_income', 78), ('white_alone', 54), ('black_alone', 43), ('asian_alone', 52), ('hispanic_or_latino', 51), ('bachelors_degree_or_higher', 64), ('graduate_degree_or_higher', 65))
+    Distance: 30.110214213784666
 
     $ python3 geodata v pva "Sunnyvale city, California"
     The most demographically similar places are:
 
-    PlaceVectorApp(Sunnyvale city, California, population: 152,323
+    PlaceVectorApp(Sunnyvale city, California; Santa Clara County; population: 152,323
     s:('population_density', 100), ('per_capita_income', 91), ('median_year_structure_built', 49))
     Distance: 0.0
-    PlaceVectorApp(Redondo Beach city, California, population: 67,700
+    PlaceVectorApp(Redondo Beach city, California; Los Angeles County; population: 67,700
     s:('population_density', 100), ('per_capita_income', 87), ('median_year_structure_built', 49))
     Distance: 4.0
-    PlaceVectorApp(Alexandria city, Virginia, population: 156,505
+    PlaceVectorApp(Alexandria city, Virginia; Alexandria city; population: 156,505
     s:('population_density', 100), ('per_capita_income', 87), ('median_year_structure_built', 49))
     Distance: 4.0
-    PlaceVectorApp(Campbell city, California, population: 42,470
+    PlaceVectorApp(Campbell city, California; Santa Clara County; population: 42,470
     s:('population_density', 100), ('per_capita_income', 87), ('median_year_structure_built', 47))
     Distance: 4.47213595499958
-    PlaceVectorApp(Bal Harbour village, Florida, population: 3,000
+    PlaceVectorApp(Bal Harbour village, Florida; Miami-Dade County; population: 3,000
     s:('population_density', 100), ('per_capita_income', 86), ('median_year_structure_built', 51))
     Distance: 5.385164807134504
-    PlaceVectorApp(Foster City city, California, population: 33,784
+    PlaceVectorApp(Foster City city, California; San Mateo County; population: 33,784
     s:('population_density', 100), ('per_capita_income', 97), ('median_year_structure_built', 51))
     Distance: 6.324555320336759
 
@@ -335,6 +419,8 @@ Usage for antisuperlatives:
 
 *Note: `view` above can be abbreviated as `v`*
 
+For information about `pop_filter`s and `context`s, see *Argument types*.
+
 Superlatives and antisuperlatives allow you to get the geographies with the
 highest or lowest values of a certain demographic characteristic. For example:
 
@@ -411,19 +497,11 @@ degree or higher. If you want a ratio or percentage (such as the *percent* of
 people over age 25 with a bachelor's degree or higher), specify `cc` for the
 `data_type`.
 
-Sometimes, we're only interested in places with a population over a certain
-threshold, say 50,000. To filter for places with population of 50,000 or more,
-specify that with optional `-p` or `--pop_filter` arguments. Don't include
-commas or other formatting when specifying a `pop_filter`.
-
-Use the optional `-c` or `--context` arguments to limit the display to display
-of geographies to those inside a single state. For example, if you are looking
-for geographies with the newest housing units in the state of New York, specify
-`-c ny` as below:
+See below for an example of use with a `context` (see *Argument types*).
 
     $ python3 geodata view sl median_year_structure_built c -c ny
     -----------------------------------------------------------------------------------------
-     Place in ny                                       Total population Median year unit built
+     Place in ny                                       Total population Median year unit bui
     -----------------------------------------------------------------------------------------
      Merritt Park CDP, New York                                   1,776                 2006
      Livonia Center CDP, New York                                   330                 2002
@@ -528,13 +606,23 @@ to determine where to obtain data for a certain `data_identifier`. More
 documentation regarding the technical aspects of geodata will be written in the
 future.
 
+#### Regarding geographic identifiers
+
+Read the U.S. Census Bureau's
+[article](https://www.census.gov/programs-surveys/geography/guidance/geo-identifiers.html)
+on geographic identifiers.
+
 ## Next steps for development
 
-* Map places to counties.
-* A search function for geographies. Currently, the exact `census_name_string`
+* A search function for geographies. Currently, the exact `display_label`
 must be entered.
-* Have `context`s support counties in addition to states.
 * Support other types of geographies other than places (state, counties, etc.).
 * Make the `data_type` argument optional for superlatives and antisuperlatives.
 * Support dumping all data to a CSV file.
 * Write more technical documentation.
+
+## Known issues
+
+* Performance is currently not good. This is because the size of
+`default.geodata` (the binary file dumped by pickle) has become very large
+since grouping by counties began to be supported.

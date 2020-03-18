@@ -9,6 +9,7 @@ class PlaceVector:
     '''A standard 8-dimensional vector used to compare places with others.'''
     def __init__(
         self,
+        ct_instance,
         db_row,
         medians,
         standard_deviations
@@ -16,7 +17,17 @@ class PlaceVector:
 
         self.name = db_row['NAME']
         self.state = db_row['STATE_ABBREV']
-        # self.county = county
+        self.geoid = db_row['GEOID']
+
+        # CountyTools instance and county data
+        ct = ct_instance
+        # County GEOIDs
+        self.counties = ct.place_to_counties[self.geoid]
+        # County names (without the state)
+        self.counties_display = list(map(lambda x: ct.county_geoid_to_name[x],
+                                 ct.place_to_counties[self.geoid]))
+        self.counties_display = list(map(lambda x: x.split(', ')[0],
+                                self.counties_display))
 
         population = db_row['B01003_1']
         self.population = int(population)
@@ -235,5 +246,5 @@ class PlaceVector:
 
     def __repr__(self):
         '''Display subcomponent scores.'''
-        return 'PlaceVector(' + self.name + ', population: ' + f'{self.population:,}' + '\ns:' \
+        return 'PlaceVector(' + self.name + '; ' + ', '.join(self.counties_display) + '; population: ' + f'{self.population:,}' + '\ns:' \
             + ', '.join([str((i,j)) for i,j in self.s.items()]) + ')'

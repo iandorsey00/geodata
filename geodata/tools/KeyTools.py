@@ -19,8 +19,8 @@ class KeyTools:
             return '040' # State
 
     def __init__(self, csvt_instance):
-        self.st = StateTools(csvt_instance)
-        self.ct = CountyTools(csvt_instance)
+        st = StateTools(csvt_instance)
+        ct = CountyTools(csvt_instance)
 
         #######################################################################
         # Counties
@@ -30,7 +30,7 @@ class KeyTools:
         self.key_to_county_name = dict()
         self.county_name_to_key = dict()
 
-        for county_name in self.ct.county_names:
+        for county_name in ct.county_names:
             split_county_name = county_name.split(', ')
 
             # name portion
@@ -41,7 +41,7 @@ class KeyTools:
 
             # state portion
             state = split_county_name[-1]
-            state = self.st.get_abbrev(state, lowercase=True)
+            state = st.get_abbrev(state, lowercase=True)
 
             # Build key
             key = 'us:' + state + ':' + name + '/county'
