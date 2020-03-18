@@ -180,10 +180,11 @@ class Database:
 
         # Process column definitions
         columns = [
+            'STUSAB',
+            'SUMLEVEL',
             'LOGRECNO',
-            'GEOID',
             'STATE',
-            'STATE_ABBREV',
+            'GEOID',
             'NAME',
             ]
         self.places_columns = columns
@@ -197,11 +198,11 @@ class Database:
         rows = list(filter(lambda x: x[2] == '160', rows))
         rows = list(
                     map(lambda x:
-                        [x[4],                     # LOGRECNO
+                        [x[1].lower(),             # STUSAB [lowercase]
+                        x[2],                      # SUMLEVEL
+                        x[4],                      # LOGRECNO
+                        st.get_state(x[49])        # STATE
                         x[48][7:],                 # GEOID
-                        self.st.get_state(x[49]),  # STATE
-                        self.st.get_abbrev(self.st.get_state(x[49]), lowercase=True),
-                                                   # STATE_ABBREV
                         x[49]],                    # NAME
                         rows
                     )
