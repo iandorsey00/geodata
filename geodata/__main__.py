@@ -1,9 +1,14 @@
 from database.Database import Database
+
 import argparse
 import sys
 import numpy
 import pickle
+
 from tools.geodata_typecast import gdt, gdtf, gdti
+from tools.StateTools import StateTools
+
+st = StateTools()
 
 def create_data_products(args):
     '''Generate and save data products.'''
@@ -129,26 +134,40 @@ def superlatives(args, anti=False):
     # The inter-area margin to divide display sections
     iam = ' '
 
-    # Print a section divider
-    def divider():
-        return '-' * 89
-
-    # Print the header
-    def sl_print_headers(dpi):
-        if args.context:
-            return iam + ('Place in ' + args.context).ljust(45) + iam \
-                + getattr(dpi, 'rh')['population'].rjust(20) + iam \
-                + getattr(dpi, 'rh')[comp_name].rjust(20)
+    def divider(dpi):
+        '''Print a divider for DemographicProfiles'''
+        if args.comp_name == 'population':
+            return '-' * 68
         else:
-            return iam + 'Place'.ljust(45) + iam \
-                + getattr(dpi, 'rh')['population'].rjust(20) + iam \
-                + getattr(dpi, 'rh')[comp_name].rjust(20)[:20]
+            return '-' * 89
 
-    # Print a row
+    # dpi = demographicprofile_instance
+    def sl_print_headers(dpi):
+        '''Print a header for DemographicProfiles'''
+        if args.context:
+            out_str = iam + ('Place in ' \
+                + st.get_name(args.context)).ljust(45) + iam \
+                + getattr(dpi, 'rh')['population'].rjust(20)
+            # Print another column if the comp_name isn't population
+            if args.comp_name != 'population':
+                out_str += iam + getattr(dpi, 'rh')[comp_name].rjust(20)
+            return out_str
+        else:
+            out_str = iam + 'Place'.ljust(45) + iam \
+            + getattr(dpi, 'rh')['population'].rjust(20)
+            # Print another column if the comp_name isn't population
+            if args.comp_name != 'population':
+                out_str += iam + getattr(dpi, 'rh')[comp_name].rjust(20)
+            return out_str
+
+    # dpi = demographicprofile_instance
     def sl_print_row(dpi):
-        return iam + getattr(dpi, 'name').ljust(45)[:45] + iam \
-               + getattr(dpi, 'fc')['population'].rjust(20) + iam \
-               + getattr(dpi, print_)[comp_name].rjust(20)
+        '''Print a data row for DemographicProfiles'''
+        out_str = iam + getattr(dpi, 'name').ljust(45)[:45] + iam \
+                  + getattr(dpi, 'fc')['population'].rjust(20)
+        if args.comp_name != 'population':
+            out_str += iam + getattr(dpi, print_)[comp_name].rjust(20)
+        return out_str
     
     # Remove numpy.nans because they interfere with sorted()
     no_nans = list(filter(lambda x: not \
@@ -177,12 +196,13 @@ def superlatives(args, anti=False):
         getattr(x, sort_by)[comp_name], reverse=(not anti))
 
     # Print the header and places with their information.
-    print(divider())
-    print(sl_print_headers(d['demographicprofiles'][0]))
-    print(divider())
+    dpi = d['demographicprofiles'][0]
+    print(divider(dpi))
+    print(sl_print_headers(dpi))
+    print(divider(dpi))
     for sl in sls[:30]:
         print(sl_print_row(sl))
-    print(divider())
+    print(divider(dpi))
 
 def antisuperlatives(args):
     '''Wrapper function for antisuperlatives.'''
