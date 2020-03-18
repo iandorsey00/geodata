@@ -6,9 +6,12 @@ import numpy
 import pickle
 
 from tools.geodata_typecast import gdt, gdtf, gdti
-from tools.StateTools import StateTools
 
-st = StateTools()
+from tools.StateTools import StateTools
+from tools.CountyTools import CountyTools
+from tools.KeyTools import KeyTools
+
+import time
 
 def create_data_products(args):
     '''Generate and save data products.'''
@@ -24,7 +27,10 @@ def initalize_database():
     '''Load data products or create them if they don't exist.'''
     # Try to open the default database, located at ../bin/default.db.
     try:
+        start = time.time()
         d = load_data_products()
+        end = time.time()
+        print(end - start)
         return d
     # If there is no such database...
     except FileNotFoundError:
@@ -114,6 +120,18 @@ def superlatives(args, anti=False):
     '''Get superlatives and antisuperlatives.'''
     d = initalize_database()
 
+    st = d['st']
+    ct = d['ct']
+    kt = d['kt']
+
+    summary_level = '160'
+
+    if args.context:
+        if ':' in args.context:
+            summary_level = '050'
+        else:
+            summary_level = '040'
+
     comp_name = args.comp_name
     data_type = args.data_type
 
@@ -130,6 +148,43 @@ def superlatives(args, anti=False):
     else:
         sort_by = 'c'
         print_ = 'fcd'
+    
+    # Remove numpy.nans because they interfere with sorted()
+    dpi_instances = list(filter(lambda x: not \
+        numpy.isnan(getattr(x, sort_by)[comp_name]), d['demographicprofiles']))
+
+    # If there's a filter pop, remove all places underneath it.
+    if args.pop_filter:
+        dpi_instances = list(filter(lambda x: \
+        getattr(x, 'rc')['population'] >= args.pop_filter, dpi_instances))
+
+    # Filter by state
+    if summary_level == '040':
+        dpi_instances = list(filter(lambda x: \
+        getattr(x, 'state') == args.context, dpi_instances))
+    # Filter by county
+    elif summary_level == '050':
+        key = 'us:' + args.context + '/county'
+        county_name = kt.key_to_county_name[key]
+        county_geoid = ct.county_name_to_geoid[county_name]
+
+        dpi_instances = list(filter(lambda x: \
+        county_geoid in getattr(x, 'counties'), dpi_instances))
+
+
+    # For the median_year_structure_built component, remove values of zero and
+    # 18...
+    if args.comp_name == 'median_year_structure_built':
+        dpi_instances = list(filter(lambda x: not \
+        getattr(x, 'rc')['median_year_structure_built'] == 0, dpi_instances))
+        dpi_instances = list(filter(lambda x: not \
+        getattr(x, 'rc')['median_year_structure_built'] == 18, dpi_instances))
+
+    # Sort our DemographicProfile instances by component or compound specified.
+    sls = sorted(dpi_instances, key=lambda x: \
+        getattr(x, sort_by)[comp_name], reverse=(not anti))
+
+    # helper methods for printing (a)sl rows ##################################
 
     # The inter-area margin to divide display sections
     iam = ' '
@@ -144,17 +199,27 @@ def superlatives(args, anti=False):
     # dpi = demographicprofile_instance
     def sl_print_headers(dpi):
         '''Print a header for DemographicProfiles'''
-        if args.context:
-            out_str = iam + ('Place in ' \
-                + st.get_name(args.context)).ljust(45) + iam \
-                + getattr(dpi, 'rh')['population'].rjust(20)
+        # Places
+        if summary_level == '160':
+            out_str = iam + 'Place'.ljust(45) + iam \
+            + getattr(dpi, 'rh')['population'].rjust(20)
             # Print another column if the comp_name isn't population
             if args.comp_name != 'population':
                 out_str += iam + getattr(dpi, 'rh')[comp_name].rjust(20)
             return out_str
-        else:
-            out_str = iam + 'Place'.ljust(45) + iam \
-            + getattr(dpi, 'rh')['population'].rjust(20)
+        # State context
+        elif summary_level == '040' or summary_level == '050':
+            geography = ''
+
+            if summary_level == '040':
+                geography = st.get_name(args.context)
+            else: # summary_level == '050':
+                geography = county_name
+            
+            out_str = iam + ('Place in ' \
+                + geography).ljust(45)[:45] + iam \
+                + getattr(dpi, 'rh')['population'].rjust(20)
+
             # Print another column if the comp_name isn't population
             if args.comp_name != 'population':
                 out_str += iam + getattr(dpi, 'rh')[comp_name].rjust(20)
@@ -168,32 +233,8 @@ def superlatives(args, anti=False):
         if args.comp_name != 'population':
             out_str += iam + getattr(dpi, print_)[comp_name].rjust(20)
         return out_str
-    
-    # Remove numpy.nans because they interfere with sorted()
-    no_nans = list(filter(lambda x: not \
-        numpy.isnan(getattr(x, sort_by)[comp_name]), d['demographicprofiles']))
 
-    # If there's a filter pop, remove all places underneath it.
-    if args.pop_filter:
-        no_nans = list(filter(lambda x: \
-        getattr(x, 'rc')['population'] >= args.pop_filter, no_nans))
-
-    # If there's a filter_state, remove all places outside that county.
-    if args.context:
-        no_nans = list(filter(lambda x: \
-        getattr(x, 'state') == args.context, no_nans))
-
-    # For the median_year_structure_built component, remove values of zero and
-    # 18...
-    if args.comp_name == 'median_year_structure_built':
-        no_nans = list(filter(lambda x: not \
-        getattr(x, 'rc')['median_year_structure_built'] == 0, no_nans))
-        no_nans = list(filter(lambda x: not \
-        getattr(x, 'rc')['median_year_structure_built'] == 18, no_nans))
-
-    # Sort our DemographicProfile instances by component or compound specified.
-    sls = sorted(no_nans, key=lambda x: \
-        getattr(x, sort_by)[comp_name], reverse=(not anti))
+    # Printing ################################################################
 
     # Print the header and places with their information.
     dpi = d['demographicprofiles'][0]

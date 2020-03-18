@@ -1,8 +1,5 @@
-'''
-Tools to convert state names to abbreviations, etc.
-'''
-
 class StateTools:
+    '''Tools to convert state names to abbreviations, etc.'''
     def get_state(self, geo_name):
         '''Get the state name given a Census display label.'''
         # Split the name string by ', '
@@ -30,7 +27,26 @@ class StateTools:
         '''Transform a state abbreviation into its name.'''
         return self.state_abbrev_to_name[abbrev.upper()]
 
-    def __init__(self):
+    def __init__(self, csvt_instance):
+        # Rows from CSV files
+        rows = csvt_instance.rows
+                
+        # Filter for summary level code 040 (State-Places)
+        these_rows = list(filter(lambda x: x[2] == '040', rows))
+        
+        # geoid_to_name #######################################################
+        # name_to_geoid #######################################################
+        self.geoid_to_name = dict()
+        self.name_to_geoid = dict()
+
+        for row in these_rows:
+            geoid = row[48][7:]
+            name = row[49]
+
+            self.geoid_to_name[geoid] = name
+            self.name_to_geoid[name] = geoid
+
+        # Begin long lists ####################################################
         self.abbrevs = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DC', 'DE',
         'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
         'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY',

@@ -9,9 +9,12 @@ import sqlite3
 import csv
 
 from tools.geodata_typecast import gdt, gdti, gdtf
+
+from tools.CSVTools import CSVTools
 from tools.StateTools import StateTools
 from tools.CountyTools import CountyTools
-# from tools.key_hash import key_hash
+from tools.KeyTools import KeyTools
+
 from collections import defaultdict
 
 import sys
@@ -106,8 +109,11 @@ class Database:
         # Initialize ##########################################################
 
         self.path = path
-        self.st = StateTools()
-        self.ct = CountyTools(self.path)
+
+        self.csvt = CSVTools(self.path)
+        self.st = StateTools(self.csvt)
+        self.ct = CountyTools(self.csvt)
+        self.kt = KeyTools(self.csvt)
 
         # Connect to SQLite3
         self.conn = sqlite3.connect(':memory:')
@@ -624,4 +630,8 @@ class Database:
             'placevectors':         self.placevectors,
             'placevectorapps':      self.placevectorapps,
             'demographicprofiles':  self.demographicprofiles,
+            'csvt':                 self.csvt,
+            'st':                   self.st,
+            'ct':                   self.ct,
+            'kt':                   self.kt,
             }

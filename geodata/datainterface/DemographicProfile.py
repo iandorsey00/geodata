@@ -4,12 +4,13 @@ geographies.
 '''
 
 from tools.geodata_typecast import gdt, gdti, gdtf
+from tools.CSVTools import CSVTools
 from tools.CountyTools import CountyTools
 import textwrap
 
 class DemographicProfile:
     '''Used to display data for a geography.'''
-    def __init__(self, county_tools_instance, db_row):
+    def __init__(self, ct_instance, db_row):
 
         self.name = db_row['NAME']
         self.state = db_row['STATE_ABBREV']
@@ -17,7 +18,7 @@ class DemographicProfile:
         # self.key = db_row['KEY']
 
         # CountyTools instance and county data
-        ct = county_tools_instance
+        ct = ct_instance
         # County GEOIDs
         self.counties = ct.place_to_counties[self.geoid]
         # County names (without the state)
