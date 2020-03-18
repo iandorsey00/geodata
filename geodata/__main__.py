@@ -53,7 +53,7 @@ def compare_placevectors(args, type='placevector'):
         pv_list = d['placevectorapps']
 
     # Split the geos with a pipe
-    geo_split = args.census_place_string.split('|')
+    geo_split = args.display_label.split('|')
 
     search_name = geo_split[0]
 
@@ -101,7 +101,7 @@ def get_dp(args):
     '''Get DemographicProfiles.'''
     d = initalize_database()
 
-    place = args.census_place_string
+    place = args.display_label
     dp = list(filter(lambda x: x.name == place, d['demographicprofiles']))[0]
     print(str(dp))
 
@@ -215,13 +215,13 @@ view_subparsers = view_parsers.add_subparsers(
 # DemographicProfiles #########################################################
 dp_parsor = view_subparsers.add_parser('dp',
     description='View a DemographicProfile.')
-dp_parsor.add_argument('census_place_string', help='the exact place name')
+dp_parsor.add_argument('display_label', help='the exact place name')
 dp_parsor.set_defaults(func=get_dp)
 
 # PlaceVectors ################################################################
 pv_parsor = view_subparsers.add_parser('pv',
     description='View PlaceVectors nearest to a PlaceVector.')
-pv_parsor.add_argument('census_place_string', help='the exact place name')
+pv_parsor.add_argument('display_label', help='the exact place name')
 pv_parsor.add_argument('-p', '--pop_filter', help='filter by population')
 pv_parsor.add_argument('-c', '--context', help='state to compare with')
 pv_parsor.set_defaults(func=compare_placevectors)
@@ -229,7 +229,7 @@ pv_parsor.set_defaults(func=compare_placevectors)
 # PlaceVectorApps #############################################################
 pva_parsor = view_subparsers.add_parser('pva',
     description='View PlaceVectorApps nearest to a PlaceVectorApp')
-pva_parsor.add_argument('census_place_string', help='the exact place name')
+pva_parsor.add_argument('display_label', help='the exact place name')
 pva_parsor.add_argument('-p', '--pop_filter', help='filter by population')
 pva_parsor.add_argument('-c', '--context', help='state to compare with')
 pva_parsor.set_defaults(func=compare_placevectorapps)
