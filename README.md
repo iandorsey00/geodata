@@ -106,6 +106,8 @@ Where `st` is the lowercase two-letter state abbreviation and `county` is the
 name of the county, without spaces, in all lowercase letters, and without the
 word "county."
 
+---
+
 A `context` specifies what geographies to work with. When comparing
 `GeoVector`s, it specifies what geographies the target `GeoVectors` should be
 compared against. When working with superlatives or antisuperlatives,
@@ -121,7 +123,8 @@ Currently, there are two options for universes.
     counties+
 
 They can be aliased to `p+` and `c+`. They tell geodata to display places and
-counties, respectively. As you can see, universes 
+counties, respectively. As you can see, universes must always be followed by
+a plus sign `+`.
 
 #### Groups
 
@@ -161,6 +164,8 @@ Mandatory and primary arguments of:
 
 *Note: `view` above can be abbreviated as `v`*
 
+---
+
 `display_label`s must be enclosed in quotation marks, because they contain
 spaces.
 
@@ -199,6 +204,8 @@ Optional arguments of:
     geodata view sl  # Superlatives
     geodata view asl # Antisuperlatives
 
+---
+
 Sometimes, we're only interested in places with a population over a certain
 threshold, say 50,000. To filter for places with population of 50,000 or more,
 specify that for `POP_FILTER` above. For example:
@@ -229,6 +236,8 @@ Data products are available once they they have been saved by pickle to
 *Note: `view` above can be abbreviated as `v`*
 
 For information about `display_label`s, see *Argument types*.
+
+---
 
 View a standarized demographic profile for any place in the United States. For
 example:
@@ -305,6 +314,8 @@ Usage for appearance mode (`geodata view gva`):
 
 For information about `pop_filter`s, `context`s, and `display_label`s, see
 *Argument types*.
+
+---
 
 Some examples of usage:
 
@@ -455,6 +466,8 @@ Usage for antisuperlatives:
 *Note: `view` above can be abbreviated as `v`*
 
 For information about `pop_filter`s and `context`s, see *Argument types*.
+
+---
 
 Superlatives and antisuperlatives allow you to get the geographies with the
 highest or lowest values of a certain demographic characteristic. For example:
