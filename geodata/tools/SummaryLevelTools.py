@@ -2,6 +2,8 @@ class SummaryLevelTools:
     '''Tools to convert summary levels into their codes and vice-versa.'''
     def __init__(self):
         self.keyword_to_code = {
+            'zctas': '860',
+            'z': '860',
             'places': '160',
             'p': '160',
             'counties': '050',
@@ -11,6 +13,7 @@ class SummaryLevelTools:
         }
 
         self.code_to_keyword = {
+            '860': 'zctas',
             '160': 'places',
             '050': 'counties',
             '040': 'states',

@@ -99,6 +99,11 @@ class Database:
             this_path = self.path + 'g20185' + state + '.csv'
             with open(this_path, 'rt', encoding='iso-8859-1') as f:
                 rows += list(csv.reader(f))
+
+        # Also, get rows for the national file (for ZCTA support).
+        this_path = self.path + 'g20185us.csv'
+        with open(this_path, 'rt', encoding='iso-8859-1') as f:
+            rows += list(csv.reader(f))
         
         return rows
     
@@ -164,10 +169,12 @@ class Database:
         # 160 = State-Place
         # 050 = State-County
         # 040 = State
+        # 860 = ZCTA
         rows = list(filter(lambda x: 
                            (x[2] == '160' \
                         or x[2] == '050' \
-                        or x[2] == '040')
+                        or x[2] == '040' \
+                        or x[2] == '860')
                         and ''.join(x[48][3:5]) == '00' ,
                            rows))
         rows = list(
@@ -230,8 +237,23 @@ class Database:
         with open(this_path, 'rt') as f:
             s_rows = list(csv.reader(f, delimiter='\t'))
 
+        # Get rows for ZCTAs (860) from CSV
+        this_path = self.path + '2019_Gaz_zcta_national.txt'
+
+        with open(this_path, 'rt') as f:
+            z_rows = list(csv.reader(f, delimiter='\t'))
+
+        # County geoheaders lack two columns that places have, so insert
+        # them as empty strings.
+        for z_row in z_rows:
+            z_row.insert(0, '')
+            z_row.insert(2, '')
+            z_row.insert(3, '')
+            z_row.insert(4, '')
+            z_row.insert(5, '')
+
         # Merge rows for together
-        rows = rows + c_rows + s_rows
+        rows = rows + c_rows + s_rows + z_rows
 
         for row in rows:
             row[-1] = row[-1].strip()
@@ -308,7 +330,7 @@ class Database:
                 self.files[table_id] = []
 
             for sequence_number in sequence_numbers:
-                for state in self.st.get_abbrevs(lowercase=True):
+                for state in self.st.get_abbrevs(lowercase=True, inc_us=True):
                     this_path = self.path + 'e20185' + state + sequence_number \
                                 + '000.txt'
                     self.files[table_id].append(this_path)

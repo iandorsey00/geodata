@@ -9,12 +9,17 @@ class StateTools:
             split_geo_name = geo_name.split(', ')
         return split_geo_name[-1]
 
-    def get_abbrevs(self, lowercase=False):
+    def get_abbrevs(self, lowercase=False, inc_us=False):
         '''Get two-letter state abbreviations.'''
+        abbrevs = self.abbrevs
+
+        if inc_us:
+            abbrevs.append('US')
+
         if not lowercase:
-            return self.abbrevs
+            return abbrevs
         else:
-            return list(map(lambda x: x.lower(), self.abbrevs))
+            return list(map(lambda x: x.lower(), abbrevs))
 
     def get_abbrev(self, name, lowercase=False):
         '''Transform a state name into its abbreviation.'''

@@ -218,6 +218,10 @@ def superlatives(args, anti=False):
                 universe = 'Place'
             elif universe_sl == '050':
                 universe = 'County'
+            elif universe_sl == '040':
+                universe = 'State'
+            elif universe_sl == '860':
+                universe = 'ZCTA'
         else:
             universe = 'Geography'
 

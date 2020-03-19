@@ -45,22 +45,26 @@ the files from the subfolders to your data directory. If you are using Linux,
 
 3. Download the following 2019 gazetteer files:
 
-* [Places](https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2019_Gazetteer/2019_Gaz_place_national.zip)
-(1.0 MB)
-* [Counties](https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2019_Gazetteer/2019_Gaz_counties_national.zip)
-(<1.0 MB)
+    * [ZCTAs](https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2019_Gazetteer/2019_Gaz_place_national.zip)
+    (<1.0 MB)
+    * [Places](https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2019_Gazetteer/2019_Gaz_place_national.zip)
+    (1.0 MB)
+    * [Counties](https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2019_Gazetteer/2019_Gaz_counties_national.zip)
+    (<1.0 MB)
+    
+    ZCTAs stand for "Zip Code Tabulation Areas."
 
-These files contains geographic data, such as land area and geographic
-coordinates. Extract it and place it in your data directory.
+    These files contains geographic data, such as land area and geographic
+    coordinates. Extract it and place it in your data directory.
 
 4. Place the following *custom* gazetteer files in your data directory:
 
-* `bin/2019_Gaz_state_national.txt`
+    * `bin/2019_Gaz_state_national.txt`
 
-Though of the goals of geodata is rely on unmodified data files, the U.S.
-Census Bureau currently does not have geographic information file for states.
-This being the case, I have no choice but to ship a custom gazetteer file
-with geodata.
+    Though of the goals of geodata is rely on unmodified data files, the U.S.
+    Census Bureau currently does not have geographic information file for states.
+    This being the case, I have no choice but to ship a custom gazetteer file
+    with geodata.
 
 5. This project depends on [pandas](https://pandas.pydata.org/) and
 [SQLAlchemy](https://www.sqlalchemy.org/). Install these first. One way to do so
@@ -107,18 +111,31 @@ Syntax:
     universe+group
     group
 
-`universe_summary_level` syntax:
+`universe` syntax:
 
-    counties|c|places|p
+    states|s|counties|c|places|p|zctas|z
 
-`group` syntax:
+`group` syntax for `states|s|counties|c|places|p`:
 
     st
     st:county
 
-Where `st` is the lowercase two-letter state abbreviation and `county` is the
+where `st` is the lowercase two-letter state abbreviation and `county` is the
 name of the county, without spaces, in all lowercase letters, and without the
 word "county."
+
+`group` syntax for `zctas|z`:
+
+    zcta_group
+
+`zcta_group`s are simply the the starting digits of a ZCTA (Zip Code Tabulation
+Area). For example, `-c zctas+9` means the group of all ZCTAs starting with the
+digit 9. Similarly, `-c zctas+900` means the group of all ZCTAs starting with
+the digits 900. You can specify as many digits as you want up to five, but
+as far as I know, the fourth digit doesn't normally have any geographic meaning.
+Five digits would specify a group consisting of a single ZCTA. For more
+information about ZCTAs, see *Information about data from the U.S. Census
+Bureau*.
 
 ---
 
@@ -627,7 +644,62 @@ level `160` (State-Places) because many cities in the U.S. cross county lines
 – Dallas, Texas, for examples, has parts of five counties within its city limits
 and therefore maps to five different State-Place-Counties.
 
-Mapping places to their counties remains a goal for this project.
+### What are ZCTAs?
+
+Zip Code Tabulation Areas (summary level `860`) are approximations of zip codes.
+They were made because data for zip codes is commonly requested. Unfortunately,
+zip codes are defined by the U.S. Postal Service as delivery routes, not
+geographic areas, so there are cases where it isn't possible to precisely
+represent them as such. See this
+[article](https://web.archive.org/web/20050112111712/http://mcdc2.missouri.edu/webrepts/geography/ZIP.resources.html).
+ZCTAs are the U.S. Census Bureau's best attempt to approximate zip codes as
+geographic areas.
+
+Because zip codes can be quite unwiedy, they are often difficult to group
+together. As far as the Census Bureau is concerned, the only type of geography
+they can be nested under is the entire U.S. That means they can even cross state
+lines.
+
+Zip codes can be complicated. Here are some other things you should know about
+zip codes:
+
+* Just because a zip code has a certain city/state designation (like NEW YORK
+NY) doesn't mean all addresses with that zip code are in the place the
+designation represents. There are even some rare cases when a zip code can
+cover addresses in a whole different state.
+
+* That being said, there is only one default city/state designation for all
+addresses in a zip code. There might be others deemed acceptable by the USPS.
+In that situation, all addresses in that zip code can use the acceptable
+address, even though the zip code might be larger than the neighborhood
+represented by the acceptable designation. Some example of acceptable and
+unacceptable designations:
+
+..* **90027** has a default designation of LOS ANGELES CA. The designations
+HOLLYWOOD CA and LOS FELIZ CA are considered unaccpetable by the USPS,
+even though 90027 is in parts of both those neighborhoods.
+
+..* **77449** is the most populous ZCTA in the United States, with 122,814
+people as of the 2019 American Community Survey. It has default designation
+of KATY TX and an acceptable designation of PARK ROW TX, even though it doesn't
+seem to be within the borders of either of those places.
+
+* The first three digits of all zip codes have geographic meaning. The first
+digit refers to a group of states, and the first three digits represent
+a sectional center facility. See Wikipedia:
+[ZIP Code#By geography](https://en.wikipedia.org/wiki/ZIP_Code#By_geography).
+
+* Areas covered by sectional center facilities (see above) can be approximated
+by geographic areas. The last two digits, on the other hand, are often based on
+the alphabetical order of the city/state designations. This is the reason why
+two places with zip codes differing by just one digit are not necessarily
+close to one another.
+
+Other resources:
+
+* [Wikipedia: ZIP Code](https://en.wikipedia.org/wiki/ZIP_Code)
+* [Wikipedia: ZIP Code zones in the United States diagram](https://en.wikipedia.org/wiki/ZIP_Code#/media/File:ZIP_Code_zones.svg)
+* [Internet Archive: Missouri Census Data Center article on zip codes](https://web.archive.org/web/20050112111712/http://mcdc2.missouri.edu/webrepts/geography/ZIP.resources.html)
 
 ### Summary files
 
