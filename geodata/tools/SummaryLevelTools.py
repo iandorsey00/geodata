@@ -63,8 +63,11 @@ class SummaryLevelTools:
         
         # If there is something after the plus...
         if group != '':
+            # If the group is digits, it's a ZCTA group
+            if group.isdigit():
+                group_sl = '860'
             # If there is a colon, there is grouping by county
-            if ':' in context:
+            elif ':' in context:
                 group_sl = '050'
             # Otherwise, there is grouping by state.
             else:

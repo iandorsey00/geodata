@@ -87,6 +87,9 @@ def compare_geovectors(args, mode='std'):
     elif group_sl == '040':
         gv_list = list(filter(lambda x: x.state == group,
                               gv_list))
+    elif group_sl == '860':
+        gv_list = list(filter(lambda x: x.name.startswith('ZCTA5 ' + group),
+                              gv_list))
 
     # Population
     if args.pop_filter:
@@ -175,7 +178,7 @@ def superlatives(args, anti=False):
         # Filter by state
         if group_sl == '040':
             dpi_instances = list(filter(lambda x: \
-            getattr(x, 'state') == group, dpi_instances))
+            x.state == group, dpi_instances))
         # Filter by county
         elif group_sl == '050':
             key = 'us:' + group + '/county'
@@ -183,7 +186,10 @@ def superlatives(args, anti=False):
             county_geoid = ct.county_name_to_geoid[county_name]
 
             dpi_instances = list(filter(lambda x: \
-            county_geoid in getattr(x, 'counties'), dpi_instances))
+            county_geoid in x.counties, dpi_instances))
+        elif group_sl == '860':
+            dpi_instances = list(filter(lambda x: x.name.startswith('ZCTA5 ' + group),
+                                dpi_instances))
 
     # For the median_year_structure_built component, remove values of zero and
     # 18...
@@ -232,6 +238,8 @@ def superlatives(args, anti=False):
                 group_name = st.get_name(group)
             elif group_sl == '050':
                 group_name = county_name
+            elif group_sl == '860':
+                group_name = group
             
             # Output '<UNIVERSE GEOGRAPHY> in <GROUP NAME>'
             out_str = iam + (universe + ' in ' \
