@@ -184,8 +184,8 @@ class DemographicProfile:
 
     def __repr__(self):
         '''Display a representation of the DemographicProfile class'''
-        return "DemographicProfile(key='%s', name='%s', county='%s')" % (
-            self.key, self.name, self.county)
+        return "DemographicProfile(name='%s', counties=%s)" % (self.name,
+                self.counties)
 
     def dp_full_row_str(self, content):
         '''Return a line with just one string'''
@@ -218,7 +218,7 @@ class DemographicProfile:
         # + self.dp_full_row_str(self.key) \
         out_str  = self.divider()
         out_str += self.dp_full_row_str(self.name)
-        
+
         # Print counties if this DemographicProfile is for a place (160)
         if self.sumlevel == '160':
             out_str += self.dp_full_row_str(', '.join(self.counties_display))

@@ -6,10 +6,7 @@ import numpy
 import pickle
 
 from tools.geodata_typecast import gdt, gdtf, gdti
-
-from tools.StateTools import StateTools
-from tools.CountyTools import CountyTools
-from tools.KeyTools import KeyTools
+from tools.SummaryLevelTools import SummaryLevelTools
 
 import time
 
@@ -54,47 +51,55 @@ def compare_geovectors(args, mode='std'):
     ct = d['ct']
     kt = d['kt']
 
-    # Split the geos with a pipe
-    geo_split = args.display_label.split('|')
-    search_name = geo_split[0]
-    summary_level = '160'
+    slt = SummaryLevelTools()
 
-    if args.context:
-        if ':' in args.context:
-            summary_level = '050'
-        else:
-            summary_level = '040'
-    
-    pv_list = d['geovectors']
+    # The summary level of GeoVectors we will be viewing.
+    summary_level = '160'
+    # The group of GeoVectors we will be viewing, e.g. those in Los Angeles
+    # County, California (us:losangeles)
+    group = None
+    group_sl = None
+
+    gv_list = d['geovectors']
 
     # Obtain the GeoVector for which we entered a name.
-    comparison_pv = \
-        list(filter(lambda x: x.name == search_name, pv_list))[0]
+    comparison_gv = \
+        list(filter(lambda x: x.name == args.display_label, gv_list))[0]
 
-    # Filter by arguments:
-    if summary_level == '050':
-        key = 'us:' + args.context + '/county'
+    # If a context was specified, unpack needed values
+    if args.context:
+        universe_sl, group_sl, group = slt.unpack_context(args.context)
+    # Otherwise, the universe_sl should be the same as the target GeoVector.
+    else:
+        universe_sl = comparison_gv.sumlevel
+
+    # Filter by summary level
+    gv_list = list(filter(lambda x: x.sumlevel == universe_sl, gv_list))
+
+    # Filter by group summary level
+    if group_sl == '050':
+        key = 'us:' + group + '/county'
         county_name = kt.key_to_county_name[key]
         county_geoid = ct.county_name_to_geoid[county_name]
 
-        pv_list = list(filter(lambda x: \
-        county_geoid in getattr(x, 'counties'), pv_list))
-    elif summary_level == '040':
-        pv_list = list(filter(lambda x: x.state == args.context,
-                            pv_list))
+        gv_list = list(filter(lambda x: \
+        county_geoid in getattr(x, 'counties'), gv_list))
+    elif group_sl == '040':
+        gv_list = list(filter(lambda x: x.state == group,
+                              gv_list))
 
     # Population
     if args.pop_filter:
         pop_filter = gdt(args.pop_filter)
-        pv_list = list(filter(lambda x: gdti(x.d['population']) > pop_filter,
-                            pv_list))
+        gv_list = list(filter(lambda x: gdti(x.d['population']) > pop_filter,
+                            gv_list))
 
     # Get the closest GeoVectors.
     # In other words, get the most demographically similar places.
-    closest_pvs = sorted(pv_list,
-        key=lambda x: comparison_pv.distance(x, mode=mode))[:6]
+    closest_pvs = sorted(gv_list,
+        key=lambda x: comparison_gv.distance(x, mode=mode))[:6]
 
-    print("The most demographically similar places are:")
+    print("The most demographically similar geographies are:")
     print()
     if mode == 'std':
         print('GEOGRAPHY'.ljust(40), 'COUNTY'.ljust(20), 'PDN', 'PCI', 'WHT', 'BLK', 'ASN', 'HPL', 'BDH', 'GDH', ' DISTANCE')
@@ -103,7 +108,7 @@ def compare_geovectors(args, mode='std'):
 
     # Print these GeoVectors
     for closest_pv in closest_pvs:
-        print(closest_pv.display_row(mode), comparison_pv.distance(closest_pv, mode=mode))
+        print(closest_pv.display_row(mode), comparison_gv.distance(closest_pv, mode=mode))
 
 def compare_geovectors_app(args):
     compare_geovectors(args, mode='app')
@@ -124,13 +129,15 @@ def superlatives(args, anti=False):
     ct = d['ct']
     kt = d['kt']
 
-    summary_level = '160'
+    slt = SummaryLevelTools()
 
+    universe_sl = None
+    group_sl = None
+    group = None
+
+    # Unpack the context if there was one specified
     if args.context:
-        if ':' in args.context:
-            summary_level = '050'
-        else:
-            summary_level = '040'
+        universe_sl, group_sl, group = slt.unpack_context(args.context)
 
     comp_name = args.comp_name
     data_type = args.data_type
@@ -158,19 +165,25 @@ def superlatives(args, anti=False):
         dpi_instances = list(filter(lambda x: \
         getattr(x, 'rc')['population'] >= args.pop_filter, dpi_instances))
 
-    # Filter by state
-    if summary_level == '040':
+    # Filter by universe
+    if universe_sl:
         dpi_instances = list(filter(lambda x: \
-        getattr(x, 'state') == args.context, dpi_instances))
-    # Filter by county
-    elif summary_level == '050':
-        key = 'us:' + args.context + '/county'
-        county_name = kt.key_to_county_name[key]
-        county_geoid = ct.county_name_to_geoid[county_name]
+        x.sumlevel == universe_sl, dpi_instances))
 
-        dpi_instances = list(filter(lambda x: \
-        county_geoid in getattr(x, 'counties'), dpi_instances))
+    # Filter by group
+    if group:
+        # Filter by state
+        if group_sl == '040':
+            dpi_instances = list(filter(lambda x: \
+            getattr(x, 'state') == group, dpi_instances))
+        # Filter by county
+        elif group_sl == '050':
+            key = 'us:' + group + '/county'
+            county_name = kt.key_to_county_name[key]
+            county_geoid = ct.county_name_to_geoid[county_name]
 
+            dpi_instances = list(filter(lambda x: \
+            county_geoid in getattr(x, 'counties'), dpi_instances))
 
     # For the median_year_structure_built component, remove values of zero and
     # 18...
@@ -196,34 +209,39 @@ def superlatives(args, anti=False):
         else:
             return '-' * 89
 
-    # dpi = demographicprofile_instance
-    def sl_print_headers(dpi):
-        '''Print a header for DemographicProfiles'''
-        # Places
-        if summary_level == '160':
-            out_str = iam + 'Place'.ljust(45) + iam \
-            + getattr(dpi, 'rh')['population'].rjust(20)
-            # Print another column if the comp_name isn't population
-            if args.comp_name != 'population':
-                out_str += iam + getattr(dpi, 'rh')[comp_name].rjust(20)
-            return out_str
-        # State context
-        elif summary_level == '040' or summary_level == '050':
-            geography = ''
+    def sl_print_headers(comp_name, universe_sl, group_sl, group):
+        '''Helper method to DRY up sl_print_headers'''
 
-            if summary_level == '040':
-                geography = st.get_name(args.context)
-            else: # summary_level == '050':
-                geography = county_name
+        # Set the name of the universe
+        if universe_sl:
+            if universe_sl == '160':
+                universe = 'Place'
+            elif universe_sl == '050':
+                universe = 'County'
+        else:
+            universe = 'Geography'
+
+        if group:
+            group_name = ''
+
+            if group_sl == '040':
+                group_name = st.get_name(group)
+            elif group_sl == '050':
+                group_name = county_name
             
-            out_str = iam + ('Place in ' \
-                + geography).ljust(45)[:45] + iam \
+            # Output '<UNIVERSE GEOGRAPHY> in <GROUP NAME>'
+            out_str = iam + (universe + ' in ' \
+                + group_name).ljust(45)[:45] + iam \
+                + getattr(dpi, 'rh')['population'].rjust(20)
+        else:
+            out_str = iam + universe.ljust(45)[:45] + iam \
                 + getattr(dpi, 'rh')['population'].rjust(20)
 
-            # Print another column if the comp_name isn't population
-            if args.comp_name != 'population':
-                out_str += iam + getattr(dpi, 'rh')[comp_name].rjust(20)
-            return out_str
+        # Print another column if the comp_name isn't population
+        if args.comp_name != 'population':
+            out_str += iam + getattr(dpi, 'rh')[comp_name].rjust(20)
+
+        return out_str
 
     # dpi = demographicprofile_instance
     def sl_print_row(dpi):
@@ -239,7 +257,7 @@ def superlatives(args, anti=False):
     # Print the header and places with their information.
     dpi = d['demographicprofiles'][0]
     print(divider(dpi))
-    print(sl_print_headers(dpi))
+    print(sl_print_headers(comp_name, universe_sl, group_sl, group))
     print(divider(dpi))
     for sl in sls[:30]:
         print(sl_print_row(sl))
