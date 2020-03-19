@@ -86,7 +86,7 @@ def compare_geovectors(args, mode='std'):
     # Population
     if args.pop_filter:
         pop_filter = gdt(args.pop_filter)
-        pv_list = list(filter(lambda x: x.population > pop_filter,
+        pv_list = list(filter(lambda x: gdti(x.d['population']) > pop_filter,
                             pv_list))
 
     # Get the closest GeoVectors.

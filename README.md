@@ -68,9 +68,9 @@ is by executing:
 ### Notes
 
 * When constructing the database, there will be many notes displayed regarding
-PlaceVectors and PlaceVectorApps that couldn't be created due to insufficient
-data. This is normal; many small places in the U.S. don't have enough data
-available for PlaceVector(App)s to be constructed.
+GeoVectors that couldn't be created due to insufficient data. This is normal;
+many small places in the U.S. don't have enough data available for GeoVectors to
+be constructed.
 
 ## Argument types
 
@@ -82,16 +82,15 @@ Usage:
 
 Optional arguments of:
 
-    geodata view pv  # PlaceVectors
-    geodata view pva # PlaceVectorApps
+    geodata view gv  # GeoVectors
+    geodata view gva # GeoVectors [appearance mode]
     geodata view sl  # Superlatives
     geodata view asl # Antisuperlatives
 
 A `context` specifies what group of populations to work with. When comparing
-`PlaceVector`s or `PlaceVectorApp`s, it specifies what group of geographies
-the target `PlaceVector` should be compared against. When working with
-superlatives or antisuperlatives, it specifies what group of geographies should
-be ranked.
+`GeoVector`s, it specifies what group of geographies the target `GeoVectors`
+should be compared against. When working with superlatives or antisuperlatives,
+it specifies what group of geographies should be ranked.
 
 Currently, geographies can be grouped by state or by county. To group by a
 state, enter the lowercase abbreviation for the state for `CONTEXT`. To group by
@@ -117,8 +116,8 @@ Washington; and Fairfax County, Virginia respectively.
 Mandatory and primary arguments of:
 
     geodata view dp  # DemographicProfiles
-    geodata view pv  # PlaceVectors
-    geodata view pva # PlaceVectorApps
+    geodata view gv  # GeoVectors
+    geodata view gva # GeoVectors [appearance mode]
 
 *Note: `view` above can be abbreviated as `v`*
 
@@ -142,7 +141,7 @@ A more formal syntax description would be:
     PLACE_NAME GEOGRAPHY_TYPE, FULLY_EXPANDED_STATE_NAME
 
 Use the exact `display_label` to specify the target geography for
-`DemographicProfiles` and `PlaceVectors`. Searching will be supported in a
+`DemographicProfiles` and `GeoVectors`. Searching will be supported in a
 future version of geodata. A work around for this issue is to use
 [Quickfacts](https://www.census.gov/quickfacts/fact/table/US/PST045219) or
 [data.census.gov](https://data.census.gov/cedsci/) to find the string.
@@ -155,8 +154,8 @@ Usage:
 
 Optional arguments of:
 
-    geodata view pv  # PlaceVectors
-    geodata view pva # PlaceVectorApps
+    geodata view gv  # GeoVectors
+    geodata view gva # GeoVectors [appearance mode]
     geodata view sl  # Superlatives
     geodata view asl # Antisuperlatives
 
@@ -228,13 +227,13 @@ exactly 100 percent due to rounding. Also, because Hispanic or Latino origin
 is considered a seperate category from race, adding them to race categories
 will most likely *not* result in a sum of 100 percent.
 
-#### `PlaceVector`s and `PlaceVectorApp`s
+#### `GeoVectors`s
 
-Usage for `PlaceVector`s:
+Standard usage:
 
-    usage: geodata view pv [-h] [-p POP_FILTER] [-c CONTEXT] display_label
+    usage: geodata view gv [-h] [-p POP_FILTER] [-c CONTEXT] display_label
 
-    View PlaceVectors nearest to a PlaceVector.
+    View GeoVectors nearest to a GeoVector.
 
     positional arguments:
       display_label         the exact place name
@@ -246,11 +245,11 @@ Usage for `PlaceVector`s:
       -c CONTEXT, --context CONTEXT
                             state to compare with
 
-Usage for `PlaceVectorApp`s:
+Usage for appearance mode:
 
-    usage: geodata view pva [-h] [-p POP_FILTER] [-c CONTEXT] display_label
+    usage: geodata view gva [-h] [-p POP_FILTER] [-c CONTEXT] display_label
 
-    View PlaceVectorApps nearest to a PlaceVectorApp
+    View GeoVectors nearest to a GeoVector [appearance mode]
 
     positional arguments:
       display_label         the exact place name
@@ -269,67 +268,44 @@ For information about `pop_filter`s, `context`s, and `display_label`s, see
 
 Some examples of usage:
 
-    $ ppython3 geodata v pv "Cupertino city, California" -p 20000 -c ny:nassau
+    $ python3 geodata v gv "Cupertino city, California" -p 20000 -c ny:nassau
     The most demographically similar places are:
 
-    PlaceVector(Plainview CDP, New York; Nassau County; population: 25,902
-    s:('population_density', 85), ('per_capita_income', 90), ('white_alone', 49), ('black_alone', 47), ('asian_alone', 70), ('hispanic_or_latino', 51), ('bachelors_degree_or_higher', 72), ('graduate_degree_or_higher', 79))
-    Distance: 16.97608612136496
-    PlaceVector(Garden City village, New York; Nassau County; population: 22,533
-    s:('population_density', 82), ('per_capita_income', 100), ('white_alone', 53), ('black_alone', 51), ('asian_alone', 54), ('hispanic_or_latino', 51), ('bachelors_degree_or_higher', 77), ('graduate_degree_or_higher', 85))
-    Distance: 18.63967542635869
-    PlaceVector(Rockville Centre village, New York; Nassau County; population: 24,442
-    s:('population_density', 100), ('per_capita_income', 90), ('white_alone', 51), ('black_alone', 54), ('asian_alone', 53), ('hispanic_or_latino', 54), ('bachelors_degree_or_higher', 70), ('graduate_degree_or_higher', 78))
-    Distance: 20.239194648009097
-    PlaceVector(Long Beach city, New York; Nassau County; population: 33,509
-    s:('population_density', 100), ('per_capita_income', 80), ('white_alone', 49), ('black_alone', 54), ('asian_alone', 54), ('hispanic_or_latino', 55), ('bachelors_degree_or_higher', 65), ('graduate_degree_or_higher', 71))
-    Distance: 27.02545096756019
-    PlaceVector(North Bellmore CDP, New York; Nassau County; population: 20,269
-    s:('population_density', 100), ('per_capita_income', 77), ('white_alone', 52), ('black_alone', 50), ('asian_alone', 59), ('hispanic_or_latino', 52), ('bachelors_degree_or_higher', 64), ('graduate_degree_or_higher', 70))
-    Distance: 29.039843319136555
-    PlaceVector(Massapequa CDP, New York; Nassau County; population: 21,861
-    s:('population_density', 99), ('per_capita_income', 78), ('white_alone', 54), ('black_alone', 43), ('asian_alone', 52), ('hispanic_or_latino', 51), ('bachelors_degree_or_higher', 64), ('graduate_degree_or_higher', 65))
-    Distance: 30.110214213784666
+    GEOGRAPHY                                COUNTY               PDN PCI WHT BLK ASN HPL BDH GDH  DISTANCE
+    Plainview CDP, New York                  Nassau County         85  90  49  47  56  51  72  79  16.55860803328589
+    Garden City village, New York            Nassau County         82 100  53  51  45  51  77  85  17.342145196024624
+    Rockville Centre village, New York       Nassau County        100  90  51  54  38  54  70  78  19.81319005107456
+    Long Beach city, New York                Nassau County        100  80  49  54  48  55  65  71  25.891600954749787
+    North Bellmore CDP, New York             Nassau County        100  77  52  50  52  52  64  70  28.186876378910807
+    Massapequa CDP, New York                 Nassau County         99  78  54  43  24  51  64  65  31.19094419859713
 
-    $ python3 geodata v pva "Sunnyvale city, California"
+    $ python3 geodata v gva "Sunnyvale city, California"
     The most demographically similar places are:
 
-    PlaceVectorApp(Sunnyvale city, California; Santa Clara County; population: 152,323
-    s:('population_density', 100), ('per_capita_income', 91), ('median_year_structure_built', 49))
-    Distance: 0.0
-    PlaceVectorApp(Redondo Beach city, California; Los Angeles County; population: 67,700
-    s:('population_density', 100), ('per_capita_income', 87), ('median_year_structure_built', 49))
-    Distance: 4.0
-    PlaceVectorApp(Alexandria city, Virginia; Alexandria city; population: 156,505
-    s:('population_density', 100), ('per_capita_income', 87), ('median_year_structure_built', 49))
-    Distance: 4.0
-    PlaceVectorApp(Campbell city, California; Santa Clara County; population: 42,470
-    s:('population_density', 100), ('per_capita_income', 87), ('median_year_structure_built', 47))
-    Distance: 4.47213595499958
-    PlaceVectorApp(Bal Harbour village, Florida; Miami-Dade County; population: 3,000
-    s:('population_density', 100), ('per_capita_income', 86), ('median_year_structure_built', 51))
-    Distance: 5.385164807134504
-    PlaceVectorApp(Foster City city, California; San Mateo County; population: 33,784
-    s:('population_density', 100), ('per_capita_income', 97), ('median_year_structure_built', 51))
-    Distance: 6.324555320336759
+    GEOGRAPHY                                COUNTY               PDN PCI MYS  DISTANCE
+    Sunnyvale city, California               Santa Clara County   100  91  49  0.0
+    Redondo Beach city, California           Los Angeles County   100  87  49  4.0
+    Alexandria city, Virginia                Alexandria city      100  87  49  4.0
+    Campbell city, California                Santa Clara County   100  87  47  4.47213595499958
+    Bal Harbour village, Florida             Miami-Dade County    100  86  51  5.385164807134504
+    Foster City city, California             San Mateo County     100  97  51  6.324555320336759
 
-`PlaceVector`s and `PlaceVectorApp`s model places as multidimensional vectors
-with their components being scores of 0 to 100. Each component represents a
-demographic characteristic of a place, and the conversion of each component's
-raw information to its score involves the median and standard deviation for that
-component. Most often, 0 is scored as 0, the median value for that component
-is scored as 50, and three standard deviations above the median is scored as
-100.
+`GeoVectors`s model places as multidimensional vectors with their components
+being scores of 0 to 100. Each component represents a demographic characteristic
+of a place, and the conversion of each component's raw information to its score
+involves the median and standard deviation for that component. Most often, 0 is
+scored as 0, the median value for that component is scored as 50, and three
+standard deviations above the median is scored as 100.
 
-The most useful thing about `PlaceVector`s and their components is that
+The most useful thing about `GeoVectors`s and their components is that
 their components can be used to find the
 [Euclidean distance](https://en.wikipedia.org/wiki/Euclidean_distance) between
 them. This distance represents how demographically similar two places are –
 the closer the distance, the more demographically similar the two places.
 
-#### The `PlaceVector` score calculation method in detail
+#### The `GeoVector` score calculation method in detail
 
-The calculation method for `PlaceVector` scores for each subcomponent is usually
+The calculation method for `GeoVector` scores for each subcomponent is usually
 as follows:
 
 * If the raw data is equal to zero, the score is zero.
@@ -346,10 +322,10 @@ as follows:
 * If the raw data is at or above three standard deviations above the median,
   the score will be 100.
 
-#### `PlaceVector`s
+#### Standard mode
 
-The aim of a standard `PlaceVector` is to calculate the general demographic
-similarity of two areas. `PlaceVector`s are made up of the following
+The aim of a standard `GeoVector` is to calculate the general demographic
+similarity of two areas. Standard `GeoVector`s are made up of the following
 components:
 
 * The population density component,
@@ -366,11 +342,10 @@ components:
   * The proportion of those 25 years and older who have a graduate degree or
     higher (50%).
 
-#### `PlaceVectorApp`s
+#### Appearance mode
 
-The aim of a `PlaceVectorApp` is to calculate how similar two areas appear.
-`PlaceVectorApp`s are made up of the following
-components:
+The aim of appearance mode is to calculate how similar two areas appear.
+`GeoVector`s are made up of the following components in appearance mode:
 
 * The population density component,
 * The income component, and
