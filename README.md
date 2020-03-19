@@ -3,7 +3,7 @@
 geodata is a program that allows users to easily view and organized and
 processed demographic data without the need to modify any data files.
 
-Currently, this project supports places in the United States.
+Currently, this project supports places and counties in the United States.
 
 ## Goals of this project
 
@@ -87,18 +87,47 @@ Optional arguments of:
     geodata view sl  # Superlatives
     geodata view asl # Antisuperlatives
 
-A `context` specifies what group of populations to work with. When comparing
-`GeoVector`s, it specifies what group of geographies the target `GeoVectors`
-should be compared against. When working with superlatives or antisuperlatives,
-it specifies what group of geographies should be ranked.
+Syntax:
 
-Currently, geographies can be grouped by state or by county. To group by a
-state, enter the lowercase abbreviation for the state for `CONTEXT`. To group by
-a county, enter the lowercase abbreviation for the state, followed by a colon,
-followed by the county name with all lowercase letters and no spaces. Do not
-include "county."
+    universe+
+    universe+group
+    group
 
-Some examples:
+`universe_summary_level` syntax:
+
+    counties|c|places|p
+
+`group` syntax:
+
+    st
+    st:county
+
+Where `st` is the lowercase two-letter state abbreviation and `county` is the
+name of the county, without spaces, in all lowercase letters, and without the
+word "county."
+
+A `context` specifies what geographies to work with. When comparing
+`GeoVector`s, it specifies what geographies the target `GeoVectors` should be
+compared against. When working with superlatives or antisuperlatives,
+it specifies what geographies should be ranked.
+
+#### Universes
+
+Universes specify *what type of geographies* to display.
+
+Currently, there are two options for universes.
+
+    places+
+    counties+
+
+They can be aliased to `p+` and `c+`. They tell geodata to display places and
+counties, respectively. As you can see, universes 
+
+#### Groups
+
+Groups specify *within what geography* to display results.
+
+Currently, geographies can be grouped by state or by county. Some examples:
 
     -c ca
 
@@ -110,6 +139,17 @@ In this example, the context is the state of California.
 
 In these examples, the contexts are Los Angeles County, California; King County,
 Washington; and Fairfax County, Virginia respectively.
+
+#### Specifying both a universe and a group
+
+You specify both a universe and a group for more control over the geographies
+displayed. For example:
+
+    -c counties+nv
+    -c p+md:montgomery
+
+These two examples means "counties in Nevada" and "places in Montgomery County,
+Maryland, respectively.
 
 ### `display_label`s (geography names)
 
@@ -279,16 +319,16 @@ Some examples of usage:
     North Bellmore CDP, New York             Nassau County        100  77  52  50  52  52  64  70  28.186876378910807
     Massapequa CDP, New York                 Nassau County         99  78  54  43  24  51  64  65  31.19094419859713
 
-    $ python3 geodata v gva "Sunnyvale city, California"
-    The most demographically similar places are:
+    $ python3 geodata v gva "Sunnyvale city, California" -c counties+nj
+    The most demographically similar geographies are:
 
     GEOGRAPHY                                COUNTY               PDN PCI MYS  DISTANCE
-    Sunnyvale city, California               Santa Clara County   100  91  49  0.0
-    Redondo Beach city, California           Los Angeles County   100  87  49  4.0
-    Alexandria city, Virginia                Alexandria city      100  87  49  4.0
-    Campbell city, California                Santa Clara County   100  87  47  4.47213595499958
-    Bal Harbour village, Florida             Miami-Dade County    100  86  51  5.385164807134504
-    Foster City city, California             San Mateo County     100  97  51  6.324555320336759
+    Morris County, New Jersey                                     100  85  44  9.433981132056603
+    Somerset County, New Jersey                                   100  83  53  10.770329614269007
+    Monmouth County, New Jersey                                   100  77  49  16.0
+    Bergen County, New Jersey                                     100  76  28  27.018512172212592
+    Middlesex County, New Jersey                                  100  65  47  28.071337695236398
+    Mercer County, New Jersey                                     100  69  34  28.30194339616981
 
 Column header descriptions for standard mode:
 
