@@ -10,8 +10,8 @@ Currently, this project supports places and counties in the United States.
 * Allow users to access demographic data without the need to modify any data
 files.
 * Allow users to access the data they need easily on their own system.
-* Manage data from different summary levels easily (currently, places and
-counties are supported).
+* Manage data for different summary levels (type of geographies like states,
+counties, and places) easily.
 * Allow users to easily view both data available directly from Census files
 (called "component data" in this program) and the data normally only available
 by performing mathematical operations (called "compound data" in this program).
@@ -43,15 +43,24 @@ the files from the subfolders to your data directory. If you are using Linux,
 [here from the U.S. Census Bureau](https://www2.census.gov/programs-surveys/acs/summary_file/2018/documentation/user_tools/ACS_5yr_Seq_Table_Number_Lookup.csv)
 (1.6 MB). Place it in your data directory. This contains table metadata.
 
-3. Download the 2019 National Places Gazetteer Files, available
-[here from the U.S. Census Bureau](https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2019_Gazetteer/2019_Gaz_place_national.zip)
-(1.0 MB). This files contains geographic data, such as land area and geographic
+3. Download the following 2019 gazetteer files:
+
+* [Places](https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2019_Gazetteer/2019_Gaz_place_national.zip)
+(1.0 MB)
+* [Counties](https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2019_Gazetteer/2019_Gaz_counties_national.zip)
+(<1.0 MB)
+
+These files contains geographic data, such as land area and geographic
 coordinates. Extract it and place it in your data directory.
 
-4. Download the 2019 National Counties Gazetteer Files, available
-[here from the U.S. Census Bureau](https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2019_Gazetteer/2019_Gaz_counties_national.zip)
-(<1.0 MB). Extract it and place it in your data directory.
+4. Place the following *custom* gazetteer files in your data directory:
 
+* `bin/2019_Gaz_state_national.txt`
+
+Though of the goals of geodata is rely on unmodified data files, the U.S.
+Census Bureau currently does not have geographic information file for states.
+This being the case, I have no choice but to ship a custom gazetteer file
+with geodata.
 
 5. This project depends on [pandas](https://pandas.pydata.org/) and
 [SQLAlchemy](https://www.sqlalchemy.org/). Install these first. One way to do so
@@ -122,14 +131,15 @@ it specifies what geographies should be ranked.
 
 Universes specify *what type of geographies* to display.
 
-Currently, there are two options for universes.
+Currently, there are three options for universes.
 
-    places+
+    states+
     counties+
+    places+
 
-They can be aliased to `p+` and `c+`. They tell geodata to display places and
-counties, respectively. As you can see, universes must always be followed by
-a plus sign `+`.
+They can be aliased to `s+`, `c+`, and `p+`, respectively. They tell geodata to
+display places and counties, respectively. As you can see, universes must always
+be followed by a plus sign `+`.
 
 #### Groups
 
@@ -669,7 +679,6 @@ on geographic identifiers.
 
 * A search function for geographies. Currently, the exact `display_label`
 must be entered.
-* Support other types of geographies other than places (states, etc.).
 * Make the `data_type` argument optional for superlatives and antisuperlatives.
 * Support dumping all data to a CSV file.
 * Write more technical documentation.

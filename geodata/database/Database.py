@@ -155,7 +155,7 @@ class Database:
             ]
         self.geographies_columns = columns
         column_defs = list(map(lambda x: x + ' TEXT', columns))
-        column_defs[4] += ' PRIMARY KEY'
+        column_defs.insert(0, 'id INTEGER PRIMARY KEY')
 
         # Get rows from CSV
         rows = self.get_geo_csv_rows()
@@ -163,9 +163,12 @@ class Database:
         # Filter for summary levels
         # 160 = State-Place
         # 050 = State-County
+        # 040 = State
         rows = list(filter(lambda x: 
-                           x[2] == '160' \
-                        or x[2] == '050',
+                           (x[2] == '160' \
+                        or x[2] == '050' \
+                        or x[2] == '040')
+                        and ''.join(x[48][3:5]) == '00' ,
                            rows))
         rows = list(
                     map(lambda x:
@@ -184,7 +187,7 @@ class Database:
         question_mark_substr = ', '.join(['?'] * columns_len)
 
         # Create table
-        self.create_table(this_table_name, columns, column_defs, rows, ido=0)
+        self.create_table(this_table_name, columns, column_defs, rows)
 
         # Debug output
         self.debug_output_table(this_table_name)
@@ -221,8 +224,14 @@ class Database:
             c_row.insert(4, '')
             c_row.insert(5, '')
 
-        # Merge rows for places and counties together
-        rows = rows + c_rows
+        # Get rows for states (040) from CSV
+        this_path = self.path + '2019_Gaz_state_national.txt'
+
+        with open(this_path, 'rt') as f:
+            s_rows = list(csv.reader(f, delimiter='\t'))
+
+        # Merge rows for together
+        rows = rows + c_rows + s_rows
 
         for row in rows:
             row[-1] = row[-1].strip()
@@ -464,7 +473,7 @@ class Database:
 
         # Column definitions
         column_defs = list(map(lambda x: x + ' TEXT', columns))
-        column_defs[4] += ' PRIMARY KEY'
+        column_defs.insert(0, 'id INTEGER PRIMARY KEY')
 
         # DBAPI question mark substring
         columns_len = len(column_defs)
@@ -475,11 +484,11 @@ class Database:
                           (%s)''' % (this_table_name, ', '.join(column_defs)))
 
         # Insert rows into merged table
-        self.c.execute('''INSERT INTO %s
+        self.c.execute('''INSERT INTO %s(%s)
         SELECT %s FROM geographies
         JOIN geoheaders ON geographies.GEOID = geoheaders.GEOID
         JOIN data ON geographies.LOGRECNO = data.LOGRECNO AND geographies.STUSAB = data.STATE''' % (
-            this_table_name, ', '.join(ub_columns)))
+            this_table_name, ', '.join(columns), ', '.join(ub_columns)))
 
         # Debug output
         self.debug_output_list('columns')
