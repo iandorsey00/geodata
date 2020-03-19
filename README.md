@@ -675,14 +675,14 @@ address, even though the zip code might be larger than the neighborhood
 represented by the acceptable designation. Some example of acceptable and
 unacceptable designations:
 
-..* **90027** has a default designation of LOS ANGELES CA. The designations
-HOLLYWOOD CA and LOS FELIZ CA are considered unaccpetable by the USPS,
-even though 90027 is in parts of both those neighborhoods.
+  * **90027** has a default designation of LOS ANGELES CA. The designations
+  HOLLYWOOD CA and LOS FELIZ CA are considered unaccpetable by the USPS,
+  even though 90027 is in parts of both those neighborhoods.
 
-..* **77449** is the most populous ZCTA in the United States, with 122,814
-people as of the 2019 American Community Survey. It has default designation
-of KATY TX and an acceptable designation of PARK ROW TX, even though it doesn't
-seem to be within the borders of either of those places.
+  * **77449** is the most populous ZCTA in the United States, with 122,814
+  people as of the 2019 American Community Survey. It has default designation
+  of KATY TX and an acceptable designation of PARK ROW TX, even though it doesn't
+  seem to be within the borders of either of those places.
 
 * The first three digits of all zip codes have geographic meaning. The first
 digit refers to a group of states, and the first three digits represent
