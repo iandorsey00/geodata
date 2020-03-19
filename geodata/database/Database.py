@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 
 from datainterface.DemographicProfile import DemographicProfile
+from datainterface.GeoVector import GeoVector
 # from initialize_sqlalchemy import Base, engine, session
 
 from itertools import islice
@@ -140,41 +141,6 @@ class Database:
         # Debug output
         self.debug_output_table(this_table_name)
 
-        # counties ############################################################
-        # this_table_name = 'counties'
-
-        # # Process column definitions
-        # columns = [
-        #     'GEOID',
-        #     'NAME',
-        #     ]
-        # self.counties_columns = columns
-        # column_defs = list(map(lambda x: x + ' TEXT', columns))
-        # column_defs[0] += ' PRIMARY KEY'
-
-        # # Get rows from CSV
-        # rows = self.get_geo_csv_rows()
-                
-        # # Filter for summary level code 050 (State-Places)
-        # rows = list(filter(lambda x: x[2] == '050', rows))
-        # rows = list(
-        #             map(lambda x:
-        #                 [x[48][7:],             # GEOID
-        #                 x[49]],                 # NAME
-        #                 rows
-        #             )
-        #         )
-
-        # # DBAPI question mark substring
-        # columns_len = len(column_defs)
-        # question_mark_substr = ', '.join(['?'] * columns_len)
-
-        # # Create table
-        # self.create_table(this_table_name, columns, column_defs, rows, ido=0)
-
-        # # Debug output
-        # self.debug_output_table(this_table_name)
-
         # places ##############################################################
         this_table_name = 'places'
 
@@ -189,7 +155,7 @@ class Database:
             ]
         self.places_columns = columns
         column_defs = list(map(lambda x: x + ' TEXT', columns))
-        column_defs[1] += ' PRIMARY KEY'
+        column_defs[4] += ' PRIMARY KEY'
 
         # Get rows from CSV
         rows = self.get_geo_csv_rows()
@@ -201,7 +167,7 @@ class Database:
                         [x[1].lower(),             # STUSAB [lowercase]
                         x[2],                      # SUMLEVEL
                         x[4],                      # LOGRECNO
-                        st.get_state(x[49])        # STATE
+                        self.st.get_state(x[49]),  # STATE
                         x[48][7:],                 # GEOID
                         x[49]],                    # NAME
                         rows
@@ -475,7 +441,7 @@ class Database:
 
         # Column definitions
         column_defs = list(map(lambda x: x + ' TEXT', columns))
-        column_defs[1] += ' PRIMARY KEY'
+        column_defs[4] += ' PRIMARY KEY'
 
         # DBAPI question mark substring
         columns_len = len(column_defs)
@@ -489,7 +455,7 @@ class Database:
         self.c.execute('''INSERT INTO %s
         SELECT %s FROM places
         JOIN geoheaders ON places.GEOID = geoheaders.GEOID
-        JOIN data ON places.LOGRECNO = data.LOGRECNO AND places.STATE_ABBREV = data.STATE''' % (
+        JOIN data ON places.LOGRECNO = data.LOGRECNO AND places.STUSAB = data.STATE''' % (
             this_table_name, ', '.join(ub_columns)))
 
         # Debug output
@@ -546,7 +512,9 @@ class Database:
             except AttributeError:
                 print('AttributeError:', instance)
 
-        df = pd.DataFrame(rows, columns=[self.columns[11]] + self.columns[15:])
+        # print(dict(enumerate(self.columns)))
+        # print([self.columns[11]] + self.columns[15:])
+        df = pd.DataFrame(rows, columns=[self.columns[12]] + self.columns[16:])
 
         # Adjustments for better calculations of medians and
         # standard deviations, and better superlatives/antisuperlatives results
@@ -571,17 +539,15 @@ class Database:
         print(dict(standard_deviations))
         print()
 
-        # PlaceVectors ########################################################
+        # GeoVectors ##########################################################
 
-        from datainterface.PlaceVector import PlaceVector
-
-        self.placevectors = []
+        self.geovectors = []
 
         for row in self.c.execute('SELECT * from geodata'):
             try:
-                # Construct a PlaceVector and append it to self.PlaceVectors.
-                self.placevectors.append(
-                    PlaceVector(
+                # Construct a GeoVector and append it to self.geovectors.
+                self.geovectors.append(
+                    GeoVector(
                         self.ct,
                         row,
                         dict(medians),
@@ -589,49 +555,20 @@ class Database:
                     )
                 )
             # If a TypeError is thrown because some data is unavailable, just
-            # don't make that PlaceVector and print a debugging message.
+            # don't make that GeoVector and print a debugging message.
             except (TypeError, ValueError, AttributeError):
-                print('Note: Inadequate data for PlaceVector creation:',
+                print('Note: Inadequate data for GeoVector creation:',
                       row['NAME'])
 
         print()
 
         # Debug output
-        self.debug_output_list('placevectors')
-
-        # PlaceVectorApps #####################################################
-
-        from datainterface.PlaceVectorApp import PlaceVectorApp
-
-        self.placevectorapps = []
-
-        for row in self.c.execute('SELECT * from geodata'):
-            try:
-                # Construct a PlaceVector and append it to self.PlaceVectors.
-                self.placevectorapps.append(
-                    PlaceVectorApp(
-                        self.ct,
-                        row,
-                        dict(medians),
-                        dict(standard_deviations)
-                    )
-                )
-            # If a TypeError is thrown because some data is unavailable, just
-            # don't make that PlaceVectorApp and print a debugging message.
-            except (TypeError, ValueError, AttributeError):
-                print('Note: Inadequate data for PlaceVectorApp creation:',
-                      row['NAME'])
-
-        print()
-
-        # Debug output
-        self.debug_output_list('placevectorapps')
+        self.debug_output_list('geovectors')
 
     def get_products(self):
         '''Return a dictionary of products.'''
         return {
-            'placevectors':         self.placevectors,
-            'placevectorapps':      self.placevectorapps,
+            'geovectors':           self.geovectors,
             'demographicprofiles':  self.demographicprofiles,
             'csvt':                 self.csvt,
             'st':                   self.st,

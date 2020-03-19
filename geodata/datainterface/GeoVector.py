@@ -8,12 +8,10 @@ for demographic data.
 from tools.geodata_safedivision import gdsd
 from tools.geodata_typecast import gdt, gdti, gdtf
 
+import sys
+
 class GeoVector:
     '''A vector used to compare places with others.'''
-    def gdsdd(self, dividend, divisor):
-        '''Wrapper for gdsd for GeoVector data.'''
-        return gdsd(self.d[dividend], self.d[divisor])
-
     def __init__(
         self,
         ct_instance,
@@ -58,39 +56,52 @@ class GeoVector:
         self.d['doctorate_degree'] = db_row['B15003_25']
         self.d['median_year_structure_built'] = db_row['B25035_1']
 
+        # Stop creation if there is insufficient data.
+        for key in self.d.keys():
+            if self.d[key] == '':
+                raise AttributeError('Not enough data.')
+
         # Raw subcomponents - Raw values of each subcomponent
         self.rs = dict()
+        
+        def gdsdd(dividend, divisor, numeric_dividend=False):
+            '''Wrapper for gdsd for GeoVector data.'''
+            if not numeric_dividend:
+                return gdsd(self.d[dividend], self.d[divisor])
+            else:
+                return gdsd(dividend, self.d[divisor])
 
-        self.rs['population_density'] = self.gdsdd('population', 'land_area_sqmi')
+        self.rs['population_density'] = gdsdd('population', 'land_area_sqmi')
         self.rs['per_capita_income'] = gdti(self.d['per_capita_income'])
-        self.rs['white_alone'] = self.gdsdd('white_alone', 'population') * 100.0
-        self.rs['black_alone'] = self.gdsdd('black_alone', 'population') * 100.0
-        self.rs['asian_alone'] = self.gdsdd('asian_alone', 'population') * 100.0
-        self.rs['hispanic_or_latino'] = self.gdsdd('hispanic_or_latino', 'population') * 100.0
+        self.rs['white_alone'] = gdsdd('white_alone', 'population') * 100.0
+        self.rs['black_alone'] = gdsdd('black_alone', 'population') * 100.0
+        self.rs['asian_alone'] = gdsdd('asian_alone', 'population') * 100.0
+        self.rs['hispanic_or_latino'] = gdsdd('hispanic_or_latino', 'population') * 100.0
 
-        self.rs['bachelors_degree_or_higher'] = self.gdsdd(
+        self.rs['bachelors_degree_or_higher'] = gdsdd(
               gdti(self.d['bachelors_degree']) \
             + gdti(self.d['masters_degree']) \
             + gdti(self.d['professional_school_degree']) \
             + gdti(self.d['doctorate_degree']), 
-              gdti(self.d['population_25_years_or_older'])
-              ) * 100.0
+              'population_25_years_or_older', numeric_dividend=True)  * 100.0
         
-        self.rs['graduate_degree_or_higher'] = self.gdsdd(
+        self.rs['graduate_degree_or_higher'] = gdsdd(
               gdti(self.d['masters_degree']) \
             + gdti(self.d['professional_school_degree']) \
             + gdti(self.d['doctorate_degree']), 
-              gdti(self.d['population_25_years_or_older'])
-              ) * 100.0
+              'population_25_years_or_older', numeric_dividend=True) * 100.0
 
-        self.rs['median_year_structure_built'] = self.d['median_year_structure_built'] - 1939
+        self.rs['median_year_structure_built'] = gdti(self.d['median_year_structure_built']) - 1939
 
         # Get medians for each subcomponent
         self.med = dict()
 
-        def gdsdm(dividend, divisor):
+        def gdsdm(dividend, divisor, numeric_dividend=False):
             '''Wrapper function for operations with medians.'''
-            return gdsd(float(medians[dividend]), float(medians[divisor]))
+            if not numeric_dividend:
+                return gdsd(float(medians[dividend]), float(medians[divisor]))
+            else:
+                return gdsd(dividend, float(medians[divisor]))
 
         self.med['population_density'] = gdsdm('B01003_1', 'ALAND_SQMI')
         self.med['per_capita_income'] = gdtf(medians['B19301_1'])
@@ -104,23 +115,25 @@ class GeoVector:
             + gdti(medians['B15003_23']) \
             + gdti(medians['B15003_24']) \
             + gdti(medians['B15003_25']),
-              gdti(medians['B15003_1'])
-              ) * 100.0
+              'B15003_1', numeric_dividend=True) * 100.0
         self.med['graduate_degree_or_higher'] = gdsdm(
               gdti(medians['B15003_23']) \
             + gdti(medians['B15003_24']) \
             + gdti(medians['B15003_25']),
-              gdti(medians['B15003_1'])
-              ) * 100.0
+              'B15003_1', numeric_dividend=True) * 100.0
 
         self.med['median_year_structure_built'] = gdtf(medians['B25035_1']) - 1939
 
         # Get standard deviations for each subcomponent
         self.sd = dict()
 
-        def gdsds(dividend, divisor):
+        def gdsds(dividend, divisor, numeric_dividend=False):
             '''Wrapper function for operations with standard deviations.'''
-            return gdsd(float(standard_deviations[dividend]), float(standard_deviations[divisor]))
+            if not numeric_dividend:
+                return gdsd(float(standard_deviations[dividend]), float(standard_deviations[divisor]))
+            else:
+                return gdsd(dividend, float(standard_deviations[divisor]))
+
 
         self.sd['population_density'] = gdsds('B01003_1', 'ALAND_SQMI')
         self.sd['per_capita_income'] = gdtf(standard_deviations['B19301_1'])
@@ -134,14 +147,12 @@ class GeoVector:
             + gdti(standard_deviations['B15003_23']) \
             + gdti(standard_deviations['B15003_24']) \
             + gdti(standard_deviations['B15003_25']),
-              gdti(standard_deviations['B15003_1'])
-              ) * 100.0
+              'B15003_1', numeric_dividend=True) * 100.0
         self.sd['graduate_degree_or_higher'] = gdsds(
               gdti(standard_deviations['B15003_23']) \
             + gdti(standard_deviations['B15003_24']) \
             + gdti(standard_deviations['B15003_25']),
-              gdti(standard_deviations['B15003_1'])
-              ) * 100.0
+              'B15003_1', numeric_dividend=True) * 100.0
 
         self.sd['median_year_structure_built'] = gdtf(standard_deviations['B25035_1'])
 
@@ -296,37 +307,41 @@ class GeoVector:
 
     def __repr__(self):
         '''Display vector information and subcomponent scores.'''
+        population = gdti(self.d['population'])
         if self.sumlevel == '160':
             out_str = '''GeoVector(%s; %s.
-Population: %s. Std: (%s,%s,%s,%s,%s,%s,%s,%s). App: (%s,%s,%s).''' % (
+Population: %s. Std: (%s,%s,%s,%s,%s,%s,%s,%s). App: (%s,%s,%s).)''' % (
             self.name,
             ', '.join(self.counties_display),
-            f'{self.d['population']:,}',
-            self.s['std']['population_density'],
-            self.s['std']['per_capita_income'],
-            self.s['std']['white_alone'],
-            self.s['std']['black_alone'],
-            self.s['std']['asian_alone'],
-            self.s['std']['hispanic_or_latino'],
-            self.s['std']['bachelors_degree_or_higher'],
-            self.s['std']['graduate_degree_or_higher'],
-            self.s['app']['population_density'],
-            self.s['app']['per_capita_income'],
-            self.s['app']['median_year_structure_built'],
+            f'{population:,}',
+            self.s['population_density'],
+            self.s['per_capita_income'],
+            self.s['white_alone'],
+            self.s['black_alone'],
+            self.s['asian_alone'],
+            self.s['hispanic_or_latino'],
+            self.s['bachelors_degree_or_higher'],
+            self.s['graduate_degree_or_higher'],
+            self.s['population_density'],
+            self.s['per_capita_income'],
+            self.s['median_year_structure_built'],
             )
         else:
             out_str = '''GeoVector(%s
-Population: %s. Std: (%s,%s,%s,%s,%s,%s,%s,%s). App: (%s,%s,%s).''' % (
+Population: %s. Std: (%s,%s,%s,%s,%s,%s,%s,%s). App: (%s,%s,%s).)''' % (
             self.name,
-            f'{self.d['population']:,}',
-            self.s['std']['population_density'],
-            self.s['std']['per_capita_income'],
-            self.s['std']['white_alone'],
-            self.s['std']['black_alone'],
-            self.s['std']['asian_alone'],
-            self.s['std']['hispanic_or_latino'],
-            self.s['std']['bachelors_degree_or_higher'],
-            self.s['std']['graduate_degree_or_higher'],
-            self.s['app']['population_density'],
-            self.s['app']['per_capita_income'],
-            self.s['app']['median_year_structure_built'],
+            f'{population:,}',
+            self.s['population_density'],
+            self.s['per_capita_income'],
+            self.s['white_alone'],
+            self.s['black_alone'],
+            self.s['asian_alone'],
+            self.s['hispanic_or_latino'],
+            self.s['bachelors_degree_or_higher'],
+            self.s['graduate_degree_or_higher'],
+            self.s['population_density'],
+            self.s['per_capita_income'],
+            self.s['median_year_structure_built'],
+            )
+        
+        return out_str

@@ -16,6 +16,10 @@ def gdt(input_val, dtype='default', verbose=False, not_num=numpy.nan, allow_negs
             print('gdt: {} is not a number or string.'.format(input_val))
         return not_num
 
+    # Handle empty strings.
+    if input_val == '':
+        return not_num
+
     negative = False
 
     # Check to see if the input is negative.

@@ -13,7 +13,7 @@ class DemographicProfile:
     def __init__(self, ct_instance, db_row):
 
         self.name = db_row['NAME']
-        self.state = db_row['STATE_ABBREV']
+        self.state = db_row['STUSAB']
         self.geoid = db_row['GEOID']
         # self.key = db_row['KEY']
 
