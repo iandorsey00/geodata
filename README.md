@@ -651,7 +651,7 @@ on geographic identifiers.
 
 * A search function for geographies. Currently, the exact `display_label`
 must be entered.
-* Support other types of geographies other than places (state, counties, etc.).
+* Support other types of geographies other than places (states, etc.).
 * Make the `data_type` argument optional for superlatives and antisuperlatives.
 * Support dumping all data to a CSV file.
 * Write more technical documentation.
