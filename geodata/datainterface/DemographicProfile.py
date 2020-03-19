@@ -15,6 +15,7 @@ class DemographicProfile:
         self.name = db_row['NAME']
         self.state = db_row['STUSAB']
         self.geoid = db_row['GEOID']
+        self.sumlevel = db_row['SUMLEVEL']
         # self.key = db_row['KEY']
 
         # CountyTools instance and county data
@@ -214,33 +215,37 @@ class DemographicProfile:
 
     def __str__(self):
         '''Return table'''
-        # + self.dp_full_row_str(self.county) \
         # + self.dp_full_row_str(self.key) \
-        return self.divider() \
-             + self.dp_full_row_str(self.name) \
-             + self.dp_full_row_str(', '.join(self.counties_display)) \
-             + self.divider() \
-             + self.dp_full_row_str('GEOGRAPHY') \
-             + self.dp_row_str(self.rh['land_area'], '', self.fc['land_area']) \
-             + self.dp_full_row_str('POPULATION') \
-             + self.dp_row_nc('population') \
-             + self.dp_row_str(self.rh['population_density'], '', self.fcd['population_density']) \
-             + self.dp_full_row_str('  Race') \
-             + self.dp_row_std('white_alone') \
-             + self.dp_row_std('black_alone') \
-             + self.dp_row_std('asian_alone') \
-             + self.dp_row_std('other_race') \
-             + self.dp_full_row_str('  Hispanic or Latino (of any race)') \
-             + self.dp_row_std('hispanic_or_latino') \
-             + self.dp_full_row_str('EDUCATION') \
-             + self.dp_row_std('population_25_years_and_older') \
-             + self.dp_row_std('bachelors_degree_or_higher') \
-             + self.dp_row_std('graduate_degree_or_higher') \
-             + self.dp_full_row_str('INCOME') \
-             + self.dp_row_nc('per_capita_income') \
-             + self.dp_full_row_str('HOUSING') \
-             + self.dp_row_nc('median_year_structure_built') \
-             + self.dp_row_nc('median_value') \
-             + self.dp_row_nc('median_rent') \
-             + self.divider()
+        out_str  = self.divider()
+        out_str += self.dp_full_row_str(self.name)
+        
+        # Print counties if this DemographicProfile is for a place (160)
+        if self.sumlevel == '160':
+            out_str += self.dp_full_row_str(', '.join(self.counties_display))
 
+        out_str += self.divider()
+        out_str += self.dp_full_row_str('GEOGRAPHY')
+        out_str += self.dp_row_str(self.rh['land_area'], '', self.fc['land_area'])
+        out_str += self.dp_full_row_str('POPULATION')
+        out_str += self.dp_row_nc('population')
+        out_str += self.dp_row_str(self.rh['population_density'], '', self.fcd['population_density'])
+        out_str += self.dp_full_row_str('  Race')
+        out_str += self.dp_row_std('white_alone')
+        out_str += self.dp_row_std('black_alone')
+        out_str += self.dp_row_std('asian_alone')
+        out_str += self.dp_row_std('other_race')
+        out_str += self.dp_full_row_str('  Hispanic or Latino (of any race)')
+        out_str += self.dp_row_std('hispanic_or_latino')
+        out_str += self.dp_full_row_str('EDUCATION')
+        out_str += self.dp_row_std('population_25_years_and_older')
+        out_str += self.dp_row_std('bachelors_degree_or_higher')
+        out_str += self.dp_row_std('graduate_degree_or_higher')
+        out_str += self.dp_full_row_str('INCOME')
+        out_str += self.dp_row_nc('per_capita_income')
+        out_str += self.dp_full_row_str('HOUSING')
+        out_str += self.dp_row_nc('median_year_structure_built')
+        out_str += self.dp_row_nc('median_value')
+        out_str += self.dp_row_nc('median_rent')
+        out_str += self.divider()
+
+        return out_str

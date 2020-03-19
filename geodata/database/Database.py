@@ -141,8 +141,8 @@ class Database:
         # Debug output
         self.debug_output_table(this_table_name)
 
-        # places ##############################################################
-        this_table_name = 'places'
+        # geographies #########################################################
+        this_table_name = 'geographies'
 
         # Process column definitions
         columns = [
@@ -153,15 +153,20 @@ class Database:
             'GEOID',
             'NAME',
             ]
-        self.places_columns = columns
+        self.geographies_columns = columns
         column_defs = list(map(lambda x: x + ' TEXT', columns))
         column_defs[4] += ' PRIMARY KEY'
 
         # Get rows from CSV
         rows = self.get_geo_csv_rows()
                 
-        # Filter for summary level code 160 (State-Places)
-        rows = list(filter(lambda x: x[2] == '160', rows))
+        # Filter for summary levels
+        # 160 = State-Place
+        # 050 = State-County
+        rows = list(filter(lambda x: 
+                           x[2] == '160' \
+                        or x[2] == '050',
+                           rows))
         rows = list(
                     map(lambda x:
                         [x[1].lower(),             # STUSAB [lowercase]
@@ -195,20 +200,38 @@ class Database:
         columns[-1] = columns[-1].strip()
         self.geoheaders_columns = columns
         column_defs = list(map(lambda x: x + ' TEXT', columns))
-        column_defs[1] += ' PRIMARY KEY'
+        column_defs.insert(0, 'id INTEGER PRIMARY KEY')
 
-        # Get rows from CSV
+        # Get rows for places (160) from CSV
         this_path = self.path + '2019_Gaz_place_national.txt'
         rows = []
 
         with open(this_path, 'rt') as f:
             rows = list(csv.reader(f, delimiter='\t'))
 
+        # Get rows for counties (050) from CSV
+        this_path = self.path + '2019_Gaz_counties_national.txt'
+
+        with open(this_path, 'rt') as f:
+            c_rows = list(csv.reader(f, delimiter='\t'))
+
+        # County geoheaders lack two columns that places have, so insert
+        # them as empty strings.
+        for c_row in c_rows:
+            c_row.insert(4, '')
+            c_row.insert(5, '')
+
+        # Merge rows for places and counties together
+        rows = rows + c_rows
+
         for row in rows:
             row[-1] = row[-1].strip()
 
+        print(columns)
+        print(column_defs)
+
         # Create table
-        self.create_table(this_table_name, columns, column_defs, rows, ido=0)
+        self.create_table(this_table_name, columns, column_defs, rows)
 
         # Debug output
         self.debug_output_table(this_table_name)
@@ -416,19 +439,19 @@ class Database:
         # Combine data from places, geoheaders, and data into a single table.
         
         # Combine columns
-        columns = self.places_columns + self.geoheaders_columns \
+        columns = self.geographies_columns + self.geoheaders_columns \
                   + self.data_columns
         
         # Unambiguous columns
-        ub_places_columns = list(map(lambda x: 'places.' + x, self.places_columns))
+        ub_geographies_columns = list(map(lambda x: 'geographies.' + x, self.geographies_columns))
         ub_geoheaders_columns = list(map(lambda x: 'geoheaders.' + x, self.geoheaders_columns))
         ub_data_columns = list(map(lambda x: 'data.' + x, self.data_columns))
-        ub_columns = ub_places_columns + ub_geoheaders_columns + ub_data_columns
+        ub_columns = ub_geographies_columns + ub_geoheaders_columns + ub_data_columns
 
         # Make columns names unambigious
         def deambigify(column):
-            if column in self.places_columns:
-                return 'places.' + column
+            if column in self.geographies_columns:
+                return 'geographies.' + column
             elif column in self.geoheaders_columns:
                 return 'geoheaders.' + column
             elif column in self.data_columns:
@@ -453,9 +476,9 @@ class Database:
 
         # Insert rows into merged table
         self.c.execute('''INSERT INTO %s
-        SELECT %s FROM places
-        JOIN geoheaders ON places.GEOID = geoheaders.GEOID
-        JOIN data ON places.LOGRECNO = data.LOGRECNO AND places.STUSAB = data.STATE''' % (
+        SELECT %s FROM geographies
+        JOIN geoheaders ON geographies.GEOID = geoheaders.GEOID
+        JOIN data ON geographies.LOGRECNO = data.LOGRECNO AND geographies.STUSAB = data.STATE''' % (
             this_table_name, ', '.join(ub_columns)))
 
         # Debug output
