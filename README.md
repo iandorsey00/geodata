@@ -48,17 +48,22 @@ the files from the subfolders to your data directory. If you are using Linux,
 (1.0 MB). This files contains geographic data, such as land area and geographic
 coordinates. Extract it and place it in your data directory.
 
-4. This project depends on [pandas](https://pandas.pydata.org/) and
+4. Download the 2019 National Counties Gazetteer Files, available
+[here from the U.S. Census Bureau](https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2019_Gazetteer/2019_Gaz_counties_national.zip)
+(<1.0 MB). Extract it and place it in your data directory.
+
+
+5. This project depends on [pandas](https://pandas.pydata.org/) and
 [SQLAlchemy](https://www.sqlalchemy.org/). Install these first. One way to do so
 is by executing:
 
         $ pip3 install pandas sqlalchemy
 
-5. You're now ready to check out geodata with git. Execute, for example:
+6. You're now ready to check out geodata with git. Execute, for example:
 
         $ git checkout git@github.com:iandorsey00/geodata
 
-6. Now at the top level directory, execute
+7. Now at the top level directory, execute
 
         $ python3 geodata createdb /path/to/data/dir
 
