@@ -227,9 +227,9 @@ exactly 100 percent due to rounding. Also, because Hispanic or Latino origin
 is considered a seperate category from race, adding them to race categories
 will most likely *not* result in a sum of 100 percent.
 
-#### `GeoVectors`s
+#### `GeoVector`s
 
-Standard usage:
+Standard usage (`geodata view gv`):
 
     usage: geodata view gv [-h] [-p POP_FILTER] [-c CONTEXT] display_label
 
@@ -245,7 +245,7 @@ Standard usage:
       -c CONTEXT, --context CONTEXT
                             state to compare with
 
-Usage for appearance mode:
+Usage for appearance mode (`geodata view gva`):
 
     usage: geodata view gva [-h] [-p POP_FILTER] [-c CONTEXT] display_label
 
@@ -290,14 +290,34 @@ Some examples of usage:
     Bal Harbour village, Florida             Miami-Dade County    100  86  51  5.385164807134504
     Foster City city, California             San Mateo County     100  97  51  6.324555320336759
 
-`GeoVectors`s model places as multidimensional vectors with their components
+Column header descriptions for standard mode:
+
+* `GEOGRAPHY` – The name of the geography, i.e. the `display_label`
+* `COUNTY` – The name(s) of the county/ies containing the geography (if
+applicable)
+* `PDN` – The score for the `population_density` compound
+* `PCI` – The score for the `population_capita_income` compound
+* `WHT` – The score for the `white_alone` compound
+* `BLK` – The score for the `black_alone` compound
+* `ASN` – The score for the `asian_alone` compound
+* `HPL` – The score for the `hispanic_or_latino` compound
+* `BDH` – The score for the `bachelors_degree_or_higher` compound
+* `GDH` – The score for the `graduate_degree_or_higher` compound
+* `DISTANCE` – The distance from the target place vector to the one displayed
+on that row
+
+For appearance mode, there is one column header not displayed above:
+
+* `MYS` – The score for the `median_year_structure_built` component
+
+`GeoVector`s model places as multidimensional vectors with their components
 being scores of 0 to 100. Each component represents a demographic characteristic
 of a place, and the conversion of each component's raw information to its score
 involves the median and standard deviation for that component. Most often, 0 is
 scored as 0, the median value for that component is scored as 50, and three
 standard deviations above the median is scored as 100.
 
-The most useful thing about `GeoVectors`s and their components is that
+The most useful thing about `GeoVector`s and their components is that
 their components can be used to find the
 [Euclidean distance](https://en.wikipedia.org/wiki/Euclidean_distance) between
 them. This distance represents how demographically similar two places are –
