@@ -296,7 +296,7 @@ Column header descriptions for standard mode:
 * `COUNTY` – The name(s) of the county/ies containing the geography (if
 applicable)
 * `PDN` – The score for the `population_density` compound
-* `PCI` – The score for the `population_capita_income` compound
+* `PCI` – The score for the `per_capita_income` compound
 * `WHT` – The score for the `white_alone` compound
 * `BLK` – The score for the `black_alone` compound
 * `ASN` – The score for the `asian_alone` compound
