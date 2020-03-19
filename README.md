@@ -173,7 +173,7 @@ Simply put, the `display_label` is the name of the place. "Display label" is the
 U.S. Census Bureau's official terminology for place names; see
 [this article](https://www.census.gov/programs-surveys/geography/guidance/geo-identifiers.html).
 If you are thinking of "New York, New York," you aren't too far off. But what
-makes display_labels slightly more complicated is that you have to include the
+makes `display_label`s slightly more complicated is that you have to include the
 geography type. Geography types are most commonly "city," "town," "village," or
 "CDP." The geography type goes in between the place name and its comma. Some
 examples are:
