@@ -10,12 +10,12 @@ Currently, this project supports places and counties in the United States.
 * Allow users to access demographic data without the need to modify any data
 files.
 * Allow users to access the data they need easily on their own system.
-* Manage data from different summary levels easily (this is a future goal,
-currently only places are supported.)
+* Manage data from different summary levels easily (currently, places and
+counties are supported).
 * Allow users to easily view both data available directly from Census files
 (called "component data" in this program) and the data normally only available
 by performing mathematical operations (called "compound data" in this program).
-* Allow users to group places and their data by counties (a future goal).
+* Allow users to group places by geographies.
 
 ## Setup
 
