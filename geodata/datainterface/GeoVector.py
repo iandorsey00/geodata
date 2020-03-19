@@ -281,7 +281,7 @@ class GeoVector:
 
         # Square the difference of each subcomponent, then add them together.
         for sc in self.ws[mode].keys():
-            distance += (self.ws[sc] - other.ws[sc]) ** 2
+            distance += (self.ws[mode][sc] - other.ws[mode][sc]) ** 2
 
         import math
 
@@ -294,14 +294,16 @@ class GeoVector:
         iam = ' '
 
         # Print the display_label for the geo
-        out_str = self.name.ljust(15)[:15] + iam
+        out_str = self.name.ljust(40)[:40] + iam
         # If the geo is a place, print the county/ies
         if self.sumlevel == '160':
-            out_str += ', '.join(self.counties_display).ljust(15)[:15] + iam
+            out_str += ', '.join(self.counties_display).ljust(20)[:20] + iam
+        else:
+            out_str += ' '.ljust(20)[:20] + iam
 
         # Print the subcomponent scores
-        for comp in self.s[mode].keys():
-            out_str += ' ' + str(self.s[mode][comp]) + iam
+        for comp in self.ws[mode].keys():
+            out_str += str(self.s[comp]).rjust(3) + iam
         
         return out_str
 

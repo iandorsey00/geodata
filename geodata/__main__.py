@@ -46,29 +46,17 @@ def initalize_database():
         else:
             sys.exit(0)
 
-def compare_placevectors(args, type='placevector'):
-    '''
-    Compare certain types of PlaceVectors.
-    type options:
-    placevector         PlaceVector (default)
-    placevectorapp      PlaceVectorApp
-    '''
+def compare_geovectors(args, mode='std'):
+    '''Compare GeoVectors.'''
     d = initalize_database()
 
     st = d['st']
     ct = d['ct']
     kt = d['kt']
 
-    if type == 'placevector':
-        pv_list = d['placevectors']
-    elif type == 'placevectorapp':
-        pv_list = d['placevectorapps']
-
     # Split the geos with a pipe
     geo_split = args.display_label.split('|')
-
     search_name = geo_split[0]
-
     summary_level = '160'
 
     if args.context:
@@ -76,13 +64,12 @@ def compare_placevectors(args, type='placevector'):
             summary_level = '050'
         else:
             summary_level = '040'
+    
+    pv_list = d['geovectors']
 
-    # Obtain the PlaceVector for which we entered a name.
+    # Obtain the GeoVector for which we entered a name.
     comparison_pv = \
         list(filter(lambda x: x.name == search_name, pv_list))[0]
-
-    print("The most demographically similar places are:")
-    print()
 
     # Filter by arguments:
     if summary_level == '050':
@@ -102,19 +89,24 @@ def compare_placevectors(args, type='placevector'):
         pv_list = list(filter(lambda x: x.population > pop_filter,
                             pv_list))
 
-    # Get the closest PlaceVectors.
+    # Get the closest GeoVectors.
     # In other words, get the most demographically similar places.
     closest_pvs = sorted(pv_list,
-        key=lambda x: comparison_pv.distance(x))[:6]
+        key=lambda x: comparison_pv.distance(x, mode=mode))[:6]
 
-    # Print these PlaceVectors
+    print("The most demographically similar places are:")
+    print()
+    if mode == 'std':
+        print('GEOGRAPHY'.ljust(40), 'COUNTY'.ljust(20), 'PDN', 'PCI', 'WHT', 'BLK', 'ASN', 'HPL', 'BDH', 'GDH', ' DISTANCE')
+    elif mode == 'app':
+        print('GEOGRAPHY'.ljust(40), 'COUNTY'.ljust(20), 'PDN', 'PCI', 'MYS', ' DISTANCE')
+
+    # Print these GeoVectors
     for closest_pv in closest_pvs:
-        print(closest_pv)
-        print("Distance:", comparison_pv.distance(closest_pv))
+        print(closest_pv.display_row(mode), comparison_pv.distance(closest_pv, mode=mode))
 
-def compare_placevectorapps(args):
-    '''Compare PlaceVectorApps.'''
-    compare_placevectors(args, type='placevectorapp')
+def compare_geovectors_app(args):
+    compare_geovectors(args, mode='app')
 
 def get_dp(args):
     '''Get DemographicProfiles.'''
@@ -287,21 +279,21 @@ dp_parsor = view_subparsers.add_parser('dp',
 dp_parsor.add_argument('display_label', help='the exact place name')
 dp_parsor.set_defaults(func=get_dp)
 
-# PlaceVectors ################################################################
-pv_parsor = view_subparsers.add_parser('pv',
-    description='View PlaceVectors nearest to a PlaceVector.')
-pv_parsor.add_argument('display_label', help='the exact place name')
-pv_parsor.add_argument('-p', '--pop_filter', help='filter by population')
-pv_parsor.add_argument('-c', '--context', help='state to compare with')
-pv_parsor.set_defaults(func=compare_placevectors)
+# GeoVectors [standard mode] ##################################################
+gv_parsor = view_subparsers.add_parser('gv',
+    description='View GeoVectors nearest to a GeoVector.')
+gv_parsor.add_argument('display_label', help='the exact place name')
+gv_parsor.add_argument('-p', '--pop_filter', help='filter by population')
+gv_parsor.add_argument('-c', '--context', help='state to compare with')
+gv_parsor.set_defaults(func=compare_geovectors)
 
-# PlaceVectorApps #############################################################
-pva_parsor = view_subparsers.add_parser('pva',
-    description='View PlaceVectorApps nearest to a PlaceVectorApp')
-pva_parsor.add_argument('display_label', help='the exact place name')
-pva_parsor.add_argument('-p', '--pop_filter', help='filter by population')
-pva_parsor.add_argument('-c', '--context', help='state to compare with')
-pva_parsor.set_defaults(func=compare_placevectorapps)
+# GeoVectors [appearance mode] ################################################
+gva_parsor = view_subparsers.add_parser('gva',
+    description='View GeoVectors nearest to a GeoVector [appearance mode]')
+gva_parsor.add_argument('display_label', help='the exact place name')
+gva_parsor.add_argument('-p', '--pop_filter', help='filter by population')
+gva_parsor.add_argument('-c', '--context', help='state to compare with')
+gva_parsor.set_defaults(func=compare_geovectors_app)
 
 # Superlatives ################################################################
 sl_parsor = view_subparsers.add_parser('sl',
