@@ -10,14 +10,9 @@ import sqlite3
 import csv
 
 from tools.geodata_typecast import gdt, gdti, gdtf
-
-from tools.CSVTools import CSVTools
 from tools.StateTools import StateTools
-from tools.CountyTools import CountyTools
-from tools.KeyTools import KeyTools
 
 from collections import defaultdict
-
 import sys
 
 class Database:
@@ -116,10 +111,7 @@ class Database:
 
         self.path = path
 
-        self.csvt = CSVTools(self.path)
-        self.st = StateTools(self.csvt)
-        self.ct = CountyTools(self.csvt)
-        self.kt = KeyTools(self.csvt)
+        self.st = StateTools()
 
         # Connect to SQLite3
         self.conn = sqlite3.connect(':memory:')
@@ -532,7 +524,7 @@ class Database:
 
         for row in self.c.execute('SELECT * from geodata'):
             try:
-                self.demographicprofiles.append(DemographicProfile(self.ct, row))
+                self.demographicprofiles.append(DemographicProfile(row))
             except AttributeError as e:
                 print('AttributeError:', e)
                 print(tuple(row))
@@ -602,7 +594,6 @@ class Database:
                 # Construct a GeoVector and append it to self.geovectors.
                 self.geovectors.append(
                     GeoVector(
-                        self.ct,
                         row,
                         dict(medians),
                         dict(standard_deviations)
@@ -622,10 +613,6 @@ class Database:
     def get_products(self):
         '''Return a dictionary of products.'''
         return {
-            'geovectors':           self.geovectors,
             'demographicprofiles':  self.demographicprofiles,
-            'csvt':                 self.csvt,
-            'st':                   self.st,
-            'ct':                   self.ct,
-            'kt':                   self.kt,
+            'geovectors':           self.geovectors,
             }

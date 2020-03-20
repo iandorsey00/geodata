@@ -1,4 +1,3 @@
-from tools.CSVTools import CSVTools
 from tools.StateTools import StateTools
 from tools.CountyTools import CountyTools
 
@@ -18,9 +17,9 @@ class KeyTools:
         else:
             return '040' # State
 
-    def __init__(self, csvt_instance):
+    def __init__(self):
         st = StateTools()
-        ct = CountyTools(csvt_instance)
+        ct = CountyTools()
 
         #######################################################################
         # Counties

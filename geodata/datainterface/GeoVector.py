@@ -8,13 +8,14 @@ for demographic data.
 from tools.geodata_safedivision import gdsd
 from tools.geodata_typecast import gdt, gdti, gdtf
 
+from tools.CountyTools import CountyTools
+
 import sys
 
 class GeoVector:
     '''A vector used to compare places with others.'''
     def __init__(
         self,
-        ct_instance,
         db_row,
         medians,
         standard_deviations
@@ -26,7 +27,7 @@ class GeoVector:
         self.name = db_row['NAME']
 
         # CountyTools instance and county data
-        ct = ct_instance
+        ct = CountyTools()
         self.counties = None
         self.counties_display = None
 

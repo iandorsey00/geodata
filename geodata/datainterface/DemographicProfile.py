@@ -4,13 +4,12 @@ geographies.
 '''
 
 from tools.geodata_typecast import gdt, gdti, gdtf
-from tools.CSVTools import CSVTools
 from tools.CountyTools import CountyTools
 import textwrap
 
 class DemographicProfile:
     '''Used to display data for a geography.'''
-    def __init__(self, ct_instance, db_row):
+    def __init__(self, db_row):
 
         self.name = db_row['NAME']
         self.state = db_row['STUSAB']
@@ -19,14 +18,18 @@ class DemographicProfile:
         # self.key = db_row['KEY']
 
         # CountyTools instance and county data
-        ct = ct_instance
+        ct = CountyTools()
         # County GEOIDs
-        self.counties = ct.place_to_counties[self.geoid]
-        # County names (without the state)
-        self.counties_display = list(map(lambda x: ct.county_geoid_to_name[x],
-                                ct.place_to_counties[self.geoid]))
-        self.counties_display = list(map(lambda x: x.split(', ')[0],
-                                self.counties_display))
+        if self.sumlevel == '160': # Place
+            self.counties = ct.place_to_counties[self.geoid]
+            # County names (without the state)
+            self.counties_display = list(map(lambda x: ct.county_geoid_to_name[x],
+                                    ct.place_to_counties[self.geoid]))
+            self.counties_display = list(map(lambda x: x.split(', ')[0],
+                                    self.counties_display))
+        else:
+            self.counties = []
+            self.counties_display = []
 
         #######################################################################
         # Row headers - Row labels

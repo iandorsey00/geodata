@@ -6,9 +6,11 @@ import numpy
 import pickle
 
 from tools.geodata_typecast import gdt, gdtf, gdti
-from tools.SummaryLevelTools import SummaryLevelTools
 
-import time
+from tools.CountyTools import CountyTools
+from tools.StateTools import StateTools
+from tools.KeyTools import KeyTools
+from tools.SummaryLevelTools import SummaryLevelTools
 
 def create_data_products(args):
     '''Generate and save data products.'''
@@ -47,9 +49,9 @@ def compare_geovectors(args, mode='std'):
     '''Compare GeoVectors.'''
     d = initalize_database()
 
-    st = d['st']
-    ct = d['ct']
-    kt = d['kt']
+    st = StateTools()
+    ct = CountyTools()
+    kt = KeyTools()
 
     slt = SummaryLevelTools()
 
@@ -128,9 +130,9 @@ def superlatives(args, anti=False):
     '''Get superlatives and antisuperlatives.'''
     d = initalize_database()
 
-    st = d['st']
-    ct = d['ct']
-    kt = d['kt']
+    st = StateTools()
+    ct = CountyTools()
+    kt = KeyTools()
 
     slt = SummaryLevelTools()
 
