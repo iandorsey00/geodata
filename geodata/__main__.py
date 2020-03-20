@@ -12,6 +12,8 @@ from tools.StateTools import StateTools
 from tools.KeyTools import KeyTools
 from tools.SummaryLevelTools import SummaryLevelTools
 
+from fuzzywuzzy import fuzz
+
 def create_data_products(args):
     '''Generate and save data products.'''
     d = Database(args.path)
@@ -279,6 +281,40 @@ def antisuperlatives(args):
     '''Wrapper function for antisuperlatives.'''
     superlatives(args, anti=True)
 
+def print_search_divider():
+    return '-' * 68
+
+def print_search_result(dpi):
+    '''Print a row for search results.'''
+    iam = ' '
+
+    out_str = iam + getattr(dpi, 'name').ljust(45)[:45] + iam \
+                + getattr(dpi, 'fc')['population'].rjust(20)
+    return out_str
+
+def display_label_search(args):
+    '''Search display labels (place names).'''
+    n = get_n(args.n)
+    d = initalize_database()
+
+    dpi_instances = d['demographicprofiles']
+    dpi_instances = sorted(dpi_instances, key=lambda x: \
+                        fuzz.token_set_ratio(args.query, x.name), reverse=True)
+
+    print(print_search_divider())
+
+    iam = ' '
+    
+    print(iam + 'Search results'.ljust(45)[:45] + iam + \
+          'Total population'.rjust(20))
+
+    print(print_search_divider())
+
+    for dpi_instance in dpi_instances[:n]:
+        print(print_search_result(dpi_instance))
+
+    print(print_search_divider())
+
 ###############################################################################
 # Argument parsing with argparse
 
@@ -300,6 +336,13 @@ view_parsers = subparsers.add_parser('view', aliases=['v'])
 # Create subparsers for the "view" command
 view_subparsers = view_parsers.add_subparsers(
     help='enter geodata view <subcommand> -h for more information.')
+
+# Create the parser for the "search" command
+search_parser = subparsers.add_parser('search', aliases=['s'],
+    description='Search for a display label (place name)')
+search_parser.add_argument('query', help='search query')
+search_parser.add_argument('-n', type=int, default=15, help='number of results to display')
+search_parser.set_defaults(func=display_label_search)
 
 # View subparser
 # Create parsors for the view command command

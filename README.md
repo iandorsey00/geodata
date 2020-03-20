@@ -17,6 +17,14 @@ counties, and places) easily.
 by performing mathematical operations (called "compound data" in this program).
 * Allow users to group places by geographies.
 
+## Dependencies
+
+* [pandas](https://pandas.pydata.org/)
+* [python-Levenshtein](https://github.com/ztane/python-Levenshtein)
+* [fuzzywuzzy](https://github.com/seatgeek/fuzzywuzzy)
+
+The latter two are mostly used for search through display labels (place names).
+
 ## Setup
 
 This program doesn't include the required data files because they are too large.
@@ -66,9 +74,10 @@ the files from the subfolders to your data directory. If you are using Linux,
     states. This being the case, I have no choice but to ship a custom gazetteer
     file with geodata.
 
-5. This project depends on [pandas](https://pandas.pydata.org/) and
-[SQLAlchemy](https://www.sqlalchemy.org/). Install these first. One way to do so
-is by executing:
+5. This project depends on [pandas](https://pandas.pydata.org/),
+[python-Levenshtein](https://github.com/ztane/python-Levenshtein), and
+[fuzzywuzzy](https://github.com/seatgeek/fuzzywuzzy) Install these first. One
+way to do so is by executing:
 
         $ pip3 install pandas sqlalchemy
 
@@ -260,6 +269,10 @@ Optional arguments of:
     geodata view gva # GeoVectors [appearance mode]
     geodata view sl  # Superlatives
     geodata view asl # Antisuperlatives
+    geodata search   # Search
+
+*Note: `view` above can be abbreviated as `v`*
+*Note: `search` above can be abbreviated as `s`*
 
 ---
 
@@ -638,6 +651,43 @@ See below for an example of use with a `context` (see *Argument types*).
      West Hampton Dunes village, New York                            69                 1989
     -----------------------------------------------------------------------------------------
 
+### Search (for display labels)
+
+    usage: geodata search [-h] [-n N] query
+
+    Search for a display label (place name)
+
+    positional arguments:
+      query       search query
+
+    optional arguments:
+      -h, --help  show this help message and exit
+      -n N        number of results to display
+
+*Note: `search` above can be abbreviated as `s`*
+
+Search through display labels. If there is more than one word in your search
+term, enclose `query` in quotation marks. For example:
+
+    $ python3 geodata search "San Jose" -n 10
+    --------------------------------------------------------------------
+     Search results                                    Total population
+    --------------------------------------------------------------------
+     San Jose CDP, Arizona                                          589
+     San Jose city, California                                1,026,658
+     South San Jose Hills CDP, California                        20,593
+     San Jose village, Illinois                                     670
+     San Jose CDP (Rio Arriba County), New Mexico                   632
+     San Jose CDP (San Miguel County), New Mexico                   217
+     New Jersey                                               8,881,845
+     San Carlos CDP, Arizona                                      4,247
+     San Luis city, Arizona                                      32,279
+     San Manuel CDP, Arizona                                      3,753
+    --------------------------------------------------------------------
+
+This function is very helpful if you can remember the name of the place but
+don't know if it is a CDP, city, village, etc.
+
 ## Information about data from the U.S. Census Bureau
 
 At this point in geodata's development, all data the program uses comes from the
@@ -772,7 +822,11 @@ on geographic identifiers.
 
 ## Next steps for development
 
-* A search function for geographies. Currently, the exact `display_label`
-must be entered.
 * Support dumping all data to a CSV file.
 * Write more technical documentation.
+
+## Known issues
+
+* Occasionally, there are duplicate geographies in the database. Workaround: If
+this preventing you from viewing enough rows, adjust how many rows are displayed
+using the `-n` option.
