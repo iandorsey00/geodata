@@ -261,6 +261,8 @@ Optional arguments of:
     geodata view sl  # Superlatives
     geodata view asl # Antisuperlatives
 
+---
+
 Set the number of rows to be displayed. The default is 15.
 
 ## Data products
@@ -327,7 +329,7 @@ will most likely *not* result in a sum of 100 percent.
 
 Standard usage (`geodata view gv`):
 
-    usage: geodata view gv [-h] [-p POP_FILTER] [-c CONTEXT] display_label
+    usage: geodata view gv [-h] [-p POP_FILTER] [-c CONTEXT] [-n N] display_label
 
     View GeoVectors nearest to a GeoVector.
 
@@ -340,10 +342,11 @@ Standard usage (`geodata view gv`):
                             filter by population
       -c CONTEXT, --context CONTEXT
                             state to compare with
+      -n N                  number of rows to display
 
 Usage for appearance mode (`geodata view gva`):
 
-    usage: geodata view gva [-h] [-p POP_FILTER] [-c CONTEXT] display_label
+    usage: geodata view gva [-h] [-p POP_FILTER] [-c CONTEXT] [-n N] display_label
 
     View GeoVectors nearest to a GeoVector [appearance mode]
 
@@ -356,6 +359,7 @@ Usage for appearance mode (`geodata view gva`):
                             filter by population
       -c CONTEXT, --context CONTEXT
                             state to compare with
+      -n N                  number of rows to display
 
 *Note: `view` above can be abbreviated as `v`*
 
