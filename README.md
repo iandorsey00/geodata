@@ -754,9 +754,3 @@ must be entered.
 * Make the `data_type` argument optional for superlatives and antisuperlatives.
 * Support dumping all data to a CSV file.
 * Write more technical documentation.
-
-## Known issues
-
-* The program is currently a bit slow. This is because the size of
-`default.geodata` (the binary file dumped by pickle) has become very large
-since grouping by counties began to be supported.
