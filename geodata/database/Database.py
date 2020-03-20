@@ -612,7 +612,8 @@ class Database:
 
     def get_products(self):
         '''Return a dictionary of products.'''
+        # Use list(set(...)) to remove duplicates
         return {
-            'demographicprofiles':  self.demographicprofiles,
-            'geovectors':           self.geovectors,
+            'demographicprofiles':  list(set(self.demographicprofiles)),
+            'geovectors':           list(set(self.geovectors)),
             }

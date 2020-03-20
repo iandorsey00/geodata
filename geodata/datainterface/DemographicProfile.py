@@ -255,3 +255,9 @@ class DemographicProfile:
         out_str += self.divider()
 
         return out_str
+
+    def __eq__(self, other):
+        return self.sumlevel == other.sumlevel and self.name == other.name
+
+    def __hash__(self):
+        return hash((self.sumlevel, self.name))

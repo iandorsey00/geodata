@@ -824,9 +824,3 @@ on geographic identifiers.
 
 * Support dumping all data to a CSV file.
 * Write more technical documentation.
-
-## Known issues
-
-* Occasionally, there are duplicate geographies in the database. Workaround: If
-this preventing you from viewing enough rows, adjust how many rows are displayed
-using the `-n` option.
