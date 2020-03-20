@@ -28,8 +28,8 @@ class GeoVector:
 
         # CountyTools instance and county data
         ct = CountyTools()
-        self.counties = None
-        self.counties_display = None
+        self.counties = []
+        self.counties_display = []
 
         if self.sumlevel == '160':
             # County GEOIDs

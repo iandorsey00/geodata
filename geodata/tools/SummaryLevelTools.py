@@ -40,29 +40,30 @@ class SummaryLevelTools:
         group_sl = None
         group = None
 
-        # If there is a plus in the context:
-        if '+' in context:
-            # Get the part before the plus
-            ac_split = context.split('+')
-            universe_sl = ac_split[0]
-            group = ac_split[1]
+        if context:
+            # If there is a plus in the context:
+            if '+' in context:
+                # Get the part before the plus
+                ac_split = context.split('+')
+                universe_sl = ac_split[0]
+                group = ac_split[1]
 
-            # If the part before the plus is a valid keyword:
-            if self.iskeyword(universe_sl):
-                # Set the keyword to the corresponding code.
-                universe_sl = self.keyword_to_code[universe_sl]
-            # Otherwise, if the part before the plus is a valid code...
-            elif self.iscode(universe_sl):
-                # The universe_sl has been entered directly. Do nothing.
-                pass
+                # If the part before the plus is a valid keyword:
+                if self.iskeyword(universe_sl):
+                    # Set the keyword to the corresponding code.
+                    universe_sl = self.keyword_to_code[universe_sl]
+                # Otherwise, if the part before the plus is a valid code...
+                elif self.iscode(universe_sl):
+                    # The universe_sl has been entered directly. Do nothing.
+                    pass
+                else:
+                    # Otherwise, there has been an error.
+                    raise ValueError('The context summary level is not valid.')
             else:
-                # Otherwise, there has been an error.
-                raise ValueError('The context summary level is not valid.')
-        else:
-            group = context
+                group = context
         
         # If there is something after the plus...
-        if group != '':
+        if group:
             # If the group is digits, it's a ZCTA group
             if group.isdigit():
                 group_sl = '860'

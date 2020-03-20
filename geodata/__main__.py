@@ -45,38 +45,19 @@ def initalize_database():
         else:
             sys.exit(0)
 
-def compare_geovectors(args, mode='std'):
-    '''Compare GeoVectors.'''
-    d = initalize_database()
-
-    st = StateTools()
+def context_filter(input_instances, args_context, args_pop_filter, gv=False):
+    '''Filters instances and leaves those that match the context.'''
     ct = CountyTools()
     kt = KeyTools()
-
     slt = SummaryLevelTools()
 
-    # The summary level of GeoVectors we will be viewing.
-    summary_level = '160'
-    # The group of GeoVectors we will be viewing, e.g. those in Los Angeles
-    # County, California (us:losangeles)
-    group = None
-    group_sl = None
-
-    gv_list = d['geovectors']
-
-    # Obtain the GeoVector for which we entered a name.
-    comparison_gv = \
-        list(filter(lambda x: x.name == args.display_label, gv_list))[0]
-
-    # If a context was specified, unpack needed values
-    if args.context:
-        universe_sl, group_sl, group = slt.unpack_context(args.context)
-    # Otherwise, the universe_sl should be the same as the target GeoVector.
-    else:
-        universe_sl = comparison_gv.sumlevel
+    universe_sl, group_sl, group = slt.unpack_context(args.context)
+    instances = input_instances
 
     # Filter by summary level
-    gv_list = list(filter(lambda x: x.sumlevel == universe_sl, gv_list))
+    if universe_sl:
+        instances \
+            = list(filter(lambda x: x.sumlevel == universe_sl, instances))
 
     # Filter by group summary level
     if group_sl == '050':
@@ -84,36 +65,75 @@ def compare_geovectors(args, mode='std'):
         county_name = kt.key_to_county_name[key]
         county_geoid = ct.county_name_to_geoid[county_name]
 
-        gv_list = list(filter(lambda x: \
-        county_geoid in getattr(x, 'counties'), gv_list))
+        instances = list(filter(lambda x: county_geoid in x.counties,
+                                instances))
     elif group_sl == '040':
-        gv_list = list(filter(lambda x: x.state == group,
-                              gv_list))
+        instances = list(filter(lambda x: x.state == group, instances))
     elif group_sl == '860':
-        gv_list = list(filter(lambda x: x.name.startswith('ZCTA5 ' + group),
-                              gv_list))
+        instances = list(filter(lambda x: x.name.startswith('ZCTA5 ' + group),
+                                instances))
 
     # Population
     if args.pop_filter:
-        pop_filter = gdt(args.pop_filter)
-        gv_list = list(filter(lambda x: gdti(x.d['population']) > pop_filter,
-                            gv_list))
+        pop_filter = gdt(args_pop_filter)
+        instances = list(filter(lambda x: gdti(x.d['population']) > pop_filter,
+                                instances))
+
+    return instances
+
+def get_n(args_n, default=15):
+    '''Get the number of rows to display.'''
+    if args_n < 1:
+        raise ValueError("n cannot be less than 1.")
+    else:
+        return args_n
+
+def compare_geovectors(args, mode='std'):
+    '''Compare GeoVectors.'''
+    n = get_n(args.n)
+    
+    d = initalize_database()
+    gv_list = d['geovectors']
+
+    # Obtain the GeoVector for which we entered a name.
+    comparison_gv = \
+        list(filter(lambda x: x.name == args.display_label, gv_list))[0]
+
+    # If a context was specified, filter GeoVector instances
+    if args.context:
+        gv_list = context_filter(gv_list, args.context, args.pop_filter)
+    else:
+        gv_list = list(filter(lambda x: x.sumlevel == comparison_gv.sumlevel,
+                              gv_list))
 
     # Get the closest GeoVectors.
     # In other words, get the most demographically similar places.
     closest_pvs = sorted(gv_list,
-        key=lambda x: comparison_gv.distance(x, mode=mode))[:6]
+                    key=lambda x: comparison_gv.distance(x, mode=mode))[:n]
 
-    print("The most demographically similar geographies are:")
-    print()
-    if mode == 'std':
-        print('GEOGRAPHY'.ljust(40), 'COUNTY'.ljust(20), 'PDN', 'PCI', 'WHT', 'BLK', 'ASN', 'HPL', 'BDH', 'GDH', ' DISTANCE')
-    elif mode == 'app':
-        print('GEOGRAPHY'.ljust(40), 'COUNTY'.ljust(20), 'PDN', 'PCI', 'MYS', ' DISTANCE')
+    if len(closest_pvs) == 0:
+        print("Sorry, no GeoVectors match your criteria.")
+    else:
+        if mode == 'std':
+            width = 105
+        elif mode == 'app':
+            width = 85
 
-    # Print these GeoVectors
-    for closest_pv in closest_pvs:
-        print(closest_pv.display_row(mode), comparison_gv.distance(closest_pv, mode=mode))
+        print("The most demographically similar geographies are:")
+        print()
+        print('-' * width)
+        if mode == 'std':
+            print(' Geography'.ljust(41), 'County'.ljust(20), 'PDN', 'PCI', 'WHT', 'BLK', 'ASN', 'HPL', 'BDH', 'GDH', ' Distance')
+        elif mode == 'app':
+            print(' Geography'.ljust(41), 'County'.ljust(20), 'PDN', 'PCI', 'MYS', ' Distance')
+        print('-' * width)
+
+        # Print these GeoVectors
+        for closest_pv in closest_pvs:
+            print('', closest_pv.display_row(mode),
+                round(comparison_gv.distance(closest_pv, mode=mode), 2))
+
+        print('-' * width)
 
 def compare_geovectors_app(args):
     compare_geovectors(args, mode='app')
@@ -128,82 +148,58 @@ def get_dp(args):
 
 def superlatives(args, anti=False):
     '''Get superlatives and antisuperlatives.'''
+    n = get_n(args.n)
     d = initalize_database()
 
     st = StateTools()
-    ct = CountyTools()
-    kt = KeyTools()
-
     slt = SummaryLevelTools()
-
-    universe_sl = None
-    group_sl = None
-    group = None
-
-    # Unpack the context if there was one specified
-    if args.context:
-        universe_sl, group_sl, group = slt.unpack_context(args.context)
 
     comp_name = args.comp_name
     data_type = args.data_type
 
-    # If a pop_filter was specified, parse it.
-    if args.pop_filter:
-        args.pop_filter = gdti(args.pop_filter)
+    dpi_instances = d['demographicprofiles']
+    fetch_one = dpi_instances[0]
 
     # Determine whether we want components (values that come straight from
     # Census data files) or compounds (values that can only be obtained by
     # math operations involving multiple components).
-    if data_type == 'c':
+
+    # By default, display compounds if there is one for the comp_name.
+    # Otherwise, display a component.
+    if not data_type:
+        if comp_name in fetch_one.c.keys():
+            sort_by = 'c'
+            print_ = 'fcd'
+        else:
+            sort_by = 'rc'
+            print_ = 'fc'
+    # User input 'c', so display a component
+    elif data_type == 'c':
         sort_by = 'rc'
         print_ = 'fc'
+    # User input 'cc' (or anything else...), so display a compound
     else:
         sort_by = 'c'
         print_ = 'fcd'
     
     # Remove numpy.nans because they interfere with sorted()
     dpi_instances = list(filter(lambda x: not \
-        numpy.isnan(getattr(x, sort_by)[comp_name]), d['demographicprofiles']))
+                   numpy.isnan(getattr(x, sort_by)[comp_name]), dpi_instances))
 
-    # If there's a filter pop, remove all places underneath it.
-    if args.pop_filter:
-        dpi_instances = list(filter(lambda x: \
-        getattr(x, 'rc')['population'] >= args.pop_filter, dpi_instances))
-
-    # Filter by universe
-    if universe_sl:
-        dpi_instances = list(filter(lambda x: \
-        x.sumlevel == universe_sl, dpi_instances))
-
-    # Filter by group
-    if group:
-        # Filter by state
-        if group_sl == '040':
-            dpi_instances = list(filter(lambda x: \
-            x.state == group, dpi_instances))
-        # Filter by county
-        elif group_sl == '050':
-            key = 'us:' + group + '/county'
-            county_name = kt.key_to_county_name[key]
-            county_geoid = ct.county_name_to_geoid[county_name]
-
-            dpi_instances = list(filter(lambda x: \
-            county_geoid in x.counties, dpi_instances))
-        elif group_sl == '860':
-            dpi_instances = list(filter(lambda x: x.name.startswith('ZCTA5 ' + group),
-                                dpi_instances))
+    # Filter instances
+    dpi_instances = context_filter(dpi_instances, args.context, args.pop_filter)
 
     # For the median_year_structure_built component, remove values of zero and
     # 18...
     if args.comp_name == 'median_year_structure_built':
         dpi_instances = list(filter(lambda x: not \
-        getattr(x, 'rc')['median_year_structure_built'] == 0, dpi_instances))
+            x.rc['median_year_structure_built'] == 0, dpi_instances))
         dpi_instances = list(filter(lambda x: not \
-        getattr(x, 'rc')['median_year_structure_built'] == 18, dpi_instances))
+            x.rc['median_year_structure_built'] == 18, dpi_instances))
 
     # Sort our DemographicProfile instances by component or compound specified.
     sls = sorted(dpi_instances, key=lambda x: \
-        getattr(x, sort_by)[comp_name], reverse=(not anti))
+                 getattr(x, sort_by)[comp_name], reverse=(not anti))
 
     # helper methods for printing (a)sl rows ##################################
 
@@ -253,7 +249,7 @@ def superlatives(args, anti=False):
 
         # Print another column if the comp_name isn't population
         if args.comp_name != 'population':
-            out_str += iam + getattr(dpi, 'rh')[comp_name].rjust(20)
+            out_str += iam + getattr(dpi, 'rh')[comp_name].rjust(20)[:20]
 
         return out_str
 
@@ -263,17 +259,19 @@ def superlatives(args, anti=False):
         out_str = iam + getattr(dpi, 'name').ljust(45)[:45] + iam \
                   + getattr(dpi, 'fc')['population'].rjust(20)
         if args.comp_name != 'population':
-            out_str += iam + getattr(dpi, print_)[comp_name].rjust(20)
+            out_str += iam + getattr(dpi, print_)[comp_name].rjust(20)[:20]
         return out_str
 
     # Printing ################################################################
+
+    universe_sl, group_sl, group = slt.unpack_context(args.context)
 
     # Print the header and places with their information.
     dpi = d['demographicprofiles'][0]
     print(divider(dpi))
     print(sl_print_headers(comp_name, universe_sl, group_sl, group))
     print(divider(dpi))
-    for sl in sls[:30]:
+    for sl in sls[:n]:
         print(sl_print_row(sl))
     print(divider(dpi))
 
@@ -317,6 +315,7 @@ gv_parsor = view_subparsers.add_parser('gv',
 gv_parsor.add_argument('display_label', help='the exact place name')
 gv_parsor.add_argument('-p', '--pop_filter', help='filter by population')
 gv_parsor.add_argument('-c', '--context', help='state to compare with')
+gv_parsor.add_argument('-n', type=int, default=15, help='number of rows to display')
 gv_parsor.set_defaults(func=compare_geovectors)
 
 # GeoVectors [appearance mode] ################################################
@@ -325,24 +324,27 @@ gva_parsor = view_subparsers.add_parser('gva',
 gva_parsor.add_argument('display_label', help='the exact place name')
 gva_parsor.add_argument('-p', '--pop_filter', help='filter by population')
 gva_parsor.add_argument('-c', '--context', help='state to compare with')
+gva_parsor.add_argument('-n', type=int, default=15, help='number of rows to display')
 gva_parsor.set_defaults(func=compare_geovectors_app)
 
 # Superlatives ################################################################
 sl_parsor = view_subparsers.add_parser('sl',
     description='View places that rank highest with regard to a certain characteristic.')
 sl_parsor.add_argument('comp_name', help='the comp that you want to rank')
-sl_parsor.add_argument('data_type', help='whether comp is a component or a compound')
+sl_parsor.add_argument('-d', '--data_type', help='c: component; cc: compound')
 sl_parsor.add_argument('-p', '--pop_filter', help='filter by population')
 sl_parsor.add_argument('-c', '--context', help='use geographies within state')
+sl_parsor.add_argument('-n', type=int, default=15, help='number of rows to display')
 sl_parsor.set_defaults(func=superlatives)
 
 # Antisuperlatives ############################################################
 asl_parsor = view_subparsers.add_parser('asl',
     description='View places that rank lowest with regard to a certain characteristic.')
 asl_parsor.add_argument('comp_name', help='the comp that you want to rank')
-asl_parsor.add_argument('data_type', help='whether comp is a component or a compound')
+asl_parsor.add_argument('-d', '--data_type', help='c: component; cc: compound')
 asl_parsor.add_argument('-p', '--pop_filter', help='filter by population')
 asl_parsor.add_argument('-c', '--context', help='use geographies within state')
+asl_parsor.add_argument('-n', type=int, default=15, help='number of rows to display')
 asl_parsor.set_defaults(func=antisuperlatives)
 
 # Parse arguments

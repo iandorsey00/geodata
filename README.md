@@ -224,6 +224,7 @@ future version of geodata. A work around for this issue is to use
 [data.census.gov](https://data.census.gov/cedsci/) to find the string.
 
 ### `pop_filter`s (population filters)
+
 Usage:
 
     -p POP_FILTER
@@ -247,6 +248,20 @@ specify that for `POP_FILTER` above. For example:
 
 will filter for geographies with populations over 50,000 and 100,000,
 respectively.
+
+### `N` (number of rows to be displayed)
+Usage:
+
+    -n N
+
+Optional arguments of:
+
+    geodata view gv  # GeoVectors
+    geodata view gva # GeoVectors [appearance mode]
+    geodata view sl  # Superlatives
+    geodata view asl # Antisuperlatives
+
+Set the number of rows to be displayed. The default is 15.
 
 ## Data products
 
@@ -352,26 +367,50 @@ For information about `pop_filter`s, `context`s, and `display_label`s, see
 Some examples of usage:
 
     $ python3 geodata v gv "Cupertino city, California" -p 20000 -c ny:nassau
-    The most demographically similar places are:
+    The most demographically similar geographies are:
 
-    GEOGRAPHY                                COUNTY               PDN PCI WHT BLK ASN HPL BDH GDH  DISTANCE
-    Plainview CDP, New York                  Nassau County         85  90  49  47  56  51  72  79  16.55860803328589
-    Garden City village, New York            Nassau County         82 100  53  51  45  51  77  85  17.342145196024624
-    Rockville Centre village, New York       Nassau County        100  90  51  54  38  54  70  78  19.81319005107456
-    Long Beach city, New York                Nassau County        100  80  49  54  48  55  65  71  25.891600954749787
-    North Bellmore CDP, New York             Nassau County        100  77  52  50  52  52  64  70  28.186876378910807
-    Massapequa CDP, New York                 Nassau County         99  78  54  43  24  51  64  65  31.19094419859713
+    ---------------------------------------------------------------------------------------------------------
+     Geography                                County               PDN PCI WHT BLK ASN HPL BDH GDH  Distance
+    ---------------------------------------------------------------------------------------------------------
+     Garden City village, New York            Nassau County        100 100  52  51  44  51  79  90  15.11
+     Plainview CDP, New York                  Nassau County        100  91  49  30  56  51  73  83  16.43
+     Rockville Centre village, New York       Nassau County        100  92  51  56  37  54  71  82  20.09
+     Long Beach city, New York                Nassau County        100  80  50  57  46  55  66  74  28.04
+     North Bellmore CDP, New York             Nassau County        100  77  52  50  52  53  65  72  30.13
+     Massapequa CDP, New York                 Nassau County        100  79  53  27  24  51  64  67  32.52
+     Oceanside CDP, New York                  Nassau County        100  75  53  50  32  54  65  70  33.74
+     East Meadow CDP, New York                Nassau County        100  68  43  57  55  56  60  65  38.91
+     West Hempstead CDP, New York             Nassau County        100  67  41  63  51  60  61  66  39.78
+     Glen Cove city, New York                 Nassau County        100  67  39  59  51  63  60  65  39.93
+     Hicksville CDP, New York                 Nassau County        100  67  38  52  62  55  59  60  40.37
+     Levittown CDP, New York                  Nassau County        100  68  50  50  52  57  57  60  40.77
+     Valley Stream village, New York          Nassau County        100  65  25  82  56  60  60  64  42.43
+     Baldwin CDP, New York                    Nassau County        100  64  29  93  49  62  60  61  45.13
+     Franklin Square CDP, New York            Nassau County        100  61  43  51  54  60  57  58  46.45
+    ---------------------------------------------------------------------------------------------------------
 
     $ python3 geodata v gva "Sunnyvale city, California" -c counties+nj
     The most demographically similar geographies are:
 
-    GEOGRAPHY                                COUNTY               PDN PCI MYS  DISTANCE
-    Morris County, New Jersey                                     100  85  44  9.433981132056603
-    Somerset County, New Jersey                                   100  83  53  10.770329614269007
-    Monmouth County, New Jersey                                   100  77  49  16.0
-    Bergen County, New Jersey                                     100  76  28  27.018512172212592
-    Middlesex County, New Jersey                                  100  65  47  28.071337695236398
-    Mercer County, New Jersey                                     100  69  34  28.30194339616981
+    -------------------------------------------------------------------------------------
+     Geography                                County               PDN PCI MYS  Distance
+    -------------------------------------------------------------------------------------
+     Morris County, New Jersey                                     100  85  42  8.94
+     Somerset County, New Jersey                                   100  83  53  12.21
+     Monmouth County, New Jersey                                   100  77  46  16.0
+     Burlington County, New Jersey                                 100  68  50  25.32
+     Bergen County, New Jersey                                     100  76  26  26.25
+     Mercer County, New Jersey                                     100  69  32  27.78
+     Middlesex County, New Jersey                                  100  64  44  29.07
+     Gloucester County, New Jersey                                 100  64  52  29.61
+     Ocean County, New Jersey                                      100  60  53  33.73
+     Union County, New Jersey                                      100  66  24  34.83
+     Camden County, New Jersey                                     100  59  36  35.44
+     Hudson County, New Jersey                                     100  64  25  35.81
+     Atlantic County, New Jersey                                    98  56  49  37.18
+     Cape May County, New Jersey                                    77  64  51  37.35
+     Essex County, New Jersey                                      100  63  22  38.42
+    -------------------------------------------------------------------------------------
 
 Column header descriptions for standard mode:
 
@@ -463,37 +502,44 @@ The aim of appearance mode is to calculate how similar two areas appear.
 
 Usage for superlatives:
 
-    usage: geodata view sl [-h] [-p POP_FILTER] [-c CONTEXT] comp_name data_type
+    usage: geodata view sl [-h] [-d DATA_TYPE] [-p POP_FILTER] [-c CONTEXT] [-n N]
+                          comp_name
 
     View places that rank highest with regard to a certain characteristic.
 
     positional arguments:
       comp_name             the comp that you want to rank
-      data_type             whether comp is a component or a compound
 
     optional arguments:
       -h, --help            show this help message and exit
+      -d DATA_TYPE, --data_type DATA_TYPE
+                            c: component; cc: compound
       -p POP_FILTER, --pop_filter POP_FILTER
                             filter by population
       -c CONTEXT, --context CONTEXT
                             use geographies within state
+      -n N                  number of rows to display
 
 Usage for antisuperlatives:
 
-    usage: geodata view asl [-h] [-p POP_FILTER] [-c CONTEXT] comp_name data_type
+    usage: geodata view asl [-h] [-d DATA_TYPE] [-p POP_FILTER] [-c CONTEXT]
+                            [-n N]
+                            comp_name
 
     View places that rank lowest with regard to a certain characteristic.
 
     positional arguments:
       comp_name             the comp that you want to rank
-      data_type             whether comp is a component or a compound
 
     optional arguments:
       -h, --help            show this help message and exit
+      -d DATA_TYPE, --data_type DATA_TYPE
+                            c: component; cc: compound
       -p POP_FILTER, --pop_filter POP_FILTER
                             filter by population
       -c CONTEXT, --context CONTEXT
                             use geographies within state
+      -n N                  number of rows to display
 
 *Note: `view` above can be abbreviated as `v`*
 
@@ -504,7 +550,7 @@ For information about `pop_filter`s and `context`s, see *Argument types*.
 Superlatives and antisuperlatives allow you to get the geographies with the
 highest or lowest values of a certain demographic characteristic. For example:
 
-    $ python3 geodata v sl per_capita_income c -p 50000
+    $ python3 geodata v sl per_capita_income -p 50000 -c p+
     -----------------------------------------------------------------------------------------
      Place                                             Total population    Per capita income
     -----------------------------------------------------------------------------------------
@@ -523,35 +569,29 @@ highest or lowest values of a certain demographic characteristic. For example:
      Pleasanton city, California                                 80,847              $64,504
      San Francisco city, California                             870,044              $64,157
      Bellevue city, Washington                                  142,242              $63,115
-     Reston CDP, Virginia                                        60,335              $63,027
-     Sunnyvale city, California                                 152,323              $62,891
-     The Woodlands CDP, Texas                                   109,843              $62,672
-     Encinitas city, California                                  62,713              $62,251
-     Catalina Foothills CDP, Arizona                             50,426              $61,998
-     North Bethesda CDP, Maryland                                50,262              $61,905
-     Coral Gables city, Florida                                  50,931              $61,668
-     Walnut Creek city, California                               69,007              $61,026
-     Redmond city, Washington                                    63,197              $60,465
-     San Ramon city, California                                  75,384              $60,326
-     Scottsdale city, Arizona                                   246,026              $59,953
-     Carmel city, Indiana                                        90,163              $59,541
-     Alexandria city, Virginia                                  156,505              $59,239
-     Kirkland city, Washington                                   88,079              $59,224
-     Boca Raton city, Florida                                    95,745              $59,193
     -----------------------------------------------------------------------------------------
 
 Use the `comp_name` argument to specify the demographic component or compound
-you want to rank. *Components* are pulled straight from census data files and
-are generally numbers. `median_year_structure_built`, for example, is only
-available as a component. *Compounds* are not available straight from the
-census data files; they are the results of mathematical operations. For example,
-the census doesn't provide information for `population_density`; the only way to
-get it is to divide the population from the data files by the land area in the
-gazetteer file.
+you want to rank.
 
-Specify whether to rank by a component or compound with the `data_type`
+Specify whether to rank by a component or compound with the optional `DATA_TYPE`
 argument; some data are available as both components and compounds, and others
-are only available as one or the other.
+are only available as one or the other. In most cases, users will not need
+to specify a `DATA_TYPE`. By default, compounds are used, unless there isn't for
+the `comp_name` entered, in which case a component will be used.
+
+*Components* are pulled straight from census data files.
+`median_year_structure_built`, for example, is only available as a component.
+*Compounds* are not available straight from the census data files; they are the
+results of mathematical operations. For example, the census doesn't provide
+information for `population_density`; the only way to get it is to divide the
+population from the data files by the land area in the gazetteer file.
+
+In simple terms, for each item on the list, specify `c` for the `data_type` if
+you just want a raw number, such as the number of people with a bachelor's
+degree or higher. If you want a ratio or percentage (such as the *percent* of
+people over age 25 with a bachelor's degree or higher), specify `cc` for the
+`data_type`.
 
 A list of valid `comp_name`s and their `data_type`s are below:
 
@@ -571,17 +611,11 @@ A list of valid `comp_name`s and their `data_type`s are below:
 * `median_value` –  Median value of housing units: `c` only
 * `median_rent` – Median rent of housing units: `c` only
 
-In simple terms, for each item on the list, specify `c` for the `data_type` if
-you just want a raw number, such as the number of people with a bachelor's
-degree or higher. If you want a ratio or percentage (such as the *percent* of
-people over age 25 with a bachelor's degree or higher), specify `cc` for the
-`data_type`.
-
 See below for an example of use with a `context` (see *Argument types*).
 
-    $ python3 geodata view sl median_year_structure_built c -c ny
+    $ python3 geodata view sl median_year_structure_built -c ny
     -----------------------------------------------------------------------------------------
-     Place in ny                                       Total population Median year unit bui
+     Geography in New York                             Total population Median year unit bui
     -----------------------------------------------------------------------------------------
      Merritt Park CDP, New York                                   1,776                 2006
      Livonia Center CDP, New York                                   330                 2002
@@ -598,21 +632,6 @@ See below for an example of use with a `context` (see *Argument types*).
      Gordon Heights CDP, New York                                 3,667                 1990
      Plattsburgh West CDP, New York                               1,370                 1990
      West Hampton Dunes village, New York                            69                 1989
-     Moriches CDP, New York                                       3,277                 1988
-     Rapids CDP, New York                                         1,198                 1988
-     Armonk CDP, New York                                         4,381                 1987
-     Davenport Center CDP, New York                                 222                 1987
-     Freedom Plains CDP, New York                                   336                 1987
-     Calverton CDP, New York                                      7,154                 1986
-     Napeague CDP, New York                                         112                 1986
-     North Hills village, New York                                5,639                 1986
-     West Glens Falls CDP, New York                               7,005                 1986
-     Baiting Hollow CDP, New York                                 1,654                 1985
-     Heritage Hills CDP, New York                                 4,176                 1985
-     South Lockport CDP, New York                                 7,315                 1985
-     Clarence Center CDP, New York                                3,125                 1984
-     Hannawa Falls CDP, New York                                    882                 1984
-     Washingtonville village, New York                            5,748                 1984
     -----------------------------------------------------------------------------------------
 
 ## Information about data from the U.S. Census Bureau
