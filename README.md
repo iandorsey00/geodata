@@ -62,9 +62,9 @@ the files from the subfolders to your data directory. If you are using Linux,
     * `bin/2019_Gaz_state_national.txt`
 
     Though of the goals of geodata is rely on unmodified data files, the U.S.
-    Census Bureau currently does not have geographic information file for states.
-    This being the case, I have no choice but to ship a custom gazetteer file
-    with geodata.
+    Census Bureau currently does not have geographic information file for
+    states. This being the case, I have no choice but to ship a custom gazetteer
+    file with geodata.
 
 5. This project depends on [pandas](https://pandas.pydata.org/) and
 [SQLAlchemy](https://www.sqlalchemy.org/). Install these first. One way to do so

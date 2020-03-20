@@ -19,7 +19,7 @@ class KeyTools:
             return '040' # State
 
     def __init__(self, csvt_instance):
-        st = StateTools(csvt_instance)
+        st = StateTools()
         ct = CountyTools(csvt_instance)
 
         #######################################################################

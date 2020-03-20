@@ -32,26 +32,72 @@ class StateTools:
         '''Transform a state abbreviation into its name.'''
         return self.state_abbrev_to_name[abbrev.upper()]
 
-    def __init__(self, csvt_instance):
-        # Rows from CSV files
-        rows = csvt_instance.rows
-                
-        # Filter for summary level code 040 (State-Places)
-        these_rows = list(filter(lambda x: x[2] == '040', rows))
-        
+    def __init__(self):
         # geoid_to_name #######################################################
         # name_to_geoid #######################################################
-        self.geoid_to_name = dict()
-        self.name_to_geoid = dict()
+        self.geoid_to_name = {
+            '01': 'Alabama',
+            '02': 'Alaska',
+            '04': 'Arizona',
+            '05': 'Arkansas',
+            '06': 'California',
+            '08': 'Colorado',
+            '09': 'Connecticut',
+            '10': 'Delaware',
+            '11': 'District of Columbia',
+            '12': 'Florida',
+            '13': 'Georgia',
+            '15': 'Hawaii',
+            '16': 'Idaho',
+            '17': 'Illinois',
+            '18': 'Indiana',
+            '19': 'Iowa',
+            '20': 'Kansas',
+            '21': 'Kentucky',
+            '22': 'Louisiana',
+            '23': 'Maine',
+            '24': 'Maryland',
+            '25': 'Massachusetts',
+            '26': 'Michigan',
+            '27': 'Minnesota',
+            '28': 'Mississippi',
+            '29': 'Missouri',
+            '30': 'Montana',
+            '31': 'Nebraska',
+            '32': 'Nevada',
+            '33': 'New Hampshire',
+            '34': 'New Jersey',
+            '35': 'New Mexico',
+            '36': 'New York',
+            '37': 'North Carolina',
+            '38': 'North Dakota',
+            '39': 'Ohio',
+            '40': 'Oklahoma',
+            '41': 'Oregon',
+            '42': 'Pennsylvania',
+            '44': 'Rhode Island',
+            '45': 'South Carolina',
+            '46': 'South Dakota',
+            '47': 'Tennessee',
+            '48': 'Texas',
+            '49': 'Utah',
+            '50': 'Vermont',
+            '51': 'Virginia',
+            '53': 'Washington',
+            '54': 'West Virginia',
+            '55': 'Wisconsin',
+            '56': 'Wyoming',
+            '60': 'American Samoa',
+            '66': 'Guam',
+            '69': 'Commonwealth of the Northern Mariana Islands',
+            '72': 'Puerto Rico',
+            '78': 'United States Virgin Islands',
+        }
 
-        for row in these_rows:
-            geoid = row[48][7:]
-            name = row[49]
+        # Inverse of self.geoid_to_name
+        self.name_to_geoid = {v: k for k, v in self.geoid_to_name.items()}
 
-            self.geoid_to_name[geoid] = name
-            self.name_to_geoid[name] = geoid
-
-        # Begin long lists ####################################################
+        # States and abbreviations ############################################
         self.abbrevs = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DC', 'DE',
         'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
         'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY',
