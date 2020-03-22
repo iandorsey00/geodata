@@ -1,3 +1,2 @@
 pandas
-python-Levenshtein
-fuzzywuzzy
+rapidfuzz==0.2.0

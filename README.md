@@ -20,10 +20,9 @@ by performing mathematical operations (called "compound data" in this program).
 ## Dependencies
 
 * [pandas](https://pandas.pydata.org/)
-* [python-Levenshtein](https://github.com/ztane/python-Levenshtein)
-* [fuzzywuzzy](https://github.com/seatgeek/fuzzywuzzy)
+* [rapidfuzz](https://github.com/rhasspy/rapidfuzz)
 
-The latter two are mostly used for search through display labels (place names).
+The last is mostly used for search through display labels (place names).
 
 ## Setup
 
@@ -75,8 +74,7 @@ the files from the subfolders to your data directory. If you are using Linux,
     file with geodata.
 
 5. This project depends on [pandas](https://pandas.pydata.org/),
-[python-Levenshtein](https://github.com/ztane/python-Levenshtein), and
-[fuzzywuzzy](https://github.com/seatgeek/fuzzywuzzy) Install these first. One
+ and [rapidfuzz](https://github.com/rhasspy/rapidfuzz) Install these first. One
 way to do so is by executing:
 
         $ pip3 install pandas sqlalchemy
