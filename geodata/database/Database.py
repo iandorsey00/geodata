@@ -222,7 +222,7 @@ class Database:
         for c_row in c_rows:
             c_row.insert(4, '')
             c_row.insert(5, '')
-
+        
         # Get rows for states (040) from CSV
         this_path = self.path + '2019_Gaz_state_national.txt'
 
@@ -235,8 +235,7 @@ class Database:
         with open(this_path, 'rt') as f:
             z_rows = list(csv.reader(f, delimiter='\t'))
 
-        # County geoheaders lack two columns that places have, so insert
-        # them as empty strings.
+        # ZCTA insert blank columns so that the number of columns match.
         for z_row in z_rows:
             z_row.insert(0, '')
             z_row.insert(2, '')
@@ -500,7 +499,7 @@ class Database:
         # Insert rows into merged table
         self.c.execute('''INSERT INTO %s(%s)
         SELECT %s FROM geographies
-        JOIN geoheaders ON geographies.GEOID = geoheaders.GEOID
+        JOIN geoheaders ON geographies.GEOID = geoheaders.GEOID AND upper(geographies.STUSAB) = geoheaders.USPS
         JOIN data ON geographies.LOGRECNO = data.LOGRECNO AND geographies.STUSAB = data.STATE''' % (
             this_table_name, ', '.join(columns), ', '.join(ub_columns)))
 
@@ -614,6 +613,6 @@ class Database:
         '''Return a dictionary of products.'''
         # Use list(set(...)) to remove duplicates
         return {
-            'demographicprofiles':  list(set(self.demographicprofiles)),
-            'geovectors':           list(set(self.geovectors)),
+            'demographicprofiles':  self.demographicprofiles,
+            'geovectors':           self.geovectors,
             }
