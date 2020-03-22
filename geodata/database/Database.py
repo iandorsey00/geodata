@@ -237,7 +237,7 @@ class Database:
 
         # ZCTA insert blank columns so that the number of columns match.
         for z_row in z_rows:
-            z_row.insert(0, '')
+            z_row.insert(0, 'US') # The state abbrev for all ZCTAs in geos tbl
             z_row.insert(2, '')
             z_row.insert(3, '')
             z_row.insert(4, '')

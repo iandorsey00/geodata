@@ -270,14 +270,17 @@ def superlatives(args, anti=False):
 
     universe_sl, group_sl, group = slt.unpack_context(args.context)
 
-    # Print the header and places with their information.
-    dpi = d['demographicprofiles'][0]
-    print(divider(dpi))
-    print(sl_print_headers(comp_name, universe_sl, group_sl, group))
-    print(divider(dpi))
-    for sl in sls[:n]:
-        print(sl_print_row(sl))
-    print(divider(dpi))
+    if len(sls) == 0:
+        print("Sorry, no geographies match your criteria.")
+    else:
+        # Print the header and places with their information.
+        dpi = d['demographicprofiles'][0]
+        print(divider(dpi))
+        print(sl_print_headers(comp_name, universe_sl, group_sl, group))
+        print(divider(dpi))
+        for sl in sls[:n]:
+            print(sl_print_row(sl))
+        print(divider(dpi))
 
 def antisuperlatives(args):
     '''Wrapper function for antisuperlatives.'''
