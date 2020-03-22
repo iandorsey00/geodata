@@ -154,6 +154,7 @@ def superlatives(args, anti=False):
     d = initalize_database()
 
     st = StateTools()
+    kt = KeyTools()
     slt = SummaryLevelTools()
 
     comp_name = args.comp_name
@@ -237,7 +238,8 @@ def superlatives(args, anti=False):
             if group_sl == '040':
                 group_name = st.get_name(group)
             elif group_sl == '050':
-                group_name = county_name
+                key = 'us:' + group + '/county'
+                group_name = kt.key_to_county_name[key]
             elif group_sl == '860':
                 group_name = group
             
