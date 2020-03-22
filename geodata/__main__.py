@@ -12,7 +12,7 @@ from tools.StateTools import StateTools
 from tools.KeyTools import KeyTools
 from tools.SummaryLevelTools import SummaryLevelTools
 
-from fuzzywuzzy import fuzz
+from rapidfuzz import fuzz
 
 def create_data_products(args):
     '''Generate and save data products.'''
