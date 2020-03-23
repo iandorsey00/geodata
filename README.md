@@ -22,7 +22,7 @@ by performing mathematical operations (called "compound data" in this program).
 * [pandas](https://pandas.pydata.org/)
 * [rapidfuzz](https://github.com/rhasspy/rapidfuzz)
 
-The last is mostly used for search through display labels (place names).
+The latter is mostly used for search through display labels (place names).
 
 ## Setup
 

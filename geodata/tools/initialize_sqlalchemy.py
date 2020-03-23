@@ -1,4 +1,9 @@
 '''
+This file was used in an earlier version; geodata does not currently use
+SQLAlchemy.
+
+---
+
 This file ensures all other files use the same SQLAlchemy session and Base.
 
 Other files should import engine, session, and Base when needed. Use:
