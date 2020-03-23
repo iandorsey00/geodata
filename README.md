@@ -74,10 +74,11 @@ the files from the subfolders to your data directory. If you are using Linux,
     file with geodata.
 
 5. This project depends on [pandas](https://pandas.pydata.org/),
- and [rapidfuzz](https://github.com/rhasspy/rapidfuzz) Install these first. One
+ and [rapidfuzz](https://github.com/rhasspy/rapidfuzz). [rapidfuzz] also depends
+ on [pybind](https://github.com/pybind/pybind11). Install these first. One
 way to do so is by executing:
 
-        $ pip3 install pandas sqlalchemy
+        $ pip3 install pandas rapidfuzz pybind
 
 6. You're now ready to check out geodata with git. Execute, for example:
 
