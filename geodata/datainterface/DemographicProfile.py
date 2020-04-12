@@ -62,6 +62,7 @@ class DemographicProfile:
 
         # Income category
         self.rh['per_capita_income'] = 'Per capita income'
+        self.rh['median_household_income'] = 'Median household income'
 
         # Housing category
         self.rh['median_year_structure_built'] = 'Median year unit built'
@@ -102,6 +103,7 @@ class DemographicProfile:
 
         # Income category
         self.rc['per_capita_income'] = gdt(db_row['B19301_1'])
+        self.rc['median_household_income'] = gdt(db_row['B19013_1'])
 
         # Housing category
         self.rc['median_year_structure_built'] = gdt(db_row['B25035_1'])
@@ -114,10 +116,14 @@ class DemographicProfile:
 
         for key in self.rc.keys():
             if key not in ['per_capita_income', 'median_year_structure_built',
-                'median_value', 'median_rent', 'land_area']:
+                'median_value', 'median_rent', 'land_area',
+                'median_household_income']:
                 self.fc[key] = f'{self.rc[key]:,}'
             elif key not in ['median_year_structure_built', 'land_area']:
-                self.fc[key] = '$' + f'{self.rc[key]:,}'
+                if key == 'median_household_income' and self.rc[key] == 250001:
+                    self.fc[key] = '$250,000+'
+                else:
+                    self.fc[key] = '$' + f'{self.rc[key]:,}'
             elif key == 'land_area':
                 self.fc[key] = f'{self.rc[key]:,.1f}' + ' sqmi'
             else: # key == 'median_year_structure_built'
@@ -253,6 +259,7 @@ class DemographicProfile:
         out_str += self.dp_row_std('graduate_degree_or_higher')
         out_str += self.dp_full_row_str('INCOME')
         out_str += self.dp_row_nc('per_capita_income')
+        out_str += self.dp_row_nc('median_household_income')
         out_str += self.dp_full_row_str('HOUSING')
         out_str += self.dp_row_nc('median_year_structure_built')
         out_str += self.dp_row_nc('median_value')

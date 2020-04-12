@@ -616,22 +616,24 @@ people over age 25 with a bachelor's degree or higher), specify `cc` for the
 
 A list of valid `comp_name`s and their `data_type`s are below:
 
-* `population_density` – Population density: `cc` only
-* `land_area` – Land area (in square miles): `c` only
-* `white_alone` – White alone: `c` or `cc`
-* `white_alone_not_hispanic_or_latino` – White alone (not Hispanic or Latino): `c` or `cc`
-* `black_alone` – Black alone: `c` or `cc`
-* `asian_alone` – Asian alone: `c` or `cc`
-* `other_race` – Other race: `c` or `cc`
-* `hispanic_or_latino` – Hispanic or Latino: `c` or `cc`
-* `population_25_years_and_older` – Total population 25 years and older: `c` or
-  `cc`
-* `bachelors_degree_or_higher` – Bachelor's degree or higher: `c` or `cc`
-* `graduate_degree_or_higher` – Graduate degree or higher: `c` or `cc`
-* `per_capita_income` – Per capita income: `c` only
-* `median_year_structure_built` – Median year housing unit built: `c` only
-* `median_value` –  Median value of housing units: `c` only
-* `median_rent` – Median rent of housing units: `c` only
+| `comp_name` | Description | Valid data type(s) |
+|-------------|-------------|--------------------|
+| `population_density` | Population density | `cc` |
+| `land_area` | Land area (in square miles) | `c` |
+| `white_alone` | White alone | `c` or `cc` |
+| `white_alone_not_hispanic_or_latino` | White alone (not Hispanic or Latino) | `c` or `cc` |
+| `black_alone` | Black alone | `c` or `cc` |
+| `asian_alone` | Asian alone | `c` or `cc` |
+| `other_race` | Other race | `c` or `cc` |
+| `hispanic_or_latino` | Hispanic or Latino | `c` or `cc` |
+| `population_25_years_and_older` | Total population 25 years and older | `c` or `cc` |
+| `bachelors_degree_or_higher` | Bachelor's degree or higher | `c` or `cc` |
+| `graduate_degree_or_higher` | Graduate degree or higher | `c` or `cc` |
+| `per_capita_income` | Per capita income | `c` |
+| `per_capita_income` | Per capita income | `c` |
+| `median_year_structure_built` | Median year housing unit built | `c` |
+| `median_value` | Median value of housing units | `c` |
+| `median_rent` | Median rent of housing units | `c` |
 
 See below for an example of use with a `context` (see *Argument types*).
 
