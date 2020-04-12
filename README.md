@@ -702,8 +702,8 @@ At this point in geodata's development, all data the program uses comes from the
 
 The U.S. Census Bureau differentiates geographies types like the entire country,
 states, counties, and places by classifying them as summary levels. There are
-many more summary levels than those just mentioned. A partial list of summary
-levels can be found [here](https://factfinder.census.gov/help/en/summary_level_code_list.htm).
+many more summary levels than those just mentioned. A list of summary level
+codes can be found [here](https://www.census.gov/programs-surveys/geography/technical-documentation/naming-convention/cartographic-boundary-file/carto-boundary-summary-level.html).
 You might notice some odd summary level names like "State-County-County
 Subdivision-Place/Remainder-Census Tract-Block Group-Block." The reason summary
 levels like these exist is the place hierarchy is very complicated in the U.S.

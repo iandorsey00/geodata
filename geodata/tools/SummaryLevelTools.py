@@ -2,23 +2,27 @@ class SummaryLevelTools:
     '''Tools to convert summary levels into their codes and vice-versa.'''
     def __init__(self):
         self.keyword_to_code = {
-            'zctas': '860',
-            'z': '860',
-            'cbsas': '310',
-            'places': '160',
-            'p': '160',
-            'counties': '050',
-            'c': '050',
             'states': '040',
             's': '040',
+            'counties': '050',
+            'c': '050',
+            'places': '160',
+            'p': '160',
+            'cbsas': '310',
+            'cb': '310',
+            'urbanareas': '400',
+            'u': '400',
+            'zctas': '860',
+            'z': '860',
         }
 
         self.code_to_keyword = {
-            '860': 'zctas',
-            '310': 'cbsas',
-            '160': 'places',
             '050': 'counties',
             '040': 'states',
+            '160': 'places',
+            '310': 'cbsas',
+            '400': 'urbanareas',
+            '860': 'zctas',
         }
 
     def iskeyword(self, input_str):

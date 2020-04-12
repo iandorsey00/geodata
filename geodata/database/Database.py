@@ -162,13 +162,15 @@ class Database:
         # 050 = State-County
         # 160 = State-Place
         # 310 = Metro/Micro Area
+        # 400 = Urban Area
         # 860 = ZCTA
         rows = list(filter(lambda x: 
                            (x[2] == '160' \
                         or x[2] == '050' \
                         or x[2] == '040' \
                         or x[2] == '860' \
-                        or x[2] == '310')
+                        or x[2] == '310' \
+                        or x[2] == '400')
                         and ''.join(x[48][3:5]) == '00' ,
                            rows))
         rows = list(
@@ -237,6 +239,18 @@ class Database:
         with open(this_path, 'rt') as f:
             cbsa_rows = list(csv.reader(f, delimiter='\t'))
 
+        # Get rows for urban areas (400) from CSV
+        this_path = self.path + '2019_Gaz_ua_national.txt'
+
+        with open(this_path, 'rt') as f:
+            ua_rows = list(csv.reader(f, delimiter='\t'))
+
+        # UA insert blank columns so that the number of columns match.
+        for ua_row in ua_rows:
+            ua_row.insert(0, 'US') # The state abbrev for all UAs in geos tbl
+            ua_row.insert(2, '')
+            ua_row.insert(5, '')
+
         # Get rows for ZCTAs (860) from CSV
         this_path = self.path + '2019_Gaz_zcta_national.txt'
 
@@ -269,10 +283,11 @@ class Database:
         complete_geoids('040', s_rows)
         complete_geoids('050', c_rows)
         complete_geoids('310', cbsa_rows)
+        complete_geoids('400', ua_rows)
         complete_geoids('860', z_rows)
 
         # Merge rows together
-        rows = rows + c_rows + s_rows + z_rows + cbsa_rows
+        rows = rows + c_rows + s_rows + z_rows + ua_rows + cbsa_rows
 
         for row in rows:
             row[-1] = row[-1].strip()

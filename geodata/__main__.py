@@ -229,6 +229,8 @@ def superlatives(args, anti=False):
                 universe = 'Place'
             elif universe_sl == '310':
                 universe = 'Metro/micro area'
+            elif universe_sl == '400':
+                universe = 'Urban area'
             elif universe_sl == '860':
                 universe = 'ZCTA'
         else:
