@@ -158,15 +158,17 @@ class Database:
         rows = self.get_geo_csv_rows()
                 
         # Filter for summary levels
-        # 160 = State-Place
-        # 050 = State-County
         # 040 = State
+        # 050 = State-County
+        # 160 = State-Place
+        # 310 = Metro/Micro Area
         # 860 = ZCTA
         rows = list(filter(lambda x: 
                            (x[2] == '160' \
                         or x[2] == '050' \
                         or x[2] == '040' \
-                        or x[2] == '860')
+                        or x[2] == '860' \
+                        or x[2] == '310')
                         and ''.join(x[48][3:5]) == '00' ,
                            rows))
         rows = list(
@@ -175,7 +177,7 @@ class Database:
                         x[2],                      # SUMLEVEL
                         x[4],                      # LOGRECNO
                         self.st.get_state(x[49]),  # STATE
-                        x[48][7:],                 # GEOID
+                        x[48],                     # GEOID
                         x[49]],                    # NAME
                         rows
                     )
@@ -219,7 +221,7 @@ class Database:
 
         # County geoheaders lack two columns that places have, so insert
         # them as empty strings.
-        for c_row in c_rows:
+        for idx, c_row in enumerate(c_rows):
             c_row.insert(4, '')
             c_row.insert(5, '')
         
@@ -228,6 +230,12 @@ class Database:
 
         with open(this_path, 'rt') as f:
             s_rows = list(csv.reader(f, delimiter='\t'))
+
+        # Get rows for Metro/micro areas (310) from CSV
+        this_path = self.path + '2019_Gaz_cbsa_national.txt'
+
+        with open(this_path, 'rt') as f:
+            cbsa_rows = list(csv.reader(f, delimiter='\t'))
 
         # Get rows for ZCTAs (860) from CSV
         this_path = self.path + '2019_Gaz_zcta_national.txt'
@@ -243,8 +251,28 @@ class Database:
             z_row.insert(4, '')
             z_row.insert(5, '')
 
-        # Merge rows for together
-        rows = rows + c_rows + s_rows + z_rows
+        # Metro/micro area insert blank columns so that the number of columns
+        # match.
+        for cbsa_row in cbsa_rows:
+            del(cbsa_row[0])
+            cbsa_row.insert(0, 'US') # The state abb. for all metro/micro areas
+            cbsa_row.insert(2, '')
+            cbsa_row.insert(5, '')
+
+        def complete_geoids(sumlev_code, rows):
+            for row in rows:
+                row[1] = sumlev_code + '00US' + row[1]
+
+        # Complete GEOIDs
+
+        complete_geoids('160', rows)
+        complete_geoids('040', s_rows)
+        complete_geoids('050', c_rows)
+        complete_geoids('310', cbsa_rows)
+        complete_geoids('860', z_rows)
+
+        # Merge rows together
+        rows = rows + c_rows + s_rows + z_rows + cbsa_rows
 
         for row in rows:
             row[-1] = row[-1].strip()

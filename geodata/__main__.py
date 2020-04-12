@@ -221,12 +221,14 @@ def superlatives(args, anti=False):
 
         # Set the name of the universe
         if universe_sl:
-            if universe_sl == '160':
-                universe = 'Place'
+            if universe_sl == '040':
+                universe = 'State'
             elif universe_sl == '050':
                 universe = 'County'
-            elif universe_sl == '040':
-                universe = 'State'
+            elif universe_sl == '160':
+                universe = 'Place'
+            elif universe_sl == '310':
+                universe = 'Metro/micro area'
             elif universe_sl == '860':
                 universe = 'ZCTA'
         else:

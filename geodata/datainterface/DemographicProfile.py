@@ -21,10 +21,10 @@ class DemographicProfile:
         ct = CountyTools()
         # County GEOIDs
         if self.sumlevel == '160': # Place
-            self.counties = ct.place_to_counties[self.geoid]
+            self.counties = ct.place_to_counties[self.geoid[7:]]
             # County names (without the state)
             self.counties_display = list(map(lambda x: ct.county_geoid_to_name[x],
-                                    ct.place_to_counties[self.geoid]))
+                                    ct.place_to_counties[self.geoid[7:]]))
             self.counties_display = list(map(lambda x: x.split(', ')[0],
                                     self.counties_display))
         else:

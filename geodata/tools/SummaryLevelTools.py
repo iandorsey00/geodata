@@ -4,6 +4,7 @@ class SummaryLevelTools:
         self.keyword_to_code = {
             'zctas': '860',
             'z': '860',
+            'cbsas': '310',
             'places': '160',
             'p': '160',
             'counties': '050',
@@ -14,6 +15,7 @@ class SummaryLevelTools:
 
         self.code_to_keyword = {
             '860': 'zctas',
+            '310': 'cbsas',
             '160': 'places',
             '050': 'counties',
             '040': 'states',

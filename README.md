@@ -121,7 +121,7 @@ Syntax:
 
 `universe` syntax:
 
-    states|s|counties|c|places|p|zctas|z
+    states|s|counties|c|places|p|zctas|z|cbsas
 
 `group` syntax for `states|s|counties|c|places|p`:
 
@@ -161,10 +161,12 @@ Currently, there are three options for universes.
     states+
     counties+
     places+
+    cbsas+
 
-They can be aliased to `s+`, `c+`, and `p+`, respectively. They tell geodata to
-display places and counties, respectively. As you can see, universes must always
-be followed by a plus sign `+`.
+The first three can be aliased to `s+`, `c+`, and `p+`, respectively. They tell
+geodata to display states, places, counties, and core-based statistical areas
+(metro areas and micro areas) respectively. As you can see, universes must
+always be followed by a plus sign `+`.
 
 #### Groups
 
