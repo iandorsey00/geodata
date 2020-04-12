@@ -58,6 +58,10 @@ the files from the subfolders to your data directory. If you are using Linux,
     (1.0 MB)
     * [Counties](https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2019_Gazetteer/2019_Gaz_counties_national.zip)
     (<1.0 MB)
+    * [Core-based statistical areas](https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2019_Gazetteer/2019_Gaz_cbsa_national.zip)
+    (<1.0 MB)
+    * [Urban areas](https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2019_Gazetteer/2019_Gaz_ua_national.zip)
+    (<1.0 MB)
     
     ZCTAs stand for "Zip Code Tabulation Areas."
 
@@ -630,7 +634,7 @@ A list of valid `comp_name`s and their `data_type`s are below:
 | `bachelors_degree_or_higher` | Bachelor's degree or higher | `c` or `cc` |
 | `graduate_degree_or_higher` | Graduate degree or higher | `c` or `cc` |
 | `per_capita_income` | Per capita income | `c` |
-| `per_capita_income` | Per capita income | `c` |
+| `median_household_income` | Median household income | `c` |
 | `median_year_structure_built` | Median year housing unit built | `c` |
 | `median_value` | Median value of housing units | `c` |
 | `median_rent` | Median rent of housing units | `c` |
