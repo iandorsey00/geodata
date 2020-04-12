@@ -528,7 +528,7 @@ class Database:
         # Insert rows into merged table
         self.c.execute('''INSERT INTO %s(%s)
         SELECT %s FROM geographies
-        JOIN geoheaders ON geographies.GEOID = geoheaders.GEOID AND upper(geographies.STUSAB) = geoheaders.USPS
+        JOIN geoheaders ON geographies.GEOID = geoheaders.GEOID
         JOIN data ON geographies.LOGRECNO = data.LOGRECNO AND geographies.STUSAB = data.STATE''' % (
             this_table_name, ', '.join(columns), ', '.join(ub_columns)))
 
