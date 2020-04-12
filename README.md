@@ -160,11 +160,11 @@ Currently, there are five options for universes.
 
 | Syntax | Alias | Name |
 |--------|-------|------|
-| states+ | s+ | States |
-| counties+ | c+ | Counties |
-| places+ | p+ | Places |
-| cbsas+ | cb+ | Core-based statistical areas (Metro areas/micro areas) |
-| urbanareas+ | u+ | Urban areas |
+| `states+` | `s+` | States |
+| `counties+` | `c+` | Counties |
+| `places+` | `p+` | Places |
+| `cbsas+` | `cb+` | Core-based statistical areas (Metro areas/micro areas) |
+| `urbanareas+` | `u+` | Urban areas |
 
 As you can see, universes must always be followed by a plus sign `+`.
 
