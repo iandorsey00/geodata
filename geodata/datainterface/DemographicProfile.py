@@ -48,6 +48,7 @@ class DemographicProfile:
 
         # Race category
         self.rh['white_alone'] = '    White alone'
+        self.rh['white_alone_not_hispanic_or_latino'] = '      Not Hispanic or Latino'
         self.rh['black_alone'] = '    Black alone'
         self.rh['asian_alone'] = '    Asian alone'
         self.rh['other_race']  = '    Other'
@@ -89,6 +90,7 @@ class DemographicProfile:
             - gdt(db_row['B02001_5'])
         # Technically not a race, but included in the race category
         self.rc['hispanic_or_latino'] = gdt(db_row['B03002_12'])
+        self.rc['white_alone_not_hispanic_or_latino'] = gdt(db_row['B03002_3'])
 
         # Education category
         self.rc['population_25_years_and_older'] = gdt(db_row['B15003_1'])
@@ -147,6 +149,7 @@ class DemographicProfile:
             self.c['other_race'] = self.rc['other_race'] / self.rc['population'] * 100.0
             # Technically not a race, but included in the race category
             self.c['hispanic_or_latino'] = self.rc['hispanic_or_latino'] / self.rc['population'] * 100.0
+            self.c['white_alone_not_hispanic_or_latino'] = self.rc['white_alone_not_hispanic_or_latino'] / self.rc['population'] * 100.0
         else:
             # Race category - Percentages of the total population
             self.c['white_alone'] = 0.0
@@ -154,6 +157,7 @@ class DemographicProfile:
             self.c['asian_alone'] = 0.0
             self.c['other_race'] = 0.0          # Technically not a race, but included in the race category
             self.c['hispanic_or_latino'] = 0.0
+            self.c['white_alone_not_hispanic_or_latino'] = 0.0
 
         if self.rc['population_25_years_and_older'] != 0 and self.rc['population'] != 0:
             # Education category - Percentages of the population 25 years and older
@@ -237,6 +241,7 @@ class DemographicProfile:
         out_str += self.dp_row_str(self.rh['population_density'], '', self.fcd['population_density'])
         out_str += self.dp_full_row_str('  Race')
         out_str += self.dp_row_std('white_alone')
+        out_str += self.dp_row_std('white_alone_not_hispanic_or_latino')
         out_str += self.dp_row_std('black_alone')
         out_str += self.dp_row_std('asian_alone')
         out_str += self.dp_row_std('other_race')

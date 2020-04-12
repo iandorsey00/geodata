@@ -269,8 +269,9 @@ class Database:
             'B02001': ['2',    # RACE - White alone
                        '3',    # RACE - Black or African American alone
                        '5'],   # RACE - Asian alone
-            'B03002': ['12'],  # HISPANIC OR LATINO ORIGIN BY RACE - Hispanic
-                               # or Latino
+            'B03002': ['3',    # HISPANIC OR LATINO ORIGIN BY RACE - Not
+                               # Hispanic or Latino - White alone
+                       '12'],  # ↑ - Hispanic or Latino
             # EDUCATIONAL ATTAINMENT FOR THE POPULATION 25 YEARS AND OVER
             'B15003': ['1',    # Total:
                        '22',   # Bachelor's degree
@@ -544,6 +545,7 @@ class Database:
                             gdt(row['B02001_2']),
                             gdt(row['B02001_3']),
                             gdt(row['B02001_5']),
+                            gdt(row['B03002_3']),
                             gdt(row['B03002_12']),
                             gdt(row['B15003_1']),
                             gdt(row['B15003_22']),
