@@ -334,6 +334,7 @@ $ python3 geodata v dp "San Francisco city, California"
    Graduate degree or higher                 157,411           22.8% 
  INCOME
  Per capita income                                           $64,157 
+ Median household income                                    $104,552 
  HOUSING
  Median year unit built                                         1942 
  Median value                                             $1,009,500 
