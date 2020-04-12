@@ -303,34 +303,37 @@ For information about `display_label`s, see *Argument types*.
 View a standarized demographic profile for any place in the United States. For
 example:
 
-    $ python3 geodata v dp "San Francisco city, California"
-    ---------------------------------------------------------------------
-     San Francisco city, California
-     San Francisco County
-    ---------------------------------------------------------------------
-     GEOGRAPHY
-     Land area                                                 46.9 sqmi 
-     POPULATION
-     Total population                                            870,044 
-     Population density                                    18,549.9/sqmi 
-       Race
-         White alone                             406,538           46.7% 
-         Black alone                              45,402            5.2% 
-         Asian alone                             297,667           34.2% 
-         Other                                   120,437           13.8% 
-       Hispanic or Latino (of any race)
-         Hispanic or Latino                      132,651           15.2% 
-     EDUCATION
-     Total population 25 years and older         689,551           79.3% 
-       Bachelor's degree or higher               394,004           57.1% 
-       Graduate degree or higher                 157,411           22.8% 
-     INCOME
-     Per capita income                                           $64,157 
-     HOUSING
-     Median year unit built                                         1942 
-     Median value                                             $1,009,500 
-     Median rent                                                  $1,734 
-    ---------------------------------------------------------------------
+```
+$ python3 geodata v dp "San Francisco city, California"
+---------------------------------------------------------------------
+ San Francisco city, California
+ San Francisco County
+---------------------------------------------------------------------
+ GEOGRAPHY
+ Land area                                                 46.9 sqmi 
+ POPULATION
+ Total population                                            870,044 
+ Population density                                    18,549.9/sqmi 
+   Race
+     White alone                             406,538           46.7% 
+       Not Hispanic or Latino                353,670           40.6% 
+     Black alone                              45,402            5.2% 
+     Asian alone                             297,667           34.2% 
+     Other                                   120,437           13.8% 
+   Hispanic or Latino (of any race)
+     Hispanic or Latino                      132,651           15.2% 
+ EDUCATION
+ Total population 25 years and older         689,551           79.3% 
+   Bachelor's degree or higher               394,004           57.1% 
+   Graduate degree or higher                 157,411           22.8% 
+ INCOME
+ Per capita income                                           $64,157 
+ HOUSING
+ Median year unit built                                         1942 
+ Median value                                             $1,009,500 
+ Median rent                                                  $1,734 
+---------------------------------------------------------------------
+```
 
 Note that the percentages within the race subcategory might not add up to
 exactly 100 percent due to rounding. Also, because Hispanic or Latino origin
@@ -614,6 +617,7 @@ A list of valid `comp_name`s and their `data_type`s are below:
 * `population_density` – Population density: `cc` only
 * `land_area` – Land area (in square miles): `c` only
 * `white_alone` – White alone: `c` or `cc`
+* `white_alone_not_hispanic_or_latino` – White alone (not Hispanic or Latino): `c` or `cc`
 * `black_alone` – Black alone: `c` or `cc`
 * `asian_alone` – Asian alone: `c` or `cc`
 * `other_race` – Other race: `c` or `cc`
