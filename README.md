@@ -166,6 +166,7 @@ valid `comp`s and their `DATA_TYPE`s are below:
 | `per_capita_income` | Per capita income | `c` |
 | `median_household_income` | Median household income | `c` |
 | `median_year_structure_built` | Median year housing unit built | `c` |
+| `median_rooms` | Median number of rooms for housing units | `c` |
 | `median_value` | Median value of housing units | `c` |
 | `median_rent` | Median rent of housing units | `c` |
 
@@ -179,7 +180,7 @@ use a category as a shortcut for typing out multiple comps.
 | `:race` | `white_alone`, `white_alone_not_hispanic_or_latino`, `black_alone`, `asian_alone`, `other_race`, `hispanic_or_latino` |
 | `:education` | `population_25_years_and_older`, `bachelors_degree_or_higher`, `graduate_degree_or_higher` |
 | `:income` | `per_capita_income`, `median_household_income` |
-| `:housing` | `median_year_structure_built`, `median_value`, `median_rent` |
+| `:housing` | `median_year_structure_built`, `median_rooms` `median_value`, `median_rent` |
 
 
 ### `context`s
@@ -415,6 +416,7 @@ $ python3 geodata v dp "San Francisco city, California"
  Median household income                                    $104,552 
  HOUSING
  Median year unit built                                         1942 
+ Median rooms                                                    4.1 
  Median value                                             $1,009,500 
  Median rent                                                  $1,734 
 ---------------------------------------------------------------------
