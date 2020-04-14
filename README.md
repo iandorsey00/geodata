@@ -141,7 +141,7 @@ information for `population_density`; the only way to get it is to divide the
 population from the data files by the land area in the gazetteer file.
 
 In simple terms, if you just want a raw number, such as the number of people
-with a bachelor's degree or higher, you want a compound. If you want a ratio or
+with a bachelor's degree or higher, you want a component. If you want a ratio or
 percentage (such as the *percent* of people over age 25 with a bachelor's degree
 or higher), you want a compound.
 
