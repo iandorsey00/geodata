@@ -30,27 +30,48 @@ This program doesn't include the required data files because they are too large.
 In order to use geodata, the user has to download the required files and place
 them in a directory of their choice, then generate the data products.
 
-1. The 2018 ACS summary file for all summary levels except tracts and block
-groups*, available
-[here from the U.S. Census Bureau](https://www2.census.gov/programs-surveys/acs/summary_file/2018/data/5_year_entire_sf/All_Geographies_Not_Tracts_Block_Groups.zip)
-(6.5 GB). After extracting all folders and subfolders, move all
-the files from the subfolders to your data directory. If you are using Linux,
-`cd` into the unzipped `All_Geographies_Not_Tracts_Block_Groups` directory
- and execute:
+1. Clone the repository:
 
-        find . -mindepth 2 -maxdepth 2 -type f -print -exec cp {} /path/to/your/data-dir/ \;
+   ```
+   $ git clone github.com/iandorsey00/geodata
+   ```
 
-    All files from all subfolders should now be in your data directory. These
-    filesare geodata's primary source for data.
+   or (ssh)
 
-    *geodata may work for ACS summary files for other years, but I have only
-    tested it with the 2018 ACS files.
+   ```
+   $ git clone git@github.com:iandorsey00/geodata
+   ```
 
-2. Download the ACS 5-year sequence table number lookup file, available
-[here from the U.S. Census Bureau](https://www2.census.gov/programs-surveys/acs/summary_file/2018/documentation/user_tools/ACS_5yr_Seq_Table_Number_Lookup.csv)
-(1.6 MB). Place it in your data directory. This contains table metadata.
+2. Create the `bin` subdirectory:
 
-3. Download the following 2019 gazetteer files:
+   ```
+   $ cd geodata
+   $ mkdir bin
+   ```
+
+3. The 2018 ACS summary file for all summary levels except tracts and block
+   groups*, available
+   [here from the U.S. Census Bureau](https://www2.census.gov/programs-surveys/acs/summary_file/2018/data/5_year_entire_sf/   All_Geographies_Not_Tracts_Block_Groups.zip)
+   (6.5 GB). After extracting all folders and subfolders, move all
+   the files from the subfolders to your data directory. If you are using Linux,
+   `cd` into the unzipped `All_Geographies_Not_Tracts_Block_Groups` directory
+   and execute:
+
+   ```
+   find . -mindepth 2 -maxdepth 2 -type f -print -exec cp {} /path/to/your/data-dir/ \;
+   ```
+
+   All files from all subfolders should now be in your data directory. These
+   filesare geodata's primary source for data.
+
+   *geodata may work for ACS summary files for other years, but I have only
+   tested it with the 2018 ACS files.
+
+4. Download the ACS 5-year sequence table number lookup file, available
+   [here from the U.S. Census Bureau](https://www2.census.gov/programs-surveys/acs/summary_file/2018/documentation/user_tools/ACS_5yr_Seq_Table_Number_Lookup.csv)
+   (1.6 MB). Place it in your data directory. This contains table metadata.
+
+5. Download the following 2019 gazetteer files:
 
     * [ZCTAs](https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2019_Gazetteer/2019_Gaz_place_national.zip)
     (<1.0 MB)
@@ -68,7 +89,7 @@ the files from the subfolders to your data directory. If you are using Linux,
     These files contains geographic data, such as land area and geographic
     coordinates. Extract it and place it in your data directory.
 
-4. Place the following *custom* gazetteer files in your data directory:
+6. Place the following *custom* gazetteer files in your data directory:
 
     * `bin/2019_Gaz_state_national.txt`
 
@@ -77,18 +98,18 @@ the files from the subfolders to your data directory. If you are using Linux,
     states. This being the case, I have no choice but to ship a custom gazetteer
     file with geodata.
 
-5. This project depends on [pandas](https://pandas.pydata.org/),
+7. This project depends on [pandas](https://pandas.pydata.org/),
  and [rapidfuzz](https://github.com/rhasspy/rapidfuzz). [rapidfuzz] also depends
  on [pybind](https://github.com/pybind/pybind11). Install these first. One
-way to do so is by executing:
+ way to do so is by executing:
 
         $ pip3 install pandas rapidfuzz pybind
 
-6. You're now ready to check out geodata with git. Execute, for example:
+8. You're now ready to check out geodata with git. Execute, for example:
 
         $ git checkout git@github.com:iandorsey00/geodata
 
-7. Now at the top level directory, execute
+9. Now at the top level directory, execute
 
         $ python3 geodata createdb /path/to/data/dir
 
@@ -103,6 +124,68 @@ many small places in the U.S. don't have enough data available for GeoVectors to
 be constructed.
 
 ## Argument types
+
+### Comps – Components and compounds and their categories
+Mandatory arguments of:
+
+```
+geodata sl    # Superlatives
+geodata asl   # Antisuperlatives
+geodata tocsv # To CSV
+```
+
+Comps specify which data to display. There are two different types of comps:
+components and compounds.
+
+*Components* are pulled straight from census data files.
+`median_year_structure_built`, for example, is only available as a component.
+*Compounds* are not available straight from the census data files; they are the
+results of mathematical operations. For example, the census doesn't provide
+information for `population_density`; the only way to get it is to divide the
+population from the data files by the land area in the gazetteer file.
+
+In simple terms, if you just want a raw number, such as the number of people
+with a bachelor's degree or higher, you want a compound. If you want a ratio or
+percentage (such as the *percent* of people over age 25 with a bachelor's degree
+or higher), you want a compound.
+
+Components are represented in superlatives and antisuperlatives by the `c`
+`DATA_TYPE`, and compounds are represented by the `cc` `DATA_TYPE`. A list of
+valid `comp`s and their `DATA_TYPE`s are below:
+
+| Comp | Description | Valid `DATA_TYPE`(s) |
+|-------------|-------------|--------------------|
+| `population` | Total population | `c` |
+| `population_density` | Population density | `cc` |
+| `land_area` | Land area (in square miles) | `c` |
+| `white_alone` | White alone | `c` or `cc` |
+| `white_alone_not_hispanic_or_latino` | White alone (not Hispanic or Latino) | `c` or `cc` |
+| `black_alone` | Black alone | `c` or `cc` |
+| `asian_alone` | Asian alone | `c` or `cc` |
+| `other_race` | Other race | `c` or `cc` |
+| `hispanic_or_latino` | Hispanic or Latino | `c` or `cc` |
+| `population_25_years_and_older` | Total population 25 years and older | `c` or `cc` |
+| `bachelors_degree_or_higher` | Bachelor's degree or higher | `c` or `cc` |
+| `graduate_degree_or_higher` | Graduate degree or higher | `c` or `cc` |
+| `per_capita_income` | Per capita income | `c` |
+| `median_household_income` | Median household income | `c` |
+| `median_year_structure_built` | Median year housing unit built | `c` |
+| `median_value` | Median value of housing units | `c` |
+| `median_rent` | Median rent of housing units | `c` |
+
+Valid categories and their member comps are displayed below. In `tocsv`, you can
+use a category as a shortcut for typing out multiple comps, but only if they
+have more than one member.
+
+| Category | Member comps |
+|----------|--------------|
+| `:geography` | `land_area` |
+| `:population` | `population`, `population_density` |
+| `:race` | `white_alone`, `white_alone_not_hispanic_or_latino`, `black_alone`, `asian_alone`, `other_race`, `hispanic_or_latino` |
+| `:education` | `population_25_years_and_older`, `bachelors_degree_or_higher`, `graduate_degree_or_higher` |
+| `:income` | `per_capita_income`, `median_household_income` |
+| `:housing` | `median_year_structure_built`, `median_value`, `median_rent` |
+
 
 ### `context`s
 Usage:
@@ -529,12 +612,12 @@ The aim of appearance mode is to calculate how similar two areas appear.
 Usage for superlatives:
 
     usage: geodata view sl [-h] [-d DATA_TYPE] [-p POP_FILTER] [-c CONTEXT] [-n N]
-                          comp_name
+                          comp
 
     View places that rank highest with regard to a certain characteristic.
 
     positional arguments:
-      comp_name             the comp that you want to rank
+      comp             the comp that you want to rank
 
     optional arguments:
       -h, --help            show this help message and exit
@@ -550,12 +633,12 @@ Usage for antisuperlatives:
 
     usage: geodata view asl [-h] [-d DATA_TYPE] [-p POP_FILTER] [-c CONTEXT]
                             [-n N]
-                            comp_name
+                            comp
 
     View places that rank lowest with regard to a certain characteristic.
 
     positional arguments:
-      comp_name             the comp that you want to rank
+      comp             the comp that you want to rank
 
     optional arguments:
       -h, --help            show this help message and exit
@@ -597,48 +680,16 @@ highest or lowest values of a certain demographic characteristic. For example:
      Bellevue city, Washington                                  142,242              $63,115
     -----------------------------------------------------------------------------------------
 
-Use the `comp_name` argument to specify the demographic component or compound
+Use the `comp` argument to specify the demographic component or compound
 you want to rank.
 
 Specify whether to rank by a component or compound with the optional `DATA_TYPE`
 argument; some data are available as both components and compounds, and others
 are only available as one or the other. In most cases, users will not need
 to specify a `DATA_TYPE`. By default, compounds are used, unless there isn't for
-the `comp_name` entered, in which case a component will be used.
+the `comp` entered, in which case a component will be used.
 
-*Components* are pulled straight from census data files.
-`median_year_structure_built`, for example, is only available as a component.
-*Compounds* are not available straight from the census data files; they are the
-results of mathematical operations. For example, the census doesn't provide
-information for `population_density`; the only way to get it is to divide the
-population from the data files by the land area in the gazetteer file.
-
-In simple terms, for each item on the list, specify `c` for the `data_type` if
-you just want a raw number, such as the number of people with a bachelor's
-degree or higher. If you want a ratio or percentage (such as the *percent* of
-people over age 25 with a bachelor's degree or higher), specify `cc` for the
-`data_type`.
-
-A list of valid `comp_name`s and their `data_type`s are below:
-
-| `comp_name` | Description | Valid data type(s) |
-|-------------|-------------|--------------------|
-| `population_density` | Population density | `cc` |
-| `land_area` | Land area (in square miles) | `c` |
-| `white_alone` | White alone | `c` or `cc` |
-| `white_alone_not_hispanic_or_latino` | White alone (not Hispanic or Latino) | `c` or `cc` |
-| `black_alone` | Black alone | `c` or `cc` |
-| `asian_alone` | Asian alone | `c` or `cc` |
-| `other_race` | Other race | `c` or `cc` |
-| `hispanic_or_latino` | Hispanic or Latino | `c` or `cc` |
-| `population_25_years_and_older` | Total population 25 years and older | `c` or `cc` |
-| `bachelors_degree_or_higher` | Bachelor's degree or higher | `c` or `cc` |
-| `graduate_degree_or_higher` | Graduate degree or higher | `c` or `cc` |
-| `per_capita_income` | Per capita income | `c` |
-| `median_household_income` | Median household income | `c` |
-| `median_year_structure_built` | Median year housing unit built | `c` |
-| `median_value` | Median value of housing units | `c` |
-| `median_rent` | Median rent of housing units | `c` |
+See *Comps – Components and compounds* in *Argument types*.
 
 See below for an example of use with a `context` (see *Argument types*).
 
@@ -662,6 +713,45 @@ See below for an example of use with a `context` (see *Argument types*).
      Plattsburgh West CDP, New York                               1,370                 1990
      West Hampton Dunes village, New York                            69                 1989
     -----------------------------------------------------------------------------------------
+
+### CSV files (`tocsv`)
+
+```
+usage: geodata tocsv [-h] [-p POP_FILTER] [-c CONTEXT] [-n N] comps
+
+Output data in CSV format
+
+positional arguments:
+  comps                 components or compounds to output
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -p POP_FILTER, --pop_filter POP_FILTER
+                        filter by population
+  -c CONTEXT, --context CONTEXT
+                        group of geographies
+  -n N                  number of rows to display
+```
+
+Usage examples:
+
+```
+python3 geodata tocsv "population :income :housing" -c places+ -p 100,000 > ../../Users/User/Desktop/out.csv
+python3 geodata tocsv "population :race" -c cb+ > ~/out.csv
+```
+
+*Note: `tocsv` above can be aliased to `t`*
+
+If you want to compare a very large number of geographies or want to perform
+complex operations on data using spreadsheet software, use `tocsv`.
+
+For the `comp` argument, you can specify one more `comp`s (data columns to
+output). If you specify more than one, enclose them in quotes and seperate them
+with spaces, as in the example above. You can also use a category as shorthand
+for multiple comps. See *Comps – Components and compounds* in *Argument types*.
+
+In most cases, the output of this command is redirected to a file with `>`. See
+the examples above.
 
 ### Search (for display labels)
 
@@ -834,5 +924,4 @@ on geographic identifiers.
 
 ## Next steps for development
 
-* Support dumping all data to a CSV file.
 * Write more technical documentation.

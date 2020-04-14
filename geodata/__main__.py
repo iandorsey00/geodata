@@ -2,6 +2,7 @@ from database.Database import Database
 
 import argparse
 import sys
+import csv
 import numpy
 import pickle
 
@@ -33,19 +34,12 @@ def initalize_database():
     # If there is no such database...
     except FileNotFoundError:
         # Print a notice of this and ask the user if they want to create one.
-        print('Default database does not exist.')
-        print('Would you like to create one?')
-        print("Enter 'y' for yes or anything else for no.")
-        response = input()
-
-        # If the user wants to create a database, enter 'y'.
-        if response == 'y':
-            create_data_products()
-            d = load_data_products()
-            return d
-        # Otherwise, exit.
-        else:
-            sys.exit(0)
+        print('geodata: Database does not exist.')
+        print('Enter')
+        print()
+        print('    geodata createdb -h')
+        print()
+        print('for more information.')
 
 def context_filter(input_instances, args_context, args_pop_filter, gv=False):
     '''Filters instances and leaves those that match the context.'''
@@ -157,7 +151,7 @@ def superlatives(args, anti=False):
     kt = KeyTools()
     slt = SummaryLevelTools()
 
-    comp_name = args.comp_name
+    comp = args.comp
     data_type = args.data_type
 
     dpi_instances = d['demographicprofiles']
@@ -167,10 +161,10 @@ def superlatives(args, anti=False):
     # Census data files) or compounds (values that can only be obtained by
     # math operations involving multiple components).
 
-    # By default, display compounds if there is one for the comp_name.
+    # By default, display compounds if there is one for the comp.
     # Otherwise, display a component.
     if not data_type:
-        if comp_name in fetch_one.c.keys():
+        if comp in fetch_one.c.keys():
             sort_by = 'c'
             print_ = 'fcd'
         else:
@@ -187,14 +181,14 @@ def superlatives(args, anti=False):
     
     # Remove numpy.nans because they interfere with sorted()
     dpi_instances = list(filter(lambda x: not \
-                   numpy.isnan(getattr(x, sort_by)[comp_name]), dpi_instances))
+                   numpy.isnan(getattr(x, sort_by)[comp]), dpi_instances))
 
     # Filter instances
     dpi_instances = context_filter(dpi_instances, args.context, args.pop_filter)
 
     # For the median_year_structure_built component, remove values of zero and
     # 18...
-    if args.comp_name == 'median_year_structure_built':
+    if args.comp == 'median_year_structure_built':
         dpi_instances = list(filter(lambda x: not \
             x.rc['median_year_structure_built'] == 0, dpi_instances))
         dpi_instances = list(filter(lambda x: not \
@@ -202,7 +196,7 @@ def superlatives(args, anti=False):
 
     # Sort our DemographicProfile instances by component or compound specified.
     sls = sorted(dpi_instances, key=lambda x: \
-                 getattr(x, sort_by)[comp_name], reverse=(not anti))
+                 getattr(x, sort_by)[comp], reverse=(not anti))
 
     # helper methods for printing (a)sl rows ##################################
 
@@ -211,12 +205,12 @@ def superlatives(args, anti=False):
 
     def divider(dpi):
         '''Print a divider for DemographicProfiles'''
-        if args.comp_name == 'population':
+        if args.comp == 'population':
             return '-' * 68
         else:
             return '-' * 89
 
-    def sl_print_headers(comp_name, universe_sl, group_sl, group):
+    def sl_print_headers(comp, universe_sl, group_sl, group):
         '''Helper method to DRY up sl_print_headers'''
 
         # Set the name of the universe
@@ -255,9 +249,9 @@ def superlatives(args, anti=False):
             out_str = iam + universe.ljust(45)[:45] + iam \
                 + getattr(dpi, 'rh')['population'].rjust(20)
 
-        # Print another column if the comp_name isn't population
-        if args.comp_name != 'population':
-            out_str += iam + getattr(dpi, 'rh')[comp_name].rjust(20)[:20]
+        # Print another column if the comp isn't population
+        if args.comp != 'population':
+            out_str += iam + getattr(dpi, 'rh')[comp].rjust(20)[:20]
 
         return out_str
 
@@ -266,8 +260,8 @@ def superlatives(args, anti=False):
         '''Print a data row for DemographicProfiles'''
         out_str = iam + getattr(dpi, 'name').ljust(45)[:45] + iam \
                   + getattr(dpi, 'fc')['population'].rjust(20)
-        if args.comp_name != 'population':
-            out_str += iam + getattr(dpi, print_)[comp_name].rjust(20)[:20]
+        if args.comp != 'population':
+            out_str += iam + getattr(dpi, print_)[comp].rjust(20)[:20]
         return out_str
 
     # Printing ################################################################
@@ -280,7 +274,7 @@ def superlatives(args, anti=False):
         # Print the header and places with their information.
         dpi = d['demographicprofiles'][0]
         print(divider(dpi))
-        print(sl_print_headers(comp_name, universe_sl, group_sl, group))
+        print(sl_print_headers(comp, universe_sl, group_sl, group))
         print(divider(dpi))
         for sl in sls[:n]:
             print(sl_print_row(sl))
@@ -324,6 +318,84 @@ def display_label_search(args):
 
     print(print_search_divider())
 
+def tocsv(args):
+    '''Output data to a CSV file'''
+    # Note: n is not yet implemented.
+    # TODO: Permit -n 0 to mean 'all values'
+
+    d = initalize_database()
+    dpi_instances = d['demographicprofiles']
+    fetch_one = dpi_instances[0]
+
+    # Categories: Groups of >= 1 comp(s)
+    categories = {
+        ':race': ['white_alone', 
+                   'white_alone_not_hispanic_or_latino',
+                   'black_alone',
+                   'asian_alone',
+                   'other_race',
+                   'hispanic_or_latino'],
+
+        ':education': ['population_25_years_and_older',
+                        'bachelors_degree_or_higher',
+                        'graduate_degree_or_higher'],
+
+        ':income': ['per_capita_income',
+                     'median_household_income'],
+
+        ':housing': ['median_year_structure_built',
+                      'median_value',
+                      'median_rent'],
+    }
+
+    comps = args.comps.split(' ')
+    comp_list = list()
+
+    # Replace categories with comps and validate comps
+    for comp in comps:
+        if comp in categories.keys():
+            comp_list += categories[comp]
+        elif comp in fetch_one.rh:
+            comp_list += [comp]
+        else:
+            raise ValueError(comp + ': Invalid comp')
+
+    # Filter instances
+    dpi_instances = context_filter(dpi_instances, args.context, args.pop_filter)
+
+    if len(dpi_instances) == 0:
+        raise ValueError('Sorry, no geographies match your criteria.')
+
+    # Intialize csvwriter
+    csvwriter = csv.writer(sys.stdout, quoting=csv.QUOTE_MINIMAL)
+
+    # Header row
+    this_row = ['Geography', 'County']
+
+    for comp in comp_list:
+        if comp in fetch_one.rc.keys() and comp in fetch_one.c.keys():
+            this_row += [fetch_one.rh[comp] + ' (c)']
+            this_row += [fetch_one.rh[comp] + ' (cc)']
+        else:
+            this_row += [fetch_one.rh[comp]]
+
+    csvwriter.writerow(this_row)
+
+    # All other rows
+    for dpi_instance in dpi_instances:
+        this_row = [dpi_instance.name, ', '.join(dpi_instance.counties_display)]
+
+        for comp in comp_list:
+            if comp in dpi_instance.rc.keys() and comp in dpi_instance.c.keys():
+                this_row += [dpi_instance.fc[comp]]
+                this_row += [dpi_instance.fcd[comp]]
+            elif comp in dpi_instance.rc:
+                this_row += [dpi_instance.fc[comp]]
+            else:
+                this_row += [dpi_instance.fcd[comp]]
+        
+        csvwriter.writerow(this_row)
+
 ###############################################################################
 # Argument parsing with argparse
 
@@ -353,6 +425,15 @@ search_parser.add_argument('query', help='search query')
 search_parser.add_argument('-n', type=int, default=15, help='number of results to display')
 search_parser.set_defaults(func=display_label_search)
 
+# Create the parser for the "tocsv" command
+tocsv_parser = subparsers.add_parser('tocsv', aliases=['t'],
+    description='Output data in CSV format')
+tocsv_parser.add_argument('comps', help='components or compounds to output')
+tocsv_parser.add_argument('-p', '--pop_filter', help='filter by population')
+tocsv_parser.add_argument('-c', '--context', help='group of geographies')
+tocsv_parser.add_argument('-n', type=int, default=0, help='number of rows to display')
+tocsv_parser.set_defaults(func=tocsv)
+
 # View subparser
 # Create parsors for the view command command
 # DemographicProfiles #########################################################
@@ -366,7 +447,7 @@ gv_parsor = view_subparsers.add_parser('gv',
     description='View GeoVectors nearest to a GeoVector.')
 gv_parsor.add_argument('display_label', help='the exact place name')
 gv_parsor.add_argument('-p', '--pop_filter', help='filter by population')
-gv_parsor.add_argument('-c', '--context', help='state to compare with')
+gv_parsor.add_argument('-c', '--context', help='geographies to compare with')
 gv_parsor.add_argument('-n', type=int, default=15, help='number of rows to display')
 gv_parsor.set_defaults(func=compare_geovectors)
 
@@ -375,27 +456,27 @@ gva_parsor = view_subparsers.add_parser('gva',
     description='View GeoVectors nearest to a GeoVector [appearance mode]')
 gva_parsor.add_argument('display_label', help='the exact place name')
 gva_parsor.add_argument('-p', '--pop_filter', help='filter by population')
-gva_parsor.add_argument('-c', '--context', help='state to compare with')
+gva_parsor.add_argument('-c', '--context', help='geographies to compare with')
 gva_parsor.add_argument('-n', type=int, default=15, help='number of rows to display')
 gva_parsor.set_defaults(func=compare_geovectors_app)
 
 # Superlatives ################################################################
 sl_parsor = view_subparsers.add_parser('sl',
     description='View places that rank highest with regard to a certain characteristic.')
-sl_parsor.add_argument('comp_name', help='the comp that you want to rank')
+sl_parsor.add_argument('comp', help='the comp that you want to rank')
 sl_parsor.add_argument('-d', '--data_type', help='c: component; cc: compound')
 sl_parsor.add_argument('-p', '--pop_filter', help='filter by population')
-sl_parsor.add_argument('-c', '--context', help='use geographies within state')
+sl_parsor.add_argument('-c', '--context', help='group of geographies to display')
 sl_parsor.add_argument('-n', type=int, default=15, help='number of rows to display')
 sl_parsor.set_defaults(func=superlatives)
 
 # Antisuperlatives ############################################################
 asl_parsor = view_subparsers.add_parser('asl',
     description='View places that rank lowest with regard to a certain characteristic.')
-asl_parsor.add_argument('comp_name', help='the comp that you want to rank')
+asl_parsor.add_argument('comp', help='the comp that you want to rank')
 asl_parsor.add_argument('-d', '--data_type', help='c: component; cc: compound')
 asl_parsor.add_argument('-p', '--pop_filter', help='filter by population')
-asl_parsor.add_argument('-c', '--context', help='use geographies within state')
+asl_parsor.add_argument('-c', '--context', help='group of geographies to display')
 asl_parsor.add_argument('-n', type=int, default=15, help='number of rows to display')
 asl_parsor.set_defaults(func=antisuperlatives)
 

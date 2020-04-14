@@ -36,14 +36,11 @@ class DemographicProfile:
 
         self.rh = dict()
 
-        # Geography
-        self.rh['land_area'] = 'Land area'
-
         # Population category
         self.rh['population'] = 'Total population'
         self.rh['population_density'] = 'Population density'
 
-        # Geographic category
+        # Geography category
         self.rh['land_area'] = 'Land area'
 
         # Race category
