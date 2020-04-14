@@ -105,11 +105,7 @@ them in a directory of their choice, then generate the data products.
 
         $ pip3 install pandas rapidfuzz pybind
 
-8. You're now ready to check out geodata with git. Execute, for example:
-
-        $ git checkout git@github.com:iandorsey00/geodata
-
-9. Now at the top level directory, execute
+8. Now, execute
 
         $ python3 geodata createdb /path/to/data/dir
 
