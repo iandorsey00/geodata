@@ -5,4 +5,4 @@ processed demographic data without the need to modify any data files.
 
 Currently, this project supports geographies in the United States.
 
-Documetation has been moved to the [wiki](https://github.com/iandorsey00/geodata).
+Documetation has been moved to the [wiki](https://github.com/iandorsey00/geodata/wiki).
