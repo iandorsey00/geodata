@@ -745,7 +745,7 @@ python3 geodata tocsv "population :race" -c cb+ > ~/out.csv
 If you want to compare a very large number of geographies or want to perform
 complex operations on data using spreadsheet software, use `tocsv`.
 
-For the `comp` argument, you can specify one more `comp`s (data columns to
+For the `comps` argument, you can specify one or more `comps` (data columns to
 output). If you specify more than one, enclose them in quotes and seperate them
 with spaces, as in the example above. You can also use a category as shorthand
 for multiple comps. See *Comps – Components and compounds* in *Argument types*.
