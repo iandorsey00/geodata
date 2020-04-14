@@ -329,6 +329,8 @@ def tocsv(args):
 
     # Categories: Groups of >= 1 comp(s)
     categories = {
+        ':geography': ['land_area'],
+        
         ':population': ['population',
                         'population_density'],
 

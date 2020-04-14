@@ -170,8 +170,7 @@ valid `comp`s and their `DATA_TYPE`s are below:
 | `median_rent` | Median rent of housing units | `c` |
 
 Valid categories and their member comps are displayed below. In `tocsv`, you can
-use a category as a shortcut for typing out multiple comps, but only if they
-have more than one member.
+use a category as a shortcut for typing out multiple comps.
 
 | Category | Member comps |
 |----------|--------------|
