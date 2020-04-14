@@ -324,6 +324,7 @@ class Database:
             # MEDIAN HOUSEHOLD INCOME IN THE PAST 12 MONTHS (IN 2018 INFLATION-ADJUSTED DOLLARS)
             'B19013': ['1'],   # ↑
             'B25035': ['1'],   # Median year structure built
+            'B25018': ['1'],   # Median number of rooms
             'B25058': ['1'],   # Median contract rent (of renter-occupied
                                # housing units)
             'B25077': ['1'],   # Median value (of owner-occupied housing units)
@@ -598,6 +599,7 @@ class Database:
                             gdt(row['B15003_24']),
                             gdt(row['B15003_25']),
                             gdt(row['B19013_1']),
+                            gdt(row['B25018_1']),
                             gdt(row['B25035_1']),
                             gdt(row['B25058_1']),
                             gdt(row['B25077_1']),

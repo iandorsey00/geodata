@@ -63,6 +63,7 @@ class DemographicProfile:
 
         # Housing category
         self.rh['median_year_structure_built'] = 'Median year unit built'
+        self.rh['median_rooms'] = 'Median rooms'
         self.rh['median_value'] = 'Median value'
         self.rh['median_rent'] = 'Median rent'
 
@@ -104,6 +105,7 @@ class DemographicProfile:
 
         # Housing category
         self.rc['median_year_structure_built'] = gdt(db_row['B25035_1'])
+        self.rc['median_rooms'] = gdt(db_row['B25018_1'])
         self.rc['median_value'] = gdt(db_row['B25077_1'])
         self.rc['median_rent'] = gdt(db_row['B25058_1'])
 
@@ -123,7 +125,7 @@ class DemographicProfile:
                     self.fc[key] = '$' + f'{self.rc[key]:,}'
             elif key == 'land_area':
                 self.fc[key] = f'{self.rc[key]:,.1f}' + ' sqmi'
-            else: # key == 'median_year_structure_built'
+            else:
                 self.fc[key] = str(self.rc[key])
 
         #######################################################################
@@ -259,6 +261,7 @@ class DemographicProfile:
         out_str += self.dp_row_nc('median_household_income')
         out_str += self.dp_full_row_str('HOUSING')
         out_str += self.dp_row_nc('median_year_structure_built')
+        out_str += self.dp_row_nc('median_rooms')
         out_str += self.dp_row_nc('median_value')
         out_str += self.dp_row_nc('median_rent')
         out_str += self.divider()

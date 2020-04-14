@@ -330,7 +330,7 @@ def tocsv(args):
     # Categories: Groups of >= 1 comp(s)
     categories = {
         ':geography': ['land_area'],
-        
+
         ':population': ['population',
                         'population_density'],
 
@@ -349,8 +349,9 @@ def tocsv(args):
                      'median_household_income'],
 
         ':housing': ['median_year_structure_built',
-                      'median_value',
-                      'median_rent'],
+                     'median_rooms',
+                     'median_value',
+                     'median_rent'],
     }
 
     comps = args.comps.split(' ')
