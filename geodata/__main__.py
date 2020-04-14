@@ -329,6 +329,9 @@ def tocsv(args):
 
     # Categories: Groups of >= 1 comp(s)
     categories = {
+        ':population': ['population',
+                        'population_density'],
+
         ':race': ['white_alone', 
                    'white_alone_not_hispanic_or_latino',
                    'black_alone',
