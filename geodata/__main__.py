@@ -25,7 +25,7 @@ def load_data_products():
     with open('./bin/default.geodata', 'rb') as f:
         return pickle.load(f)
 
-def initalize_database():
+def initialize_database():
     '''Load data products or create them if they don't exist.'''
     # Try to open the default database, located at ../bin/default.db.
     try:
@@ -88,7 +88,7 @@ def compare_geovectors(args, mode='std'):
     '''Compare GeoVectors.'''
     n = get_n(args.n)
     
-    d = initalize_database()
+    d = initialize_database()
     gv_list = d['geovectors']
 
     # Obtain the GeoVector for which we entered a name.
@@ -136,7 +136,7 @@ def compare_geovectors_app(args):
 
 def get_dp(args):
     '''Get DemographicProfiles.'''
-    d = initalize_database()
+    d = initialize_database()
 
     place = args.display_label
     dp = list(filter(lambda x: x.name == place, d['demographicprofiles']))[0]
@@ -145,7 +145,7 @@ def get_dp(args):
 def superlatives(args, anti=False):
     '''Get superlatives and antisuperlatives.'''
     n = get_n(args.n)
-    d = initalize_database()
+    d = initialize_database()
 
     st = StateTools()
     kt = KeyTools()
@@ -298,7 +298,7 @@ def print_search_result(dpi):
 def display_label_search(args):
     '''Search display labels (place names).'''
     n = get_n(args.n)
-    d = initalize_database()
+    d = initialize_database()
 
     dpi_instances = d['demographicprofiles']
     dpi_instances = sorted(dpi_instances, key=lambda x: \
@@ -323,7 +323,7 @@ def tocsv(args):
     # Note: n is not yet implemented.
     # TODO: Permit -n 0 to mean 'all values'
 
-    d = initalize_database()
+    d = initialize_database()
     dpi_instances = d['demographicprofiles']
     fetch_one = dpi_instances[0]
 
