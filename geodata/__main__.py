@@ -142,8 +142,8 @@ def get_dp(args):
     dp = list(filter(lambda x: x.name == place, d['demographicprofiles']))[0]
     print(str(dp))
 
-def superlatives(args, anti=False):
-    '''Get superlatives and antisuperlatives.'''
+def extreme_values(args, lowest=False):
+    '''Get highest and lowest values.'''
     n = get_n(args.n)
     d = initialize_database()
 
@@ -195,10 +195,10 @@ def superlatives(args, anti=False):
             x.rc['median_year_structure_built'] == 18, dpi_instances))
 
     # Sort our DemographicProfile instances by component or compound specified.
-    sls = sorted(dpi_instances, key=lambda x: \
-                 getattr(x, sort_by)[comp], reverse=(not anti))
+    evs = sorted(dpi_instances, key=lambda x: \
+                 getattr(x, sort_by)[comp], reverse=(not lowest))
 
-    # helper methods for printing (a)sl rows ##################################
+    # helper methods for printing [hl]v rows ##################################
 
     # The inter-area margin to divide display sections
     iam = ' '
@@ -210,7 +210,7 @@ def superlatives(args, anti=False):
         else:
             return '-' * 89
 
-    def sl_print_headers(comp, universe_sl, group_sl, group):
+    def ev_print_headers(comp, universe_sl, group_sl, group):
         '''Helper method to DRY up sl_print_headers'''
 
         # Set the name of the universe
@@ -256,7 +256,7 @@ def superlatives(args, anti=False):
         return out_str
 
     # dpi = demographicprofile_instance
-    def sl_print_row(dpi):
+    def ev_print_row(dpi):
         '''Print a data row for DemographicProfiles'''
         out_str = iam + getattr(dpi, 'name').ljust(45)[:45] + iam \
                   + getattr(dpi, 'fc')['population'].rjust(20)
@@ -268,21 +268,21 @@ def superlatives(args, anti=False):
 
     universe_sl, group_sl, group = slt.unpack_context(args.context)
 
-    if len(sls) == 0:
+    if len(evs) == 0:
         print("Sorry, no geographies match your criteria.")
     else:
         # Print the header and places with their information.
         dpi = d['demographicprofiles'][0]
         print(divider(dpi))
-        print(sl_print_headers(comp, universe_sl, group_sl, group))
+        print(ev_print_headers(comp, universe_sl, group_sl, group))
         print(divider(dpi))
-        for sl in sls[:n]:
-            print(sl_print_row(sl))
+        for ev in evs[:n]:
+            print(ev_print_row(ev))
         print(divider(dpi))
 
-def antisuperlatives(args):
-    '''Wrapper function for antisuperlatives.'''
-    superlatives(args, anti=True)
+def lowest_values(args):
+    '''Wrapper function for lowest values.'''
+    extreme_values(args, lowest=True)
 
 def print_search_divider():
     return '-' * 68
@@ -466,25 +466,25 @@ gva_parsor.add_argument('-c', '--context', help='geographies to compare with')
 gva_parsor.add_argument('-n', type=int, default=15, help='number of rows to display')
 gva_parsor.set_defaults(func=compare_geovectors_app)
 
-# Superlatives ################################################################
-sl_parsor = view_subparsers.add_parser('sl',
+# Highest values ##############################################################
+hv_parsor = view_subparsers.add_parser('hv',
     description='View places that rank highest with regard to a certain characteristic.')
-sl_parsor.add_argument('comp', help='the comp that you want to rank')
-sl_parsor.add_argument('-d', '--data_type', help='c: component; cc: compound')
-sl_parsor.add_argument('-p', '--pop_filter', help='filter by population')
-sl_parsor.add_argument('-c', '--context', help='group of geographies to display')
-sl_parsor.add_argument('-n', type=int, default=15, help='number of rows to display')
-sl_parsor.set_defaults(func=superlatives)
+hv_parsor.add_argument('comp', help='the comp that you want to rank')
+hv_parsor.add_argument('-d', '--data_type', help='c: component; cc: compound')
+hv_parsor.add_argument('-p', '--pop_filter', help='filter by population')
+hv_parsor.add_argument('-c', '--context', help='group of geographies to display')
+hv_parsor.add_argument('-n', type=int, default=15, help='number of rows to display')
+hv_parsor.set_defaults(func=extreme_values)
 
-# Antisuperlatives ############################################################
-asl_parsor = view_subparsers.add_parser('asl',
+# Lowest values ###############################################################
+lv_parsor = view_subparsers.add_parser('lv',
     description='View places that rank lowest with regard to a certain characteristic.')
-asl_parsor.add_argument('comp', help='the comp that you want to rank')
-asl_parsor.add_argument('-d', '--data_type', help='c: component; cc: compound')
-asl_parsor.add_argument('-p', '--pop_filter', help='filter by population')
-asl_parsor.add_argument('-c', '--context', help='group of geographies to display')
-asl_parsor.add_argument('-n', type=int, default=15, help='number of rows to display')
-asl_parsor.set_defaults(func=antisuperlatives)
+lv_parsor.add_argument('comp', help='the comp that you want to rank')
+lv_parsor.add_argument('-d', '--data_type', help='c: component; cc: compound')
+lv_parsor.add_argument('-p', '--pop_filter', help='filter by population')
+lv_parsor.add_argument('-c', '--context', help='group of geographies to display')
+lv_parsor.add_argument('-n', type=int, default=15, help='number of rows to display')
+lv_parsor.set_defaults(func=lowest_values)
 
 # Parse arguments
 args = parser.parse_args()
