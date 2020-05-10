@@ -157,7 +157,7 @@ def compare_geovectors(args, mode='std'):
 
     # If a context was specified, filter GeoVector instances
     if args.context:
-        gv_list = context_filter(gv_list, args.context, args.filter)
+        gv_list = context_filter(gv_list, args.context, False)
     else:
         gv_list = list(filter(lambda x: x.sumlevel == comparison_gv.sumlevel,
                               gv_list))
@@ -492,7 +492,6 @@ dp_parsor.set_defaults(func=get_dp)
 gv_parsor = view_subparsers.add_parser('gv',
     description='View GeoVectors nearest to a GeoVector.')
 gv_parsor.add_argument('display_label', help='the exact place name')
-gv_parsor.add_argument('-f', '--filter', help='filter by criteria')
 gv_parsor.add_argument('-c', '--context', help='geographies to compare with')
 gv_parsor.add_argument('-n', type=int, default=15, help='number of rows to display')
 gv_parsor.set_defaults(func=compare_geovectors)
@@ -501,7 +500,6 @@ gv_parsor.set_defaults(func=compare_geovectors)
 gva_parsor = view_subparsers.add_parser('gva',
     description='View GeoVectors nearest to a GeoVector [appearance mode]')
 gva_parsor.add_argument('display_label', help='the exact place name')
-gva_parsor.add_argument('-f', '--filter', help='filter by criteria')
 gva_parsor.add_argument('-c', '--context', help='geographies to compare with')
 gva_parsor.add_argument('-n', type=int, default=15, help='number of rows to display')
 gva_parsor.set_defaults(func=compare_geovectors_app)
