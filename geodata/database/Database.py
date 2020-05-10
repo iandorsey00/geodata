@@ -612,7 +612,7 @@ class Database:
         df = pd.DataFrame(rows, columns=[self.columns[12]] + self.columns[16:])
 
         # Adjustments for better calculations of medians and
-        # standard deviations, and better superlatives/antisuperlatives results
+        # standard deviations, and better results for highest and lowest values
 
         # median_year_structure_built value of 0 were causing problems because
         # all values for available data are between 1939 and the present year.

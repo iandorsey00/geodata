@@ -77,8 +77,6 @@ class DemographicProfile:
 
         # Population category
         self.rc['population'] = gdt(db_row['B01003_1'])
-        # For pop_filter compatibility
-        self.d['population'] = self.rc['population']
 
         # Race category
         self.rc['white_alone'] = gdt(db_row['B02001_2'])

@@ -41,7 +41,34 @@ def initialize_database():
         print()
         print('for more information.')
 
-def context_filter(input_instances, args_context, args_pop_filter, gv=False):
+def get_data_types(comp, data_type, fetch_one):
+    '''
+    Determine whether we want components (values that come straight from
+    Census data files) or compounds (values that can only be obtained by
+    math operations involving multiple components).
+
+    By default, display compounds if there is one for the comp.
+    Otherwise, display a component.
+    '''
+    if not data_type:
+        if comp in fetch_one.c.keys():
+            sort_by = 'c'
+            print_ = 'fcd'
+        else:
+            sort_by = 'rc'
+            print_ = 'fc'
+    # User input 'c', so display a component
+    elif data_type == 'c':
+        sort_by = 'rc'
+        print_ = 'fc'
+    # User input 'cc' (or anything else...), so display a compound
+    else:
+        sort_by = 'c'
+        print_ = 'fcd'
+
+    return (sort_by, print_)
+
+def context_filter(input_instances, args_context, args_filter, gv=False):
     '''Filters instances and leaves those that match the context.'''
     ct = CountyTools()
     kt = KeyTools()
@@ -49,6 +76,7 @@ def context_filter(input_instances, args_context, args_pop_filter, gv=False):
 
     universe_sl, group_sl, group = slt.unpack_context(args.context)
     instances = input_instances
+    fetch_one = instances[0]
 
     # Filter by summary level
     if universe_sl:
@@ -69,11 +97,43 @@ def context_filter(input_instances, args_context, args_pop_filter, gv=False):
         instances = list(filter(lambda x: x.name.startswith('ZCTA5 ' + group),
                                 instances))
 
-    # Population
-    if args.pop_filter:
-        pop_filter = gdt(args_pop_filter)
-        instances = list(filter(lambda x: gdti(x.d['population']) > pop_filter,
-                                instances))
+    # Filtering
+    if args_filter:
+        # Convert pipe-delimited criteria string to a list of criteria
+        filter_criteria = args_filter.split('+')
+        # Covert list of criteria to lists of lists
+        filter_criteria = map(lambda x: x.split(':'), filter_criteria)
+
+        for filter_criterium in filter_criteria:
+            # Determine if a data_type was specified
+            if len(filter_criterium) == 4:
+                # If so, set the data_type
+                data_type = filter_criterium[3]
+            else:
+                # Otherwise, set it to false
+                data_type = False
+
+            comp = filter_criterium[0]
+            filter_by, print_ = get_data_types(comp, data_type, fetch_one)
+            operator = filter_criterium[1]
+
+            # The value is a index 2; convert using geodata_typecast
+            value = gdt(filter_criterium[2])
+
+            # Now, filter by operator at index 1.
+            if operator == 'gt':
+                instances = list(filter(lambda x: getattr(x, filter_by)[comp] > value, instances))
+            elif operator == 'gteq':
+                instances = list(filter(lambda x: getattr(x, filter_by)[comp] >= value, instances))
+            elif operator == 'eq':
+                instances = list(filter(lambda x: getattr(x, filter_by)[comp] == value, instances))
+            elif operator == 'lteq':
+                instances = list(filter(lambda x: getattr(x, filter_by)[comp] <= value, instances))
+            elif operator == 'lt':
+                instances = list(filter(lambda x: getattr(x, filter_by)[comp] < value, instances))
+            # It is an error if the value specified is invalid.
+            else:
+                raise ValueError("filter: Invalid operator")
 
     return instances
 
@@ -97,7 +157,7 @@ def compare_geovectors(args, mode='std'):
 
     # If a context was specified, filter GeoVector instances
     if args.context:
-        gv_list = context_filter(gv_list, args.context, args.pop_filter)
+        gv_list = context_filter(gv_list, args.context, args.filter)
     else:
         gv_list = list(filter(lambda x: x.sumlevel == comparison_gv.sumlevel,
                               gv_list))
@@ -157,34 +217,14 @@ def extreme_values(args, lowest=False):
     dpi_instances = d['demographicprofiles']
     fetch_one = dpi_instances[0]
 
-    # Determine whether we want components (values that come straight from
-    # Census data files) or compounds (values that can only be obtained by
-    # math operations involving multiple components).
-
-    # By default, display compounds if there is one for the comp.
-    # Otherwise, display a component.
-    if not data_type:
-        if comp in fetch_one.c.keys():
-            sort_by = 'c'
-            print_ = 'fcd'
-        else:
-            sort_by = 'rc'
-            print_ = 'fc'
-    # User input 'c', so display a component
-    elif data_type == 'c':
-        sort_by = 'rc'
-        print_ = 'fc'
-    # User input 'cc' (or anything else...), so display a compound
-    else:
-        sort_by = 'c'
-        print_ = 'fcd'
+    sort_by, print_ = get_data_types(comp, data_type, fetch_one)
     
     # Remove numpy.nans because they interfere with sorted()
     dpi_instances = list(filter(lambda x: not \
                    numpy.isnan(getattr(x, sort_by)[comp]), dpi_instances))
 
     # Filter instances
-    dpi_instances = context_filter(dpi_instances, args.context, args.pop_filter)
+    dpi_instances = context_filter(dpi_instances, args.context, args.filter)
 
     # For the median_year_structure_built component, remove values of zero and
     # 18...
@@ -367,7 +407,7 @@ def tocsv(args):
             raise ValueError(comp + ': Invalid comp')
 
     # Filter instances
-    dpi_instances = context_filter(dpi_instances, args.context, args.pop_filter)
+    dpi_instances = context_filter(dpi_instances, args.context, args.filter)
 
     if len(dpi_instances) == 0:
         raise ValueError('Sorry, no geographies match your criteria.')
@@ -435,7 +475,7 @@ search_parser.set_defaults(func=display_label_search)
 tocsv_parser = subparsers.add_parser('tocsv', aliases=['t'],
     description='Output data in CSV format')
 tocsv_parser.add_argument('comps', help='components or compounds to output')
-tocsv_parser.add_argument('-p', '--pop_filter', help='filter by population')
+tocsv_parser.add_argument('-f', '--filter', help='filter')
 tocsv_parser.add_argument('-c', '--context', help='group of geographies')
 tocsv_parser.add_argument('-n', type=int, default=0, help='number of rows to display')
 tocsv_parser.set_defaults(func=tocsv)
@@ -452,7 +492,7 @@ dp_parsor.set_defaults(func=get_dp)
 gv_parsor = view_subparsers.add_parser('gv',
     description='View GeoVectors nearest to a GeoVector.')
 gv_parsor.add_argument('display_label', help='the exact place name')
-gv_parsor.add_argument('-p', '--pop_filter', help='filter by population')
+gv_parsor.add_argument('-f', '--filter', help='filter')
 gv_parsor.add_argument('-c', '--context', help='geographies to compare with')
 gv_parsor.add_argument('-n', type=int, default=15, help='number of rows to display')
 gv_parsor.set_defaults(func=compare_geovectors)
@@ -461,7 +501,7 @@ gv_parsor.set_defaults(func=compare_geovectors)
 gva_parsor = view_subparsers.add_parser('gva',
     description='View GeoVectors nearest to a GeoVector [appearance mode]')
 gva_parsor.add_argument('display_label', help='the exact place name')
-gva_parsor.add_argument('-p', '--pop_filter', help='filter by population')
+gva_parsor.add_argument('-f', '--filter', help='filter')
 gva_parsor.add_argument('-c', '--context', help='geographies to compare with')
 gva_parsor.add_argument('-n', type=int, default=15, help='number of rows to display')
 gva_parsor.set_defaults(func=compare_geovectors_app)
@@ -471,7 +511,7 @@ hv_parsor = view_subparsers.add_parser('hv',
     description='View places that rank highest with regard to a certain characteristic.')
 hv_parsor.add_argument('comp', help='the comp that you want to rank')
 hv_parsor.add_argument('-d', '--data_type', help='c: component; cc: compound')
-hv_parsor.add_argument('-p', '--pop_filter', help='filter by population')
+hv_parsor.add_argument('-f', '--filter', help='filter')
 hv_parsor.add_argument('-c', '--context', help='group of geographies to display')
 hv_parsor.add_argument('-n', type=int, default=15, help='number of rows to display')
 hv_parsor.set_defaults(func=extreme_values)
@@ -481,7 +521,7 @@ lv_parsor = view_subparsers.add_parser('lv',
     description='View places that rank lowest with regard to a certain characteristic.')
 lv_parsor.add_argument('comp', help='the comp that you want to rank')
 lv_parsor.add_argument('-d', '--data_type', help='c: component; cc: compound')
-lv_parsor.add_argument('-p', '--pop_filter', help='filter by population')
+lv_parsor.add_argument('-f', '--filter', help='filter')
 lv_parsor.add_argument('-c', '--context', help='group of geographies to display')
 lv_parsor.add_argument('-n', type=int, default=15, help='number of rows to display')
 lv_parsor.set_defaults(func=lowest_values)
