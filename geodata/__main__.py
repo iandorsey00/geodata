@@ -358,7 +358,7 @@ def display_label_search(args):
 
     print(print_search_divider())
 
-def tocsv(args):
+def rows(args):
     '''Output data to a CSV file'''
     # Note: n is not yet implemented.
     # TODO: Permit -n 0 to mean 'all values'
@@ -439,8 +439,14 @@ def tocsv(args):
                 this_row += [dpi_instance.fc[comp]]
             else:
                 this_row += [dpi_instance.fcd[comp]]
-        
-        csvwriter.writerow(this_row)
+
+def get_csv_dp(args):
+    '''Output a DemographicProfile in CSV format'''
+    d = initialize_database()
+
+    place = args.display_label
+    dp = list(filter(lambda x: x.name == place, d['demographicprofiles']))[0]
+    dp.tocsv()
 
 ###############################################################################
 # Argument parsing with argparse
@@ -474,14 +480,11 @@ search_parser.set_defaults(func=display_label_search)
 # Create the parser for the "tocsv" command
 tocsv_parser = subparsers.add_parser('tocsv', aliases=['t'],
     description='Output data in CSV format')
-tocsv_parser.add_argument('comps', help='components or compounds to output')
-tocsv_parser.add_argument('-f', '--filter', help='filter by criteria')
-tocsv_parser.add_argument('-c', '--context', help='group of geographies')
-tocsv_parser.add_argument('-n', type=int, default=0, help='number of rows to display')
-tocsv_parser.set_defaults(func=tocsv)
+tocsv_subparsers = tocsv_parser.add_subparsers(
+    help='enter geodata tocsv <subcommand> -h for more information.')
 
 # View subparser
-# Create parsors for the view command command
+# Create parsors for the view command
 # DemographicProfiles #########################################################
 dp_parsor = view_subparsers.add_parser('dp',
     description='View a DemographicProfile.')
@@ -523,6 +526,23 @@ lv_parsor.add_argument('-f', '--filter', help='filter by criteria')
 lv_parsor.add_argument('-c', '--context', help='group of geographies to display')
 lv_parsor.add_argument('-n', type=int, default=15, help='number of rows to display')
 lv_parsor.set_defaults(func=lowest_values)
+
+# tocsv subparsers
+# Create parsors for the tocsv command
+# Rows ########################################################################
+rows_parsor = tocsv_subparsers.add_parser('rows',
+    description='Output data rows in CSV format')
+rows_parsor.add_argument('comps', help='components or compounds to output')
+rows_parsor.add_argument('-f', '--filter', help='filter by criteria')
+rows_parsor.add_argument('-c', '--context', help='group of geographies')
+rows_parsor.add_argument('-n', type=int, default=0, help='number of rows to display')
+rows_parsor.set_defaults(func=rows)
+
+# DemographicProfile ##########################################################
+csv_dp_parsor = tocsv_subparsers.add_parser('dp',
+    description='Output a DemographicProfile in CSV format')
+csv_dp_parsor.add_argument('display_label', help='the exact place name')
+csv_dp_parsor.set_defaults(func=get_csv_dp)
 
 # Parse arguments
 args = parser.parse_args()

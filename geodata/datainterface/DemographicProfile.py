@@ -6,6 +6,8 @@ geographies.
 from tools.geodata_typecast import gdt, gdti, gdtf
 from tools.CountyTools import CountyTools
 import textwrap
+import sys
+import csv
 
 class DemographicProfile:
     '''Used to display data for a geography.'''
@@ -225,6 +227,64 @@ class DemographicProfile:
     def dp_row_nc(self, key):
         '''Return a row without a compound'''
         return self.dp_row_str(self.rh[key], '', self.fc[key])
+
+    def tocsv(self):
+        '''Display as a CSV'''
+        csvwriter = csv.writer(sys.stdout, quoting=csv.QUOTE_MINIMAL)
+
+        def csv_dp_full_row_str(content):
+            '''Return a CSV row with just one string'''
+            csvwriter.writerow([content])
+
+        def csv_divider():
+            '''Return a CSV divider'''
+            csvwriter.writerow([])
+
+        def csv_dp_row_str(record_col, component_col, compound_col):
+            '''Return a CSV row with a header, compound, and component'''
+            csvwriter.writerow([record_col, component_col, compound_col])
+
+        def csv_dp_row_std(key):
+            '''Return a CSV row with the most common characteristics'''
+            csvwriter.writerow([self.rh[key], self.fc[key], self.fcd[key]])
+
+        def csv_dp_row_nc(key):
+            '''Return a row without a compound'''
+            csvwriter.writerow([self.rh[key], '', self.fc[key]])
+
+        csv_dp_full_row_str(self.name)
+
+        # Print counties if this DemographicProfile is for a place (160)
+        if self.sumlevel == '160':
+            csv_dp_full_row_str(', '.join(self.counties_display))
+
+        csv_divider()
+        csv_dp_full_row_str('GEOGRAPHY')
+        csv_dp_row_str(self.rh['land_area'], '', self.fc['land_area'])
+        csv_dp_full_row_str('POPULATION')
+        csv_dp_row_nc('population')
+        csv_dp_row_str(self.rh['population_density'], '', self.fcd['population_density'])
+        csv_dp_full_row_str('  Race')
+        csv_dp_row_std('white_alone')
+        csv_dp_row_std('white_alone_not_hispanic_or_latino')
+        csv_dp_row_std('black_alone')
+        csv_dp_row_std('asian_alone')
+        csv_dp_row_std('other_race')
+        csv_dp_full_row_str('  Hispanic or Latino (of any race)')
+        csv_dp_row_std('hispanic_or_latino')
+        csv_dp_full_row_str('EDUCATION')
+        csv_dp_row_std('population_25_years_and_older')
+        csv_dp_row_std('bachelors_degree_or_higher')
+        csv_dp_row_std('graduate_degree_or_higher')
+        csv_dp_full_row_str('INCOME')
+        csv_dp_row_nc('per_capita_income')
+        csv_dp_row_nc('median_household_income')
+        csv_dp_full_row_str('HOUSING')
+        csv_dp_row_nc('median_year_structure_built')
+        csv_dp_row_nc('median_rooms')
+        csv_dp_row_nc('median_value')
+        csv_dp_row_nc('median_rent')
+        csv_divider()
 
     def __str__(self):
         '''Return table'''
