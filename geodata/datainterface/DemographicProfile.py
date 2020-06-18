@@ -48,7 +48,7 @@ class DemographicProfile:
         # Race category
         self.rh['white_alone'] = '    White alone'
         self.rh['white_alone_not_hispanic_or_latino'] = '      Not Hispanic or Latino'
-        self.rh['black_alone'] = '    Black alone'
+        self.rh['black_alone'] = '    Black or African American alone'
         self.rh['asian_alone'] = '    Asian alone'
         self.rh['other_race']  = '    Other'
         # Technically not a race, but included in the race category
