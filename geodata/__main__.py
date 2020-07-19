@@ -440,6 +440,8 @@ def rows(args):
             else:
                 this_row += [dpi_instance.fcd[comp]]
 
+        csvwriter.writerow(this_row)
+
 def get_csv_dp(args):
     '''Output a DemographicProfile in CSV format'''
     d = initialize_database()
