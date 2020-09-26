@@ -44,6 +44,8 @@ class DemographicProfile:
 
         # Geography category
         self.rh['land_area'] = 'Land area'
+        self.rh['latitude'] = 'Latitude'
+        self.rh['longitude'] = 'Longitude'
 
         # Race category
         self.rh['white_alone'] = '    White alone'
@@ -76,6 +78,8 @@ class DemographicProfile:
 
         # Geography category
         self.rc['land_area'] = gdtf(db_row['ALAND_SQMI'])
+        self.rc['latitude'] = gdtf(db_row['INTPTLAT'])
+        self.rc['longitude'] = gdtf(db_row['INTPTLONG'])
 
         # Population category
         self.rc['population'] = gdt(db_row['B01003_1'])

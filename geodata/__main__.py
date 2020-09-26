@@ -5,6 +5,7 @@ import sys
 import csv
 import numpy
 import pickle
+import geopy.distance
 
 from tools.geodata_typecast import gdt, gdtf, gdti
 
@@ -12,6 +13,8 @@ from tools.CountyTools import CountyTools
 from tools.StateTools import StateTools
 from tools.KeyTools import KeyTools
 from tools.SummaryLevelTools import SummaryLevelTools
+
+from math import sin, cos, sqrt, atan2, radians
 
 from rapidfuzz import fuzz
 
@@ -450,6 +453,139 @@ def get_csv_dp(args):
     dp = list(filter(lambda x: x.name == place, d['demographicprofiles']))[0]
     dp.tocsv()
 
+def get_distance(dp1, dp2, kilometers=False):
+    '''Distance between two sets of lat/long coords from DemographicProfiles'''
+
+    coords1 = (dp1.rc['latitude'], dp1.rc['longitude'])
+    coords2 = (dp2.rc['latitude'], dp2.rc['longitude'])
+
+    if kilometers:
+        distance = geopy.distance.distance(coords1, coords2).km
+    else:
+        distance = geopy.distance.distance(coords1, coords2).mi
+
+    return distance
+
+def distance(args):
+    '''Get the distance between two geographies'''
+    d = initialize_database()
+
+    dl1 = args.display_label_1
+    dl2 = args.display_label_2
+    dp1 = list(filter(lambda x: x.name == dl1, d['demographicprofiles']))[0]
+    dp2 = list(filter(lambda x: x.name == dl2, d['demographicprofiles']))[0]
+
+    distance = get_distance(dp1, dp2, args.kilometers)
+
+    print(distance)
+
+def closest_geographies(args):
+    '''Display the closest geographies'''
+    n = get_n(args.n)
+    d = initialize_database()
+
+    st = StateTools()
+    kt = KeyTools()
+    slt = SummaryLevelTools()
+
+    data_type = args.data_type
+    display_label = args.display_label
+
+    target_geo = list(filter(lambda x: x.name == display_label, d['demographicprofiles']))[0]
+    dpi_instances = d['demographicprofiles']
+    fetch_one = dpi_instances[0]
+    
+    # Remove numpy.nans because they interfere with sorted()
+    # dpi_instances = list(filter(lambda x: not \
+    #                numpy.isnan(getattr(x, sort_by)[comp]), dpi_instances))
+
+    # Filter instances
+    dpi_instances = context_filter(dpi_instances, args.context, args.filter)
+
+    # Get distances
+    dp_distances = []
+
+    for dp in dpi_instances:
+        if dp.name != target_geo.name:
+            dp_distances.append((dp, get_distance(target_geo, dp)))
+
+    # Sort our DemographicProfile instances by component or compound specified.
+    cgs = sorted(dp_distances, key=lambda x: x[1])
+
+    # Helper methods for printing cg rows #####################################
+
+    # The inter-area margin to divide display sections
+    iam = ' '
+
+    def divider():
+        '''Print a divider for DemographicProfiles'''
+        return '-' * 68
+
+    def cg_print_headers(universe_sl, group_sl, group):
+        '''Helper method to DRY up sl_print_headers'''
+
+        # Set the name of the universe
+        if universe_sl:
+            if universe_sl == '040':
+                universe = 'State'
+            elif universe_sl == '050':
+                universe = 'County'
+            elif universe_sl == '160':
+                universe = 'Place'
+            elif universe_sl == '310':
+                universe = 'Metro/micro area'
+            elif universe_sl == '400':
+                universe = 'Urban area'
+            elif universe_sl == '860':
+                universe = 'ZCTA'
+        else:
+            universe = 'Geography'
+
+        if group:
+            group_name = ''
+
+            if group_sl == '040':
+                group_name = st.get_name(group)
+            elif group_sl == '050':
+                key = 'us:' + group + '/county'
+                group_name = kt.key_to_county_name[key]
+            elif group_sl == '860':
+                group_name = group
+            
+            # Output '<UNIVERSE GEOGRAPHY> in <GROUP NAME>'
+            out_str = iam + (universe + ' in ' \
+                + group_name).ljust(45)[:45] + iam \
+                + 'Distance (mi)'.rjust(20)
+        else:
+            out_str = iam + universe.ljust(45)[:45] + iam \
+                + 'Distance (mi)'.rjust(20)
+
+        return out_str
+
+    # dpi = demographicprofile_instance
+    def cg_print_row(dpi, distance):
+        '''Print a data row for DemographicProfiles'''
+        out_str = iam + getattr(dpi, 'name').ljust(45)[:45] + iam \
+                  + str(round(distance, 1)).rjust(20)
+        return out_str
+
+    # Printing ################################################################
+
+    universe_sl, group_sl, group = slt.unpack_context(args.context)
+
+    if len(cgs) == 0:
+        print("Sorry, no geographies match your criteria.")
+    else:
+        # Print the header and places with their information.
+        dpi = d['demographicprofiles'][0]
+        print(divider())
+        print(cg_print_headers(universe_sl, group_sl, group))
+        print(divider())
+        for cg in cgs[:n]:
+            print(cg_print_row(*cg))
+        print(divider())
+
+
 ###############################################################################
 # Argument parsing with argparse
 
@@ -511,7 +647,7 @@ gva_parsor.set_defaults(func=compare_geovectors_app)
 
 # Highest values ##############################################################
 hv_parsor = view_subparsers.add_parser('hv',
-    description='View places that rank highest with regard to a certain characteristic.')
+    description='View geographies that rank highest with regard to comp')
 hv_parsor.add_argument('comp', help='the comp that you want to rank')
 hv_parsor.add_argument('-d', '--data_type', help='c: component; cc: compound')
 hv_parsor.add_argument('-f', '--filter', help='filter by criteria')
@@ -521,13 +657,31 @@ hv_parsor.set_defaults(func=extreme_values)
 
 # Lowest values ###############################################################
 lv_parsor = view_subparsers.add_parser('lv',
-    description='View places that rank lowest with regard to a certain characteristic.')
+    description='View geographies that rank lowest with regard to comp')
 lv_parsor.add_argument('comp', help='the comp that you want to rank')
 lv_parsor.add_argument('-d', '--data_type', help='c: component; cc: compound')
 lv_parsor.add_argument('-f', '--filter', help='filter by criteria')
 lv_parsor.add_argument('-c', '--context', help='group of geographies to display')
 lv_parsor.add_argument('-n', type=int, default=15, help='number of rows to display')
 lv_parsor.set_defaults(func=lowest_values)
+
+# Closest geographies #########################################################
+cg_parsor = view_subparsers.add_parser('cg',
+    description='View geographies that are closest to the one specified by display_label')
+cg_parsor.add_argument('display_label', help='the exact place name')
+cg_parsor.add_argument('-d', '--data_type', help='c: component; cc: compound')
+cg_parsor.add_argument('-f', '--filter', help='filter by criteria')
+cg_parsor.add_argument('-c', '--context', help='group of geographies to display')
+cg_parsor.add_argument('-n', type=int, default=15, help='number of rows to display')
+cg_parsor.set_defaults(func=closest_geographies)
+
+# Distance ####################################################################
+d_parsor = view_subparsers.add_parser('d',
+    description='Get the distance between two places')
+d_parsor.add_argument('display_label_1', help='Get the distance between this display label and...')
+d_parsor.add_argument('display_label_2', help='...this one.')
+d_parsor.add_argument('-k', '--kilometers', action='store_true', help='Display result in kilometers.')
+d_parsor.set_defaults(func=distance)
 
 # tocsv subparsers
 # Create parsors for the tocsv command
