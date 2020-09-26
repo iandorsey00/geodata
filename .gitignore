@@ -139,4 +139,7 @@ dmypy.json
 cython_debug/
 
 # Binary Database class files
-bin/*
+bin/
+
+# User-defined scripts
+scripts/
