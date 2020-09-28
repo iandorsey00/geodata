@@ -3,6 +3,7 @@ Intended to describe a specific geography or compare small numbers of
 geographies.
 '''
 
+# pylint: disable=import-error
 from tools.geodata_typecast import gdt, gdti, gdtf
 from tools.CountyTools import CountyTools
 import textwrap
