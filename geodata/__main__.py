@@ -488,12 +488,10 @@ def closest_geographies(args):
     kt = KeyTools()
     slt = SummaryLevelTools()
 
-    data_type = args.data_type
     display_label = args.display_label
 
     target_geo = list(filter(lambda x: x.name == display_label, d['demographicprofiles']))[0]
     dpi_instances = d['demographicprofiles']
-    fetch_one = dpi_instances[0]
     
     # Remove numpy.nans because they interfere with sorted()
     # dpi_instances = list(filter(lambda x: not \
@@ -577,7 +575,6 @@ def closest_geographies(args):
         print("Sorry, no geographies match your criteria.")
     else:
         # Print the header and places with their information.
-        dpi = d['demographicprofiles'][0]
         print(divider())
         print(cg_print_headers(universe_sl, group_sl, group))
         print(divider())
@@ -669,7 +666,6 @@ lv_parsor.set_defaults(func=lowest_values)
 cg_parsor = view_subparsers.add_parser('cg',
     description='View geographies that are closest to the one specified by display_label')
 cg_parsor.add_argument('display_label', help='the exact place name')
-cg_parsor.add_argument('-d', '--data_type', help='c: component; cc: compound')
 cg_parsor.add_argument('-f', '--filter', help='filter by criteria')
 cg_parsor.add_argument('-c', '--context', help='group of geographies to display')
 cg_parsor.add_argument('-n', type=int, default=15, help='number of rows to display')
