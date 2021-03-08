@@ -698,4 +698,4 @@ csv_dp_parsor.set_defaults(func=get_csv_dp)
 
 # Parse arguments
 args = parser.parse_args()
-args.func(args)
+# args.func(args)
