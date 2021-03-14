@@ -1,7 +1,9 @@
-import geodata.__main__ as main
+import engine
 
 import tkinter as tk
 import tkinter.messagebox as tk_messagebox
+
+from tkinter import ttk
 
 import time
 
@@ -26,7 +28,7 @@ class GeodataGUI:
         self.search_entry = tk.Entry(master=self.upper_frame, font='Arial 9 italic')
         self.search_entry.insert(0, 'Search for a geography')
         self.search_entry_placeholder = True
-        self.search_entry.pack(side=tk.LEFT, fill=tk.X, expand=tk.YES)
+        self.search_entry.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
         self.search_entry.bind('<Key>', self.search_key)
         self.search_entry.bind('<KeyRelease>', self.search_keyrelease)
         self.search_entry.bind('<FocusIn>', self.search_focusin)
@@ -40,8 +42,57 @@ class GeodataGUI:
         self.root.bind('<Return>', self.go)
 
         # Pack upper_frame
-        self.upper_frame.pack(fill=tk.X, expand=tk.YES)
+        self.upper_frame.pack(fill=tk.BOTH, expand=tk.YES, pady=10)
         self.search_entry.focus_set()
+
+        ### Middle area
+        self.middle_frame = tk.Frame(master=self.root)
+
+        self.middle_frame_separator = ttk.Separator(master=self.middle_frame, orient=tk.HORIZONTAL)
+        self.middle_frame_separator.pack(fill=tk.X, expand=tk.YES)
+
+        self.values_frame = tk.Frame(master=self.middle_frame, pady=10)
+
+        self.values_display_label = tk.Label(master=self.values_frame, text='Display', anchor='w')
+        self.values_display_label.pack(side=tk.LEFT, padx=(0, 5))
+
+        self.values_combobox = ttk.Combobox(master=self.values_frame, state='readonly')
+        self.values_combobox['values'] = ['highest values',
+                                          'lowest values']
+        self.values_combobox.set('highest values')
+        self.values_combobox.pack(side=tk.LEFT)
+
+        self.values_for_label = tk.Label(master=self.values_frame, text='for', padx=5)
+        self.values_for_label.pack(side=tk.LEFT)
+
+        self.values_comp_combobox = ttk.Combobox(master=self.values_frame, state='readonly')
+        self.values_comp_combobox['values'] = ['land_area',
+                                               'population',
+                                               'population_density',
+                                               'white_alone',
+                                               'white_alone_not_hispanic_or_latino',
+                                               'black_alone',
+                                               'asian_alone',
+                                               'other_race',
+                                               'hispanic_or_latino',
+                                               'population_25_years_and_older',
+                                               'bachelors_degree_or_higher',
+                                               'graduate_degree_or_higher',
+                                               'per_capita_income',
+                                               'median_household_income',
+                                               'median_year_structure_built',
+                                               'median_rooms',
+                                               'median_value',
+                                               'median_rent']
+        self.values_comp_combobox.set('population')
+        self.values_comp_combobox.pack(side=tk.LEFT)
+
+        self.values_go_button = tk.Button(master=self.values_frame, text='Go', bg='green', fg='white', padx=10, command=self.values_go)
+        self.values_go_button.pack(side=tk.RIGHT)
+
+        self.values_frame.pack(fill=tk.X, expand=tk.YES)
+
+        self.middle_frame.pack(fill=tk.X, expand=tk.YES)
         
     def search_key(self, event=None):
         '''Triggered by <Key>, before sending the event to the widget'''
@@ -81,7 +132,7 @@ class GeodataGUI:
         now_loading.grid(row=0, column=0, sticky='nsew')
         self.root.update()
 
-        d = main.initialize_database()
+        d = engine.initialize_database()
         dp_list = list(filter(lambda x: x.name == display_label, d['demographicprofiles']))
 
         if len(dp_list) == 0:
@@ -165,14 +216,31 @@ class GeodataGUI:
         compound.grid(row=row, column=2, sticky='nsew')
 
     def demographic_profile_header(self, master, text, row):
-            header = tk.Label(master=master, text=text, padx=10, font=('TkCaptionFont', 15), anchor='w')
-            header.grid(row=row, column=0, columnspan=3, sticky='nsew')
-            self.dp_offset += 1
+        header = tk.Label(master=master, text=text, padx=10, font=('TkCaptionFont', 15), anchor='w')
+        header.grid(row=row, column=0, columnspan=3, sticky='nsew')
+        self.dp_offset += 1
 
     def demographic_profile_subheader(self, master, text, row):
-            header = tk.Label(master=master, text=text, padx=10, font=('TkCaptionFont', 12), anchor='w')
-            header.grid(row=row, column=0, columnspan=3, sticky='nsew')
-            self.dp_offset += 1
+        header = tk.Label(master=master, text=text, padx=10, font=('TkCaptionFont', 12), anchor='w')
+        header.grid(row=row, column=0, columnspan=3, sticky='nsew')
+        self.dp_offset += 1
+
+    def values_go(self, event=None):
+        val_window = tk.Toplevel(master=self.root)
+        val_window.minsize(500, 150)
+        val_window.columnconfigure(0, weight=1)
+
+        now_loading = tk.Label(master=val_window, text='Now loading. Please wait.')
+        now_loading.grid(row=0, column=0, sticky='nsew')
+        self.root.update()
+
+        evs = main.get_extreme_values
+
+        if len(dp_list) == 0:
+            dp_window.destroy()
+            tk_messagebox.showinfo('', 'Sorry, there is no geography with that name.')
+        else:
+
 
     def activate_mainloop(self):
         self.root.mainloop()
