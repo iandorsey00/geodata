@@ -22,6 +22,11 @@ from rapidfuzz import fuzz
 class Engine:
     def __init__(self):
         self.initialize_database()
+
+        self.ct = CountyTools()
+        self.st = StateTools()
+        self.kt = KeyTools()
+        self.slt = SummaryLevelTools()
             
     def create_data_products(self, path):
         '''Generate and save data products.'''
@@ -70,11 +75,7 @@ class Engine:
 
     def context_filter(self, input_instances, context, filter, gv=False):
         '''Filters instances and leaves those that match the context.'''
-        ct = CountyTools()
-        kt = KeyTools()
-        slt = SummaryLevelTools()
-
-        universe_sl, group_sl, group = slt.unpack_context(context)
+        universe_sl, group_sl, group = self.slt.unpack_context(context)
         instances = input_instances
         fetch_one = instances[0]
 
@@ -86,8 +87,8 @@ class Engine:
         # Filter by group summary level
         if group_sl == '050':
             key = 'us:' + group + '/county'
-            county_name = kt.key_to_county_name[key]
-            county_geoid = ct.county_name_to_geoid[county_name]
+            county_name = self.kt.key_to_county_name[key]
+            county_geoid = self.ct.county_name_to_geoid[county_name]
 
             instances = list(filter(lambda x: county_geoid in x.counties,
                                     instances))
@@ -156,18 +157,18 @@ class Engine:
 
         # Get the closest GeoVectors.
         # In other words, get the most demographically similar places.
-        closest_pvs = sorted(gv_list,
+        return sorted(gv_list,
                         key=lambda x: comparison_gv.distance(x, mode=mode))[:n]
 
-    def compare_geovectors_app(self):
-        self.compare_geovectors(args, mode='app')
+    def compare_geovectors_app(self, display_label, context='', n=10):
+        return self.compare_geovectors(display_label, context=context, n=n, mode='app')
 
     def get_dp(self, display_label):
         '''Get DemographicProfiles.'''
         d = self.get_data_products()
 
         place = display_label
-        dp = list(filter(lambda x: x.name == place, d['demographicprofiles']))[0]
+        return list(filter(lambda x: x.name == place, d['demographicprofiles']))[0]
 
     def extreme_values(self, comp, data_type='c', context='', geofilter='', lowest=False):
         '''Get highest and lowest values.'''
@@ -202,7 +203,7 @@ class Engine:
 
     def lowest_values(self, comp, data_type='c', context='', geofilter=''):
         '''Wrapper function for lowest values.'''
-        self.extreme_values(comp, data_type=data_type, context=context, geofilter=geofilter, lowest=True)
+        return self.extreme_values(comp, data_type=data_type, context=context, geofilter=geofilter, lowest=True)
 
     def display_label_search(self, query, n=10):
         '''Search display labels (place names).'''
@@ -317,7 +318,7 @@ class Engine:
 
         return distance
 
-    def distance(self, display_label_1, display_label_2):
+    def distance(self, display_label_1, display_label_2, kilometers=False):
         '''Get the distance between two geographies'''
         d = self.get_data_products()
 
@@ -326,15 +327,11 @@ class Engine:
         dp1 = list(filter(lambda x: x.name == dl1, d['demographicprofiles']))[0]
         dp2 = list(filter(lambda x: x.name == dl2, d['demographicprofiles']))[0]
 
-        return self.get_distance(dp1, dp2, args.kilometers)
+        return self.get_distance(dp1, dp2, kilometers)
 
     def closest_geographies(self, display_label, context='', geofilter=''):
         '''Display the closest geographies'''
         d = self.get_data_products()
-
-        st = StateTools()
-        kt = KeyTools()
-        slt = SummaryLevelTools()
 
         target_geo = list(filter(lambda x: x.name == display_label, d['demographicprofiles']))[0]
         dpi_instances = d['demographicprofiles']

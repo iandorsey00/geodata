@@ -1,4 +1,4 @@
-import engine
+from engine import Engine
 
 import tkinter as tk
 import tkinter.messagebox as tk_messagebox
@@ -14,6 +14,8 @@ class GeodataGUI:
         self.root = tk.Tk()
         self.root.title('geodata v0.2a')
         self.root.minsize(500, 20)
+
+        self.engine = Engine()
 
         # Main window #########################################################
 
@@ -132,8 +134,7 @@ class GeodataGUI:
         now_loading.grid(row=0, column=0, sticky='nsew')
         self.root.update()
 
-        d = engine.initialize_database()
-        dp_list = list(filter(lambda x: x.name == display_label, d['demographicprofiles']))
+        dp_list = [self.engine.get_dp(display_label)]
 
         if len(dp_list) == 0:
             dp_window.destroy()
@@ -234,13 +235,13 @@ class GeodataGUI:
         now_loading.grid(row=0, column=0, sticky='nsew')
         self.root.update()
 
-        evs = main.get_extreme_values
+        evs = self.engine.extreme_values(self.values_comp_combobox.get())
 
-        if len(dp_list) == 0:
-            dp_window.destroy()
-            tk_messagebox.showinfo('', 'Sorry, there is no geography with that name.')
+        if len(evs) == 0:
+            val_window.destroy()
+            tk_messagebox.showinfo('', 'Sorry, there are no geographies to display.')
         else:
-
+            pass
 
     def activate_mainloop(self):
         self.root.mainloop()
