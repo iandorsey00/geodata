@@ -7,6 +7,8 @@ from tkinter import ttk
 
 import time
 
+from functools import partial
+
 class GeodataGUI:
     def __init__(self):
         self.dp_offset = 0
@@ -128,7 +130,7 @@ class GeodataGUI:
     def display_demographic_profile(self, display_label):
         dp_window = tk.Toplevel(master=self.root)
         dp_window.minsize(500, 150)
-        dp_window.columnconfigure(0, weight=1)
+        dp_window.columnconfigure(2, weight=1)
 
         now_loading = tk.Label(master=dp_window, text='Now loading. Please wait.')
         now_loading.grid(row=0, column=0, sticky='nsew')
@@ -140,14 +142,16 @@ class GeodataGUI:
             dp_window.destroy()
             tk_messagebox.showinfo('', 'Sorry, there is no geography with that name.')
         else:
+            now_loading.destroy()
             dp = dp_list[0]
 
             place = tk.Label(master=dp_window, text=dp.name, padx=10, font=('TkCaptionFont', 20), anchor='w')
-            place.grid(row=0, column=0, columnspan=3, sticky='nsew')
+            place.grid(row=0, column=2, columnspan=3, sticky='nsew')
 
-            counties_text = ', '.join(dp.counties_display)
-            counties = tk.Label(master=dp_window, text=counties_text, padx=10, anchor='w')
-            counties.grid(row=1, column=0, columnspan=3, sticky='nsew')
+            if dp.sumlevel == '160':
+                counties_text = ', '.join(dp.counties_display)
+                counties = tk.Label(master=dp_window, text=counties_text, padx=10, anchor='w')
+                counties.grid(row=1, column=2, columnspan=3, sticky='nsew')
 
             self.dp_offset = 2
 
@@ -189,11 +193,11 @@ class GeodataGUI:
 
                 if key == 'population_density':
                     row_header = tk.Label(master=dp_window, text=dp.rh[key], padx=10, anchor='w')
-                    row_header.grid(row=row + self.dp_offset, column=0, sticky='nsew')
+                    row_header.grid(row=row + self.dp_offset, column=2, sticky='nsew')
                     component = tk.Label(master=dp_window, padx=10, anchor='e')
-                    component.grid(row=row + self.dp_offset, column=1, sticky='nsew')
+                    component.grid(row=row + self.dp_offset, column=3, sticky='nsew')
                     compound = tk.Label(master=dp_window, text=dp.fcd[key], padx=10, anchor='e')
-                    compound.grid(row=row + self.dp_offset, column=2, sticky='nsew')
+                    compound.grid(row=row + self.dp_offset, column=4, sticky='nsew')
                 elif key in ['land_area', 'population', 'per_capita_income', 'median_household_income',
                              'median_year_structure_built', 'median_rooms', 'median_value', 'median_rent']:
                     self.demographic_profile_row_nc(dp_window, dp, key, row + self.dp_offset)
@@ -201,47 +205,81 @@ class GeodataGUI:
                     self.demographic_profile_row_std(dp_window, dp, key, row + self.dp_offset)
 
     def demographic_profile_row_std(self, master, dp, key, row):
+        this_hv_command = partial(self.display_extreme_values, key)
+        hv_button = tk.Button(master=master, text='HV', command=this_hv_command)
+        hv_button.grid(row=row, column=0, sticky='nsew')
+        this_lv_command = partial(self.display_extreme_values, key, lowest=True)
+        lv_button = tk.Button(master=master, text='LV', command=this_lv_command)
+        lv_button.grid(row=row, column=1, sticky='nsew')
         row_header = tk.Label(master=master, text=dp.rh[key], padx=10, anchor='w')
-        row_header.grid(row=row, column=0, sticky='nsew')
+        row_header.grid(row=row, column=2, sticky='nsew')
         component = tk.Label(master=master, text=dp.fc[key], padx=10, anchor='e')
-        component.grid(row=row, column=1, sticky='nsew')
+        component.grid(row=row, column=3, sticky='nsew')
         compound = tk.Label(master=master, text=dp.fcd[key], padx=10, anchor='e')
-        compound.grid(row=row, column=2, sticky='nsew')
+        compound.grid(row=row, column=4, sticky='nsew')
 
     def demographic_profile_row_nc(self, master, dp, key, row):
+        this_hv_command = partial(self.display_extreme_values, key)
+        hv_button = tk.Button(master=master, text='HV', command=this_hv_command)
+        hv_button.grid(row=row, column=0, sticky='nsew')
+        this_lv_command = partial(self.display_extreme_values, key, lowest=True)
+        lv_button = tk.Button(master=master, text='LV', command=this_lv_command)
+        lv_button.grid(row=row, column=1, sticky='nsew')
         row_header = tk.Label(master=master, text=dp.rh[key], padx=10, anchor='w')
-        row_header.grid(row=row, column=0, sticky='nsew')
+        row_header.grid(row=row, column=2, sticky='nsew')
         component = tk.Label(master=master, padx=10, anchor='e')
-        component.grid(row=row, column=1, sticky='nsew')
+        component.grid(row=row, column=3, sticky='nsew')
         compound = tk.Label(master=master, text=dp.fc[key], padx=10, anchor='e')
-        compound.grid(row=row, column=2, sticky='nsew')
+        compound.grid(row=row, column=4, sticky='nsew')
 
     def demographic_profile_header(self, master, text, row):
         header = tk.Label(master=master, text=text, padx=10, font=('TkCaptionFont', 15), anchor='w')
-        header.grid(row=row, column=0, columnspan=3, sticky='nsew')
+        header.grid(row=row, column=2, columnspan=3, sticky='nsew')
         self.dp_offset += 1
 
     def demographic_profile_subheader(self, master, text, row):
         header = tk.Label(master=master, text=text, padx=10, font=('TkCaptionFont', 12), anchor='w')
-        header.grid(row=row, column=0, columnspan=3, sticky='nsew')
+        header.grid(row=row, column=2, columnspan=3, sticky='nsew')
         self.dp_offset += 1
 
     def values_go(self, event=None):
+        lowest = self.values_combobox.get() == 'lowest value'
+        self.display_extreme_values(self.values_comp_combobox.get(), lowest=lowest)
+
+    def display_extreme_values(self, comp, lowest=False):
         val_window = tk.Toplevel(master=self.root)
         val_window.minsize(500, 150)
-        val_window.columnconfigure(0, weight=1)
+        val_window.columnconfigure(1, weight=1)
 
         now_loading = tk.Label(master=val_window, text='Now loading. Please wait.')
         now_loading.grid(row=0, column=0, sticky='nsew')
         self.root.update()
 
-        evs = self.engine.extreme_values(self.values_comp_combobox.get())
+        evs = self.engine.extreme_values(comp, lowest=lowest)
 
         if len(evs) == 0:
             val_window.destroy()
             tk_messagebox.showinfo('', 'Sorry, there are no geographies to display.')
         else:
-            pass
+            now_loading.destroy()
+            geography_label = tk.Label(master=val_window, text='Geography', padx=10, font=('TkCaptionFont', 15), anchor='w')
+            geography_label.grid(row=0, column=1, sticky='nsew')
+            population_label = tk.Label(master=val_window, text='Population', padx=10, font=('TkCaptionFont', 15), anchor='w')
+            population_label.grid(row=0, column=2, sticky='nsew')
+            comp_label = tk.Label(master=val_window, text=comp, padx=10, font=('TkCaptionFont', 15), anchor='w')
+            comp_label.grid(row=0, column=3, sticky='nsew')
+
+            for row, ev in enumerate(evs[:10]):
+                offset = 1
+                this_dp_command = partial(self.display_demographic_profile, ev.name)
+                dp_button = tk.Button(master=val_window, text='DP', command=this_dp_command)
+                dp_button.grid(row=row + offset, column=0, sticky='nsew')
+                geo = tk.Label(master=val_window, text=ev.name, padx=10, anchor='w')
+                geo.grid(row=row + offset, column=1, sticky='nsew')
+                pop = tk.Label(master=val_window, text=ev.fc['population'], padx=10, anchor='w')
+                pop.grid(row=row + offset, column=2, sticky='nsew')
+                data = tk.Label(master=val_window, text=ev.fc[comp], padx=10, anchor='w')
+                data.grid(row=row + offset, column=3, sticky='nsew')
 
     def activate_mainloop(self):
         self.root.mainloop()

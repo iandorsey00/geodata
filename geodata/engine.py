@@ -44,7 +44,7 @@ class Engine:
         self.d = self.load_data_products()
 
     def get_data_products(self):
-        return copy.deepcopy(self.d)
+        return self.d
 
     def get_data_types(self, comp, data_type, fetch_one):
         '''
