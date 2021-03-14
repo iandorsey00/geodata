@@ -55,46 +55,106 @@ class GeodataGUI:
         self.middle_frame_separator = ttk.Separator(master=self.middle_frame, orient=tk.HORIZONTAL)
         self.middle_frame_separator.pack(fill=tk.X, expand=tk.YES)
 
-        self.values_frame = tk.Frame(master=self.middle_frame, pady=10)
+        ## Primary extreme values selection area
+        self.evs_frame = tk.Frame(master=self.middle_frame)
 
-        self.values_display_label = tk.Label(master=self.values_frame, text='Display', anchor='w')
-        self.values_display_label.pack(side=tk.LEFT, padx=(0, 5))
+        self.evs_display_label = tk.Label(master=self.evs_frame, text='Display', anchor='w')
+        self.evs_display_label.pack(side=tk.LEFT, padx=(0, 5))
 
-        self.values_combobox = ttk.Combobox(master=self.values_frame, state='readonly')
-        self.values_combobox['values'] = ['highest values',
-                                          'lowest values']
-        self.values_combobox.set('highest values')
-        self.values_combobox.pack(side=tk.LEFT)
+        self.evs_combobox = ttk.Combobox(master=self.evs_frame, state='readonly')
+        self.evs_combobox['values'] = ['highest values',
+                                       'lowest values']
+        self.evs_combobox.set('highest values')
+        self.evs_combobox.pack(side=tk.LEFT)
 
-        self.values_for_label = tk.Label(master=self.values_frame, text='for', padx=5)
-        self.values_for_label.pack(side=tk.LEFT)
+        self.evs_for_label = tk.Label(master=self.evs_frame, text='for', padx=5)
+        self.evs_for_label.pack(side=tk.LEFT)
 
-        self.values_comp_combobox = ttk.Combobox(master=self.values_frame, state='readonly')
-        self.values_comp_combobox['values'] = ['land_area',
-                                               'population',
-                                               'population_density',
-                                               'white_alone',
-                                               'white_alone_not_hispanic_or_latino',
-                                               'black_alone',
-                                               'asian_alone',
-                                               'other_race',
-                                               'hispanic_or_latino',
-                                               'population_25_years_and_older',
-                                               'bachelors_degree_or_higher',
-                                               'graduate_degree_or_higher',
-                                               'per_capita_income',
-                                               'median_household_income',
-                                               'median_year_structure_built',
-                                               'median_rooms',
-                                               'median_value',
-                                               'median_rent']
-        self.values_comp_combobox.set('population')
-        self.values_comp_combobox.pack(side=tk.LEFT)
+        self.evs_comp_combobox = ttk.Combobox(master=self.evs_frame, state='readonly')
+        self.evs_comp_combobox['values'] = ['land_area',
+                                            'population',
+                                            'population_density',
+                                            'white_alone',
+                                            'white_alone_not_hispanic_or_latino',
+                                            'black_alone',
+                                            'asian_alone',
+                                            'other_race',
+                                            'hispanic_or_latino',
+                                            'population_25_years_and_older',
+                                            'bachelors_degree_or_higher',
+                                            'graduate_degree_or_higher',
+                                            'per_capita_income',
+                                            'median_household_income',
+                                            'median_year_structure_built',
+                                            'median_rooms',
+                                            'median_value',
+                                            'median_rent']
+        self.evs_comp_combobox.set('population')
+        self.evs_comp_combobox.pack(side=tk.LEFT)
 
-        self.values_go_button = tk.Button(master=self.values_frame, text='Go', bg='green', fg='white', padx=10, command=self.values_go)
-        self.values_go_button.pack(side=tk.RIGHT)
+        self.evs_go_button = tk.Button(master=self.evs_frame, text='Go', bg='green', fg='white', padx=10, command=self.values_go)
+        self.evs_go_button.pack(side=tk.RIGHT)
 
-        self.values_frame.pack(fill=tk.X, expand=tk.YES)
+        self.evs_frame.pack(fill=tk.X, expand=tk.YES, pady=(10, 0))
+
+        ## Extreme values - Geography type
+        self.evs_geo_type_frame = tk.Frame(master=self.middle_frame)
+
+        self.evs_geo_type_label = tk.Label(master=self.evs_geo_type_frame, text='Geography type')
+        self.evs_geo_type_label.pack(side=tk.LEFT, pady=(0, 5))
+
+        self.evs_geo_type_combobox = ttk.Combobox(master=self.evs_geo_type_frame, state='readonly')
+        self.evs_geo_type_combobox['values'] = ['',
+                                                'States',
+                                                'Metro/micro areas',
+                                                'Counties',
+                                                'Places',
+                                                'Zip Codes']
+        self.evs_geo_type_combobox.pack(side=tk.LEFT)
+
+        self.evs_geo_type_frame.pack(fill=tk.X, expand=tk.YES)
+
+        ## Extreme values - Filter by
+        self.evs_filter_frame = tk.Frame(master=self.middle_frame)
+
+        self.evs_filter_label = tk.Label(master=self.evs_filter_frame, text='Filter by')
+        self.evs_filter_label.pack(side=tk.LEFT, pady=(0, 5))
+
+        self.evs_filter_comp_combobox = ttk.Combobox(master=self.evs_filter_frame, state='readonly')
+        self.evs_filter_comp_combobox['values'] = ['',
+                                                   'land_area',
+                                                   'population',
+                                                   'population_density',
+                                                   'white_alone',
+                                                   'white_alone_not_hispanic_or_latino',
+                                                   'black_alone',
+                                                   'asian_alone',
+                                                   'other_race',
+                                                   'hispanic_or_latino',
+                                                   'population_25_years_and_older',
+                                                   'bachelors_degree_or_higher',
+                                                   'graduate_degree_or_higher',
+                                                   'per_capita_income',
+                                                   'median_household_income',
+                                                   'median_year_structure_built',
+                                                   'median_rooms',
+                                                   'median_value',
+                                                   'median_rent']
+        self.evs_filter_comp_combobox.pack(side=tk.LEFT)
+
+        self.evs_filter_op_combobox = ttk.Combobox(master=self.evs_filter_frame, width=10, state='readonly')
+        self.evs_filter_op_combobox['values'] = ['',
+                                                 'gt',
+                                                 'gteq',
+                                                 'eq',
+                                                 'lteq',
+                                                 'lt']
+        self.evs_filter_op_combobox.pack(side=tk.LEFT)
+
+        self.evs_filter_entry = tk.Entry(master=self.evs_filter_frame)
+        self.evs_filter_entry.pack(side=tk.LEFT)
+
+        self.evs_filter_frame.pack(fill=tk.X, expand=tk.YES, pady=(0, 10))
 
         self.middle_frame.pack(fill=tk.X, expand=tk.YES)
         
@@ -243,10 +303,43 @@ class GeodataGUI:
         self.dp_offset += 1
 
     def values_go(self, event=None):
-        lowest = self.values_combobox.get() == 'lowest value'
-        self.display_extreme_values(self.values_comp_combobox.get(), lowest=lowest)
+        lowest = self.evs_combobox.get() == 'lowest value'
 
-    def display_extreme_values(self, comp, lowest=False):
+        # Filters
+        geofilter = ''
+
+        geofilter_comp = self.evs_filter_comp_combobox.get()
+        geofilter_op = self.evs_filter_op_combobox.get()
+        geofilter_val = self.evs_filter_entry.get()
+
+        geofilter_list = [geofilter_comp, geofilter_op, geofilter_val]
+
+        if len([i for i in geofilter_list if i]) == 3:
+            geofilter = ':'.join(geofilter_list)
+
+        # Geography types
+        context = ''
+
+        geo_type = self.evs_geo_type_combobox.get()
+
+        geo_type_dict = {
+            'States': 's+',
+            'Metro/micro areas': 'cb+',
+            'Counties': 'c+',
+            'Places': 'p+',
+            'Zip Codes': 'z+'
+        }
+
+        if geo_type != '':
+            geo_type = geo_type_dict[geo_type]
+
+        context = geo_type
+
+        comp = self.evs_comp_combobox.get()
+
+        self.display_extreme_values(comp, context=context, geofilter=geofilter, lowest=lowest)
+
+    def display_extreme_values(self, comp, context='', geofilter='', lowest=False):
         val_window = tk.Toplevel(master=self.root)
         val_window.minsize(500, 150)
         val_window.columnconfigure(1, weight=1)
@@ -255,7 +348,22 @@ class GeodataGUI:
         now_loading.grid(row=0, column=0, sticky='nsew')
         self.root.update()
 
-        evs = self.engine.extreme_values(comp, lowest=lowest)
+        data_type = 'c'
+
+        if comp in ['land_area',
+                    'population_density',
+                    'white_alone',
+                    'white_alone_not_hispanic_or_latino',
+                    'black_alone',
+                    'asian_alone',
+                    'other_race',
+                    'hispanic_or_latino',
+                    'population_25_years_and_older',
+                    'bachelors_degree_or_higher',
+                    'graduate_degree_or_higher']:
+            data_type = 'cc'
+
+        evs = self.engine.extreme_values(comp, context=context, geofilter=geofilter, data_type=data_type, lowest=lowest)
 
         if len(evs) == 0:
             val_window.destroy()
@@ -278,7 +386,12 @@ class GeodataGUI:
                 geo.grid(row=row + offset, column=1, sticky='nsew')
                 pop = tk.Label(master=val_window, text=ev.fc['population'], padx=10, anchor='w')
                 pop.grid(row=row + offset, column=2, sticky='nsew')
-                data = tk.Label(master=val_window, text=ev.fc[comp], padx=10, anchor='w')
+
+                data = ev.fc[comp]
+                if data_type == 'cc':
+                    data = ev.fcd[comp]
+
+                data = tk.Label(master=val_window, text=data, padx=10, anchor='w')
                 data.grid(row=row + offset, column=3, sticky='nsew')
 
     def activate_mainloop(self):

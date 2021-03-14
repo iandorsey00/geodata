@@ -73,7 +73,7 @@ class Engine:
 
         return (sort_by, print_)
 
-    def context_filter(self, input_instances, context, filter, gv=False):
+    def context_filter(self, input_instances, context, geofilter, gv=False):
         '''Filters instances and leaves those that match the context.'''
         universe_sl, group_sl, group = self.slt.unpack_context(context)
         instances = input_instances
@@ -99,9 +99,9 @@ class Engine:
                                     instances))
 
         # Filtering
-        if filter:
+        if geofilter:
             # Convert pipe-delimited criteria string to a list of criteria
-            filter_criteria = filter.split('+')
+            filter_criteria = geofilter.split('+')
             # Covert list of criteria to lists of lists
             filter_criteria = map(lambda x: x.split(':'), filter_criteria)
 
