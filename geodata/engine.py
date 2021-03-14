@@ -211,7 +211,7 @@ class Engine:
 
         dpi_instances = d['demographicprofiles']
         return sorted(dpi_instances, key=lambda x: \
-                            fuzz.token_set_ratio(query, x.name), reverse=True)
+                            fuzz.token_set_ratio(query, x.name), reverse=True)[:n]
 
     def rows(self, comps, context='', geofilter=''):
         '''Output data to a CSV file'''
