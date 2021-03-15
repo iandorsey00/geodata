@@ -329,13 +329,12 @@ class Engine:
 
         return self.get_distance(dp1, dp2, kilometers)
 
-    def closest_geographies(self, display_label, context='', geofilter=''):
+    def closest_geographies(self, display_label, context='', geofilter='', n=10):
         '''Display the closest geographies'''
         d = self.get_data_products()
 
         target_geo = list(filter(lambda x: x.name == display_label, d['demographicprofiles']))[0]
         dpi_instances = d['demographicprofiles']
-        
         # Remove numpy.nans because they interfere with sorted()
         # dpi_instances = list(filter(lambda x: not \
         #                numpy.isnan(getattr(x, sort_by)[comp]), dpi_instances))
@@ -351,4 +350,4 @@ class Engine:
                 dp_distances.append((dp, self.get_distance(target_geo, dp)))
 
         # Sort our DemographicProfile instances by component or compound specified.
-        return sorted(dp_distances, key=lambda x: x[1])
+        return sorted(dp_distances, key=lambda x: x[1])[:n]

@@ -19,6 +19,13 @@ class GeodataGUI:
 
         self.engine = Engine()
 
+        # These attributes may or may not have not been created, and they
+        # may or may not have been destroyed.
+        self.evs_within_geo_label = None
+        self.evs_within_state_combobox = None
+        self.evs_within_county_combobox = None
+        self.evs_zcta_entry = None
+
         # Main window #########################################################
 
         ### Upper area
@@ -192,6 +199,7 @@ class GeodataGUI:
     def display_search_results(self, display_label):
         search_window = tk.Toplevel(master=self.root)
         search_window.minsize(500, 150)
+        search_window.title(display_label + ' - Search results')
         search_window.columnconfigure(2, weight=1)
 
         now_loading = tk.Label(master=search_window, text='Now loading. Please wait.')
@@ -226,6 +234,7 @@ class GeodataGUI:
     def display_demographic_profile(self, display_label):
         dp_window = tk.Toplevel(master=self.root)
         dp_window.minsize(500, 150)
+        dp_window.title(display_label + ' - DemographicProfile')
         dp_window.columnconfigure(2, weight=1)
 
         now_loading = tk.Label(master=dp_window, text='Now loading. Please wait.')
@@ -250,6 +259,7 @@ class GeodataGUI:
                 counties.grid(row=1, column=2, columnspan=3, sticky='nsew')
 
             self.dp_offset = 2
+            last_row = 0
 
             keys = ['land_area',
                     'population',
@@ -304,6 +314,17 @@ class GeodataGUI:
                 else:
                     self.demographic_profile_row_std(dp_window, dp, key, row + self.dp_offset)
 
+                last_row = row + self.dp_offset
+
+            bottom_buttons_frame = tk.Frame(master=dp_window)
+            show_cgs_cmd = partial(self.show_closest_geographies, dp.name)
+            cgs_button = tk.Button(master=bottom_buttons_frame, text='Show closest geographies', padx=10, command=show_cgs_cmd)
+            cgs_button.pack(side=tk.LEFT)
+            show_geovectors_cmd = partial(self.show_geovectors, dp.name)
+            geovectors_button = tk.Button(master=bottom_buttons_frame, text='Show GeoVectors', padx=10, command=show_geovectors_cmd)
+            geovectors_button.pack(side=tk.LEFT)
+            bottom_buttons_frame.grid(row=last_row + 1, column=0, columnspan=5, pady=10)
+
     def demographic_profile_row_std(self, master, dp, key, row):
         '''Render a standard DemographicProfile row'''
         this_hv_command = partial(self.display_extreme_values, key)
@@ -352,6 +373,86 @@ class GeodataGUI:
         header.grid(row=row, column=2, columnspan=3, sticky='nsew')
         self.dp_offset += 1
 
+    def show_closest_geographies(self, display_label, event=None):
+        cg_window = tk.Toplevel(master=self.root)
+        cg_window.minsize(500, 150)
+        cg_window.columnconfigure(2, weight=1)
+        cg_window.title(display_label + ' - Closest geographies')
+
+        now_loading = tk.Label(master=cg_window, text='Now loading. Please wait.')
+        now_loading.grid(row=0, column=0, sticky='nsew')
+        self.root.update()
+
+        cgs = self.engine.closest_geographies(display_label, context='p+')
+
+        if len(cgs) == 0:
+            cg_window.destroy()
+            tk_messagebox.showinfo('', 'Sorry, no geographies can be found.')
+        else:
+            now_loading.destroy()
+            geography_label = tk.Label(master=cg_window, text='Geography', padx=10, font=('TkCaptionFont', 15), anchor='w')
+            geography_label.grid(row=0, column=1, sticky='nsew')
+            distance_label = tk.Label(master=cg_window, text='Distance (mi)', padx=10, font=('TkCaptionFont', 15), anchor='w')
+            distance_label.grid(row=0, column=2, sticky='nsew')
+
+            row_offset = 1
+
+            for row, cg in enumerate(cgs):
+                dpi, distance = cg
+                this_dp_command = partial(self.display_demographic_profile, dpi.name)
+                dp_button = tk.Button(master=cg_window, text='DP', command=this_dp_command)
+                dp_button.grid(row=row + row_offset, column=0, sticky='nsew')
+                label = tk.Label(master=cg_window, text=dpi.name, padx=10, anchor='w')
+                label.grid(row=row + row_offset, column=1, sticky='nsew')
+                label = tk.Label(master=cg_window, text=distance, padx=10, anchor='w')
+                label.grid(row=row + row_offset, column=2, sticky='nsew')
+
+    def show_geovectors(self, display_label, event=None):
+        gv_window = tk.Toplevel(master=self.root)
+        gv_window.minsize(500, 150)
+        gv_window.columnconfigure(2, weight=1)
+        gv_window.title(display_label + ' - Closest GeoVectors')
+
+        now_loading = tk.Label(master=gv_window, text='Now loading. Please wait.')
+        now_loading.grid(row=0, column=0, sticky='nsew')
+        self.root.update()
+
+        gvs = self.engine.compare_geovectors(display_label)
+
+        if len(gvs) == 0:
+            gv_window.destroy()
+            tk_messagebox.showinfo('', 'Sorry, no GeoVectors can be found.')
+        else:
+            now_loading.destroy()
+            geography_label = tk.Label(master=gv_window, text='Geography', padx=10, font=('TkCaptionFont', 15), anchor='w')
+            geography_label.grid(row=0, column=1, sticky='nsew')
+
+            ## Headers
+            offset = 2
+            headers = ['PDN', 'PCI', 'WHT', 'BLK', 'ASN', 'HPL', 'BDH', 'GDH', 'Distance']
+            for index, header in enumerate(headers):
+                label = tk.Label(master=gv_window, text=header, padx=10, font=('TkCaptionFont', 15), anchor='w')
+                label.grid(row=0, column=index + offset, sticky='nsew')
+
+            row_offset = 1
+            col_offset = 2
+
+            for row, gv in enumerate(gvs[:10]):
+                this_dp_command = partial(self.display_demographic_profile, gv.name)
+                dp_button = tk.Button(master=gv_window, text='DP', command=this_dp_command)
+                dp_button.grid(row=row + row_offset, column=0, sticky='nsew')
+                label = tk.Label(master=gv_window, text=gv.name, padx=10, anchor='w')
+                label.grid(row=row + row_offset, column=1, sticky='nsew')
+
+                for col, comp in enumerate(gv.ws['std'].keys()):
+                    label = tk.Label(master=gv_window, text=str(gv.s[comp]), padx=10, anchor='w')
+                    label.grid(row=row + row_offset, column=col + col_offset, sticky='nsew')
+                    last_col = col + col_offset
+
+                distance = round(gvs[0].distance(gv, mode='std'), 2)
+                label = tk.Label(master=gv_window, text=distance, padx=10, anchor='w')
+                label.grid(row=row + row_offset, column=last_col + 1, sticky='nsew')
+
     def evs_go(self, event=None):
         lowest = self.evs_combobox.get() == 'lowest value'
 
@@ -387,32 +488,28 @@ class GeodataGUI:
 
         comp = self.evs_comp_combobox.get()
 
-        # Get geographical context, if there is one
-        try:
-            if self.evs_within_county_combobox.winfo_exists():
-                county_name = self.evs_within_county_combobox.get()
-                if county_name != 'All counties':
-                    county_key = self.engine.kt.county_name_to_key[county_name]
-                    context += county_key[3:].replace('/county', '')
-                else:
-                    context += self.get_state_key()
-        except AttributeError:
-            try:
-                if self.evs_within_state_combobox.winfo_exists():
-                    context += self.get_state_key()
-            except AttributeError:
-                try:
-                    if self.evs_zcta_entry.winfo_exists():
-                        zcta_group = self.evs_zcta_entry.get()
-                        context += zcta_group
-                except AttributeError:
-                    pass
+        ## Get geographical context, if there is one
+        # ZCTAs (Zip codes)
+        if self.test_removable_widget_existance(self.evs_zcta_entry):
+            zcta_group = self.evs_zcta_entry.get()
+            context += zcta_group
+        # States + Counties
+        elif self.test_removable_widget_existance(self.evs_within_county_combobox):
+            county_name = self.evs_within_county_combobox.get()
+            if county_name != 'All counties':
+                county_key = self.engine.kt.county_name_to_key[county_name]
+                context += county_key[3:].replace('/county', '')
+            else:
+                context += self.get_state_key()
+        # States
+        elif self.test_removable_widget_existance(self.evs_within_state_combobox):
+            context += self.get_state_key()
 
         self.display_extreme_values(comp, context=context, geofilter=geofilter, lowest=lowest)
 
     def get_state_key(self):
         state_name = self.evs_within_state_combobox.get()
-        if state_name != '':
+        if state_name != 'All states':
             state_key = self.engine.st.get_abbrev(state_name, lowercase=True)
         else:
             state_key = ''
@@ -422,6 +519,7 @@ class GeodataGUI:
     def display_extreme_values(self, comp, context='', geofilter='', lowest=False):
         val_window = tk.Toplevel(master=self.root)
         val_window.minsize(500, 150)
+        val_window.title('Extreme values')
         val_window.columnconfigure(1, weight=1)
 
         now_loading = tk.Label(master=val_window, text='Now loading. Please wait.')
@@ -576,26 +674,21 @@ class GeodataGUI:
             self.evs_within_county_combobox.forget()
 
     def destroy_evs_within_county_combobox_if_exists(self):
-        try:
+        if self.evs_within_county_combobox and self.evs_within_county_combobox.winfo_exists:
             self.evs_within_county_combobox.destroy()
-        except AttributeError:
-            pass
 
     def destroy_removable_widgets_if_exists(self):
-        try:
-            self.evs_within_geo_label.destroy()
-        except AttributeError:
-            pass
+        removable_widgets = [self.evs_within_geo_label,
+                             self.evs_within_state_combobox,
+                             self.evs_within_county_combobox,
+                             self.evs_zcta_entry]
 
-        try:
-            self.evs_within_state_combobox.destroy()
-        except AttributeError:
-            pass
+        for removable_widget in removable_widgets:
+            if self.test_removable_widget_existance(removable_widget):
+                removable_widget.destroy()
 
-        try:
-            self.evs_zcta_entry.destroy()
-        except AttributeError:
-            pass
+    def test_removable_widget_existance(self, widget):
+        return widget and widget.winfo_exists
 
     def activate_mainloop(self):
         self.root.mainloop()
