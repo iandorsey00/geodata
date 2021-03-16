@@ -138,7 +138,7 @@ class Engine:
 
         return instances
 
-    def compare_geovectors(self, display_label, context='', n=10, mode='std'):
+    def compare_geovectors(self, display_label, context='', n=10, mode='std', **kwargs):
         '''Compare GeoVectors.'''
         d = self.get_data_products()
 
@@ -163,14 +163,14 @@ class Engine:
     def compare_geovectors_app(self, display_label, context='', n=10):
         return self.compare_geovectors(display_label, context=context, n=n, mode='app')
 
-    def get_dp(self, display_label):
+    def get_dp(self, display_label, **kwargs):
         '''Get DemographicProfiles.'''
         d = self.get_data_products()
 
         place = display_label
         return list(filter(lambda x: x.name == place, d['demographicprofiles']))[0]
 
-    def extreme_values(self, comp, data_type='c', context='', geofilter='', lowest=False):
+    def extreme_values(self, comp, data_type='c', context='', geofilter='', n=10, lowest=False, **kwargs):
         '''Get highest and lowest values.'''
         d = self.get_data_products()
 
@@ -201,11 +201,11 @@ class Engine:
         return sorted(dpi_instances, key=lambda x: \
                     getattr(x, sort_by)[comp], reverse=(not lowest))
 
-    def lowest_values(self, comp, data_type='c', context='', geofilter=''):
+    def lowest_values(self, comp, data_type='c', context='', geofilter='', n=10, **kwargs):
         '''Wrapper function for lowest values.'''
-        return self.extreme_values(comp, data_type=data_type, context=context, geofilter=geofilter, lowest=True)
+        return self.extreme_values(comp, data_type=data_type, context=context, geofilter=geofilter, n=n,  lowest=True)
 
-    def display_label_search(self, query, n=10):
+    def display_label_search(self, query, n=10, **kwargs):
         '''Search display labels (place names).'''
         d = self.get_data_products()
 
@@ -213,7 +213,7 @@ class Engine:
         return sorted(dpi_instances, key=lambda x: \
                             fuzz.token_set_ratio(query, x.name), reverse=True)[:n]
 
-    def rows(self, comps, context='', geofilter=''):
+    def rows(self, comps, context='', geofilter='', **kwargs):
         '''Output data to a CSV file'''
         # Note: n is not yet implemented.
         # TODO: Permit -n 0 to mean 'all values'
@@ -297,7 +297,7 @@ class Engine:
 
             csvwriter.writerow(this_row)
 
-    def get_csv_dp(self, display_label):
+    def get_csv_dp(self, display_label, **kwargs):
         '''Output a DemographicProfile in CSV format'''
         d = self.get_data_products()
 
@@ -318,7 +318,7 @@ class Engine:
 
         return distance
 
-    def distance(self, display_label_1, display_label_2, kilometers=False):
+    def distance(self, display_label_1, display_label_2, kilometers=False, **kwargs):
         '''Get the distance between two geographies'''
         d = self.get_data_products()
 
@@ -329,7 +329,7 @@ class Engine:
 
         return self.get_distance(dp1, dp2, kilometers)
 
-    def closest_geographies(self, display_label, context='', geofilter='', n=10):
+    def closest_geographies(self, display_label, context='', geofilter='', n=10, **kwargs):
         '''Display the closest geographies'''
         d = self.get_data_products()
 

@@ -241,7 +241,7 @@ class GeodataGUI:
         now_loading.grid(row=0, column=0, sticky='nsew')
         self.root.update()
 
-        dp_list = [self.engine.get_dp(display_label)]
+        dp_list = self.engine.get_dp(display_label)
 
         if len(dp_list) == 0:
             dp_window.destroy()
