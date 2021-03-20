@@ -35,42 +35,42 @@ class DemographicProfile:
             self.counties_display = []
 
         #######################################################################
-        # Row headers - Row labels
+        # Row labels - Formatted names for each type of data
 
-        self.rh = dict()
+        self.rl = dict()
 
         # Population category
-        self.rh['population'] = 'Total population'
-        self.rh['population_density'] = 'Population density'
+        self.rl['population'] = 'Total population'
+        self.rl['population_density'] = 'Population density'
 
         # Geography category
-        self.rh['land_area'] = 'Land area'
-        self.rh['latitude'] = 'Latitude'
-        self.rh['longitude'] = 'Longitude'
+        self.rl['land_area'] = 'Land area'
+        self.rl['latitude'] = 'Latitude'
+        self.rl['longitude'] = 'Longitude'
 
         # Race category
-        self.rh['white_alone'] = 'White alone'
-        self.rh['white_alone_not_hispanic_or_latino'] = 'Not Hispanic or Latino'
-        self.rh['black_alone'] = 'Black or African American alone'
-        self.rh['asian_alone'] = 'Asian alone'
-        self.rh['other_race']  = 'Other race'
+        self.rl['white_alone'] = 'White alone'
+        self.rl['white_alone_not_hispanic_or_latino'] = 'Not Hispanic or Latino'
+        self.rl['black_alone'] = 'Black or African American alone'
+        self.rl['asian_alone'] = 'Asian alone'
+        self.rl['other_race']  = 'Other race'
         # Technically not a race, but included in the race category
-        self.rh['hispanic_or_latino'] = 'Hispanic or Latino'
+        self.rl['hispanic_or_latino'] = 'Hispanic or Latino'
 
         # Education category
-        self.rh['population_25_years_and_older'] = 'Total population 25 years and older'
-        self.rh['bachelors_degree_or_higher'] = "Bachelor's degree or higher"
-        self.rh['graduate_degree_or_higher'] =  'Graduate degree or higher'
+        self.rl['population_25_years_and_older'] = 'Total population 25 years and older'
+        self.rl['bachelors_degree_or_higher'] = "Bachelor's degree or higher"
+        self.rl['graduate_degree_or_higher'] =  'Graduate degree or higher'
 
         # Income category
-        self.rh['per_capita_income'] = 'Per capita income'
-        self.rh['median_household_income'] = 'Median household income'
+        self.rl['per_capita_income'] = 'Per capita income'
+        self.rl['median_household_income'] = 'Median household income'
 
         # Housing category
-        self.rh['median_year_structure_built'] = 'Median year unit built'
-        self.rh['median_rooms'] = 'Median rooms'
-        self.rh['median_value'] = 'Median value'
-        self.rh['median_rent'] = 'Median rent'
+        self.rl['median_year_structure_built'] = 'Median year unit built'
+        self.rl['median_rooms'] = 'Median rooms'
+        self.rl['median_value'] = 'Median value'
+        self.rl['median_rent'] = 'Median rent'
 
         #######################################################################
         # Indents - With how many spaces should row labels be indented?
@@ -109,6 +109,14 @@ class DemographicProfile:
         self.ind['median_rooms'] = 0
         self.ind['median_value'] = 0
         self.ind['median_rent'] = 0
+
+        #######################################################################
+        # Row headers - Mostly for CLI display of DemographicProfiles
+
+        self.rh = dict()
+
+        for comp in self.rl.keys():
+            self.rh[comp] = ' ' * self.ind[comp] + self.rl[comp]
 
         #######################################################################
         # Raw components - Data that comes directly from the Census data files
