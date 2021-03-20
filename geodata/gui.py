@@ -117,35 +117,26 @@ class GeodataGUI:
         self.evs_filter_label = tk.Label(master=self.evs_filter_frame, text='Filter by')
         self.evs_filter_label.pack(side=tk.LEFT, padx=(0, 5), pady=5)
 
+        comps = list(self.dp_fetch_one.rl.values())
+        comps.insert(0, '')
+
         self.evs_filter_comp_combobox = ttk.Combobox(master=self.evs_filter_frame, state='readonly')
-        self.evs_filter_comp_combobox['values'] = ['',
-                                                   'land_area',
-                                                   'population',
-                                                   'population_density',
-                                                   'white_alone',
-                                                   'white_alone_not_hispanic_or_latino',
-                                                   'black_alone',
-                                                   'asian_alone',
-                                                   'other_race',
-                                                   'hispanic_or_latino',
-                                                   'population_25_years_and_older',
-                                                   'bachelors_degree_or_higher',
-                                                   'graduate_degree_or_higher',
-                                                   'per_capita_income',
-                                                   'median_household_income',
-                                                   'median_year_structure_built',
-                                                   'median_rooms',
-                                                   'median_value',
-                                                   'median_rent']
+        self.evs_filter_comp_combobox['values'] = comps
         self.evs_filter_comp_combobox.pack(side=tk.LEFT)
 
+        self.evs_filter_op_dict = {
+            'gt': '>',
+            'gteq': '>=',
+            'eq': '=',
+            'lteq': '<=',
+            'lt': '<'
+        }
+
+        self.evs_filter_op_display_list = list(self.evs_filter_op_dict.values())
+        self.evs_filter_op_display_list.insert(0, '')
+
         self.evs_filter_op_combobox = ttk.Combobox(master=self.evs_filter_frame, width=10, state='readonly')
-        self.evs_filter_op_combobox['values'] = ['',
-                                                 'gt',
-                                                 'gteq',
-                                                 'eq',
-                                                 'lteq',
-                                                 'lt']
+        self.evs_filter_op_combobox['values'] = self.evs_filter_op_display_list
         self.evs_filter_op_combobox.pack(side=tk.LEFT)
 
         self.evs_filter_entry = tk.Entry(master=self.evs_filter_frame)
@@ -273,12 +264,16 @@ class GeodataGUI:
                 elif key == 'median_year_structure_built':
                     self.demographic_profile_header(dp_window, 'Housing', row + self.dp_offset)
 
-                # Special row for population_density
+                # Special row for population_density (with a formatted compound)
                 if key == 'population_density':
+                    self.demographic_profile_ev_buttons(master=dp_window, row=row + self.dp_offset, key=key)
+
                     row_header = tk.Label(master=dp_window, text=dp.rh[key], padx=10, anchor='w')
                     row_header.grid(row=row + self.dp_offset, column=2, sticky='nsew')
+
                     component = tk.Label(master=dp_window, padx=10, anchor='e')
                     component.grid(row=row + self.dp_offset, column=3, sticky='nsew')
+
                     compound = tk.Label(master=dp_window, text=dp.fcd[key], padx=10, anchor='e')
                     compound.grid(row=row + self.dp_offset, column=4, sticky='nsew')
                 # No compounds for these comps
@@ -302,13 +297,7 @@ class GeodataGUI:
 
     def demographic_profile_row_std(self, master, dp, key, row):
         '''Render a standard DemographicProfile row'''
-        this_hv_command = partial(self.display_extreme_values, key)
-        hv_button = tk.Button(master=master, text='HV', command=this_hv_command)
-        hv_button.grid(row=row, column=0, sticky='nsew')
-
-        this_lv_command = partial(self.display_extreme_values, key, lowest=True)
-        lv_button = tk.Button(master=master, text='LV', command=this_lv_command)
-        lv_button.grid(row=row, column=1, sticky='nsew')
+        self.demographic_profile_ev_buttons(master, row, key)
 
         row_header = tk.Label(master=master, text=dp.rh[key], padx=10, anchor='w')
         row_header.grid(row=row, column=2, sticky='nsew')
@@ -321,13 +310,7 @@ class GeodataGUI:
 
     def demographic_profile_row_nc(self, master, dp, key, row):
         '''Render a DemographicProfile row with no compound'''
-        this_hv_command = partial(self.display_extreme_values, key)
-        hv_button = tk.Button(master=master, text='HV', command=this_hv_command)
-        hv_button.grid(row=row, column=0, sticky='nsew')
-
-        this_lv_command = partial(self.display_extreme_values, key, lowest=True)
-        lv_button = tk.Button(master=master, text='LV', command=this_lv_command)
-        lv_button.grid(row=row, column=1, sticky='nsew')
+        self.demographic_profile_ev_buttons(master, row, key)
 
         row_header = tk.Label(master=master, text=dp.rh[key], padx=10, anchor='w')
         row_header.grid(row=row, column=2, sticky='nsew')
@@ -347,6 +330,15 @@ class GeodataGUI:
         header = tk.Label(master=master, text=text, padx=10, font=('TkCaptionFont', 12), anchor='w')
         header.grid(row=row, column=2, columnspan=3, sticky='nsew')
         self.dp_offset += 1
+
+    def demographic_profile_ev_buttons(self, master, row, key):
+        this_hv_command = partial(self.display_extreme_values, key)
+        hv_button = tk.Button(master=master, text='HV', command=this_hv_command)
+        hv_button.grid(row=row, column=0, sticky='nsew')
+
+        this_lv_command = partial(self.display_extreme_values, key, lowest=True)
+        lv_button = tk.Button(master=master, text='LV', command=this_lv_command)
+        lv_button.grid(row=row, column=1, sticky='nsew')
 
     def show_closest_geographies(self, display_label, event=None):
         cg_window = tk.Toplevel(master=self.root)
@@ -434,8 +426,8 @@ class GeodataGUI:
         # Filters
         geofilter = ''
 
-        geofilter_comp = self.evs_filter_comp_combobox.get()
-        geofilter_op = self.evs_filter_op_combobox.get()
+        geofilter_comp = [i for i, j in self.dp_fetch_one.rl.items() if j == self.evs_filter_comp_combobox.get()][0]
+        geofilter_op = [i for i, j in self.evs_filter_op_dict.items() if j == self.evs_filter_op_combobox.get()][0]
         geofilter_val = self.evs_filter_entry.get()
 
         geofilter_list = [geofilter_comp, geofilter_op, geofilter_val]
@@ -544,7 +536,11 @@ class GeodataGUI:
                 pop.grid(row=row + offset, column=2, sticky='nsew')
 
                 if comp != 'population':
-                    data = ev.fc[comp]
+                    if comp == 'population_density':
+                        data = ev.fcd[comp]
+                    else:
+                        data = ev.fc[comp]
+
                     if data_type == 'cc':
                         data = ev.fcd[comp]
 
