@@ -49,18 +49,18 @@ class DemographicProfile:
         self.rh['longitude'] = 'Longitude'
 
         # Race category
-        self.rh['white_alone'] = '    White alone'
-        self.rh['white_alone_not_hispanic_or_latino'] = '      Not Hispanic or Latino'
-        self.rh['black_alone'] = '    Black or African American alone'
-        self.rh['asian_alone'] = '    Asian alone'
-        self.rh['other_race']  = '    Other'
+        self.rh['white_alone'] = 'White alone'
+        self.rh['white_alone_not_hispanic_or_latino'] = 'Not Hispanic or Latino'
+        self.rh['black_alone'] = 'Black or African American alone'
+        self.rh['asian_alone'] = 'Asian alone'
+        self.rh['other_race']  = 'Other race'
         # Technically not a race, but included in the race category
-        self.rh['hispanic_or_latino'] = '    Hispanic or Latino'
+        self.rh['hispanic_or_latino'] = 'Hispanic or Latino'
 
         # Education category
         self.rh['population_25_years_and_older'] = 'Total population 25 years and older'
-        self.rh['bachelors_degree_or_higher'] = "  Bachelor's degree or higher"
-        self.rh['graduate_degree_or_higher'] =  '  Graduate degree or higher'
+        self.rh['bachelors_degree_or_higher'] = "Bachelor's degree or higher"
+        self.rh['graduate_degree_or_higher'] =  'Graduate degree or higher'
 
         # Income category
         self.rh['per_capita_income'] = 'Per capita income'
@@ -71,6 +71,44 @@ class DemographicProfile:
         self.rh['median_rooms'] = 'Median rooms'
         self.rh['median_value'] = 'Median value'
         self.rh['median_rent'] = 'Median rent'
+
+        #######################################################################
+        # Indents - With how many spaces should row labels be indented?
+
+        self.ind = dict()
+
+        # Population category
+        self.ind['population'] = 0
+        self.ind['population_density'] = 0
+
+        # Geography category
+        self.ind['land_area'] = 0
+        self.ind['latitude'] = 0
+        self.ind['longitude'] = 0
+
+        # Race category
+        self.ind['white_alone'] = 4
+        self.ind['white_alone_not_hispanic_or_latino'] = 6
+        self.ind['black_alone'] = 4
+        self.ind['asian_alone'] = 4
+        self.ind['other_race']  = 4
+        # Technically not a race, but included in the race category
+        self.ind['hispanic_or_latino'] = 4
+
+        # Education category
+        self.ind['population_25_years_and_older'] = 0
+        self.ind['bachelors_degree_or_higher'] = 2
+        self.ind['graduate_degree_or_higher'] = 2
+
+        # Income category
+        self.ind['per_capita_income'] = 0
+        self.ind['median_household_income'] = 0
+
+        # Housing category
+        self.ind['median_year_structure_built'] = 0
+        self.ind['median_rooms'] = 0
+        self.ind['median_value'] = 0
+        self.ind['median_rent'] = 0
 
         #######################################################################
         # Raw components - Data that comes directly from the Census data files

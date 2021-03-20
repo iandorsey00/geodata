@@ -159,8 +159,8 @@ class GeodataCLI:
         print(print_search_divider())
 
     def get_dp(self, args):
-        dp = self.engine.get_dp(**vars(args))
-        print(dp)
+        dp_list = self.engine.get_dp(**vars(args))
+        print(dp_list[0])
 
     def compare_geovectors(self, args, mode='std'):
         closest_gvs = self.engine.compare_geovectors(**vars(args), mode=mode)

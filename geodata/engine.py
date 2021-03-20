@@ -168,7 +168,7 @@ class Engine:
         d = self.get_data_products()
 
         place = display_label
-        return list(filter(lambda x: x.name == place, d['demographicprofiles']))[0]
+        return list(filter(lambda x: x.name == place, d['demographicprofiles']))
 
     def extreme_values(self, comp, data_type='c', context='', geofilter='', n=10, lowest=False, **kwargs):
         '''Get highest and lowest values.'''
