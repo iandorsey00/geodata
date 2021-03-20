@@ -19,6 +19,8 @@ class GeodataGUI:
 
         self.engine = Engine()
 
+        self.dp_fetch_one = self.engine.d['demographicprofiles'][0]
+
         # These attributes may or may not have not been created, and they
         # may or may not have been destroyed.
         self.evs_within_geo_label = None
@@ -78,25 +80,8 @@ class GeodataGUI:
         self.evs_for_label.pack(side=tk.LEFT)
 
         self.evs_comp_combobox = ttk.Combobox(master=self.evs_frame, state='readonly')
-        self.evs_comp_combobox['values'] = ['land_area',
-                                            'population',
-                                            'population_density',
-                                            'white_alone',
-                                            'white_alone_not_hispanic_or_latino',
-                                            'black_alone',
-                                            'asian_alone',
-                                            'other_race',
-                                            'hispanic_or_latino',
-                                            'population_25_years_and_older',
-                                            'bachelors_degree_or_higher',
-                                            'graduate_degree_or_higher',
-                                            'per_capita_income',
-                                            'median_household_income',
-                                            'median_year_structure_built',
-                                            'median_rooms',
-                                            'median_value',
-                                            'median_rent']
-        self.evs_comp_combobox.set('population')
+        self.evs_comp_combobox['values'] = list(self.dp_fetch_one.rl.values())
+        self.evs_comp_combobox.set('Total population')
         self.evs_comp_combobox.pack(side=tk.LEFT)
 
         self.evs_go_button = tk.Button(master=self.evs_frame, text='Go', bg='green', fg='white', padx=10, command=self.evs_go)
@@ -261,28 +246,18 @@ class GeodataGUI:
             self.dp_offset = 2
             last_row = 0
 
-            keys = ['land_area',
-                    'population',
-                    'population_density',
-                    'white_alone',
-                    'white_alone_not_hispanic_or_latino',
-                    'black_alone',
-                    'asian_alone',
-                    'other_race',
-                    'hispanic_or_latino',
-                    'population_25_years_and_older',
-                    'bachelors_degree_or_higher',
-                    'graduate_degree_or_higher',
-                    'per_capita_income',
-                    'median_household_income',
-                    'median_year_structure_built',
-                    'median_rooms',
-                    'median_value',
-                    'median_rent']
+            keys = list(self.dp_fetch_one.rl.keys())
 
-            # Create headers
+            # Currently, DemographicProfiles don't display the following.
+            keys.remove('latitude')
+            keys.remove('longitude')
+
+            # Move land_area to front of list
+            keys.remove('land_area')
+            keys.insert(0, 'land_area')
+
             for row, key in enumerate(keys):
-                # Headers
+                # Create headers
                 if key == 'land_area':
                     self.demographic_profile_header(dp_window, 'Geography', row + self.dp_offset)
                 elif key == 'population':
@@ -306,7 +281,7 @@ class GeodataGUI:
                     component.grid(row=row + self.dp_offset, column=3, sticky='nsew')
                     compound = tk.Label(master=dp_window, text=dp.fcd[key], padx=10, anchor='e')
                     compound.grid(row=row + self.dp_offset, column=4, sticky='nsew')
-                # Render headings for these comps
+                # No compounds for these comps
                 elif key in ['land_area', 'population', 'per_capita_income', 'median_household_income',
                              'median_year_structure_built', 'median_rooms', 'median_value', 'median_rent']:
                     self.demographic_profile_row_nc(dp_window, dp, key, row + self.dp_offset)
@@ -486,7 +461,7 @@ class GeodataGUI:
 
         context = geo_type
 
-        comp = self.evs_comp_combobox.get()
+        comp = [i for i, j in self.dp_fetch_one.rl.items() if j == self.evs_comp_combobox.get()][0]
 
         ## Get geographical context, if there is one
         # ZCTAs (Zip codes)
@@ -523,13 +498,12 @@ class GeodataGUI:
         val_window.columnconfigure(1, weight=1)
 
         now_loading = tk.Label(master=val_window, text='Now loading. Please wait.')
-        now_loading.grid(row=0, column=0, sticky='nsew')
+        now_loading.grid(row=0, column=0, columnspan=2, sticky='nsew')
         self.root.update()
 
         data_type = 'c'
 
-        if comp in ['land_area',
-                    'population_density',
+        if comp in ['population_density',
                     'white_alone',
                     'white_alone_not_hispanic_or_latino',
                     'black_alone',
@@ -548,12 +522,16 @@ class GeodataGUI:
             tk_messagebox.showinfo('', 'Sorry, there are no geographies to display.')
         else:
             now_loading.destroy()
+            fetch_one = evs[0]
+
             geography_label = tk.Label(master=val_window, text='Geography', padx=10, font=('TkCaptionFont', 15), anchor='w')
             geography_label.grid(row=0, column=1, sticky='nsew')
             population_label = tk.Label(master=val_window, text='Population', padx=10, font=('TkCaptionFont', 15), anchor='w')
             population_label.grid(row=0, column=2, sticky='nsew')
-            comp_label = tk.Label(master=val_window, text=comp, padx=10, font=('TkCaptionFont', 15), anchor='w')
-            comp_label.grid(row=0, column=3, sticky='nsew')
+
+            if comp != 'population':
+                comp_label = tk.Label(master=val_window, text=fetch_one.rl[comp], padx=10, font=('TkCaptionFont', 15), anchor='w')
+                comp_label.grid(row=0, column=3, sticky='nsew')
 
             for row, ev in enumerate(evs[:10]):
                 offset = 1
@@ -565,12 +543,13 @@ class GeodataGUI:
                 pop = tk.Label(master=val_window, text=ev.fc['population'], padx=10, anchor='w')
                 pop.grid(row=row + offset, column=2, sticky='nsew')
 
-                data = ev.fc[comp]
-                if data_type == 'cc':
-                    data = ev.fcd[comp]
+                if comp != 'population':
+                    data = ev.fc[comp]
+                    if data_type == 'cc':
+                        data = ev.fcd[comp]
 
-                data = tk.Label(master=val_window, text=data, padx=10, anchor='w')
-                data.grid(row=row + offset, column=3, sticky='nsew')
+                    data = tk.Label(master=val_window, text=data, padx=10, anchor='w')
+                    data.grid(row=row + offset, column=3, sticky='nsew')
 
     def handle_within_geo(self, event=None):
         geo_type = self.evs_geo_type_combobox.get()
