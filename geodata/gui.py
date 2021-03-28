@@ -429,8 +429,6 @@ class GeodataGUI:
         geofilter_op_items = list(self.evs_filter_op_dict.items())
         geofilter_op_items.insert(0, ('', ''))
 
-        print(self.evs_filter_op_combobox.get())
-
         # Filters
         geofilter = ''
 
