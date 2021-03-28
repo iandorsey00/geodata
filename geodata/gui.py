@@ -423,11 +423,19 @@ class GeodataGUI:
     def evs_go(self, event=None):
         lowest = self.evs_combobox.get() == 'lowest value'
 
+        geofilter_comp_items = list(self.dp_fetch_one.rl.items())
+        geofilter_comp_items.insert(0, ('', ''))
+
+        geofilter_op_items = list(self.evs_filter_op_dict.items())
+        geofilter_op_items.insert(0, ('', ''))
+
+        print(self.evs_filter_op_combobox.get())
+
         # Filters
         geofilter = ''
 
-        geofilter_comp = [i for i, j in self.dp_fetch_one.rl.items() if j == self.evs_filter_comp_combobox.get()][0]
-        geofilter_op = [i for i, j in self.evs_filter_op_dict.items() if j == self.evs_filter_op_combobox.get()][0]
+        geofilter_comp = [i for i, j in geofilter_comp_items if j == self.evs_filter_comp_combobox.get()][0]
+        geofilter_op = [i for i, j in geofilter_op_items if j == self.evs_filter_op_combobox.get()][0]
         geofilter_val = self.evs_filter_entry.get()
 
         geofilter_list = [geofilter_comp, geofilter_op, geofilter_val]
