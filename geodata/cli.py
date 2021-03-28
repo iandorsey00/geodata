@@ -15,7 +15,8 @@ class GeodataCLI:
 
         # Create the top-level argument parser
         parser = argparse.ArgumentParser(
-            description='Displays information for geographies in the U.S.')
+            description='Displays information for geographies in the U.S.',
+            prog='geodata')
         # Create top-level subparsers
         subparsers = parser.add_subparsers(
             help='enter geodata <subcommand> -h for more information.')
@@ -125,7 +126,14 @@ class GeodataCLI:
 
         # Parse arguments
         args = parser.parse_args()
-        args.func(args)
+
+        # try/except is necessary here due to a bug in argparse -- an
+        # AttributeError may be invoked if the program is run with too few
+        # arguments.
+        try:
+            args.func(args)
+        except AttributeError:
+            parser.error("Too few arguments")
 
     def create_data_products(self, args):
         self.engine.create_data_products(args.path)
