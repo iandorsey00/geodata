@@ -670,7 +670,10 @@ class GeodataGUI:
                 removable_widget.destroy()
 
     def test_removable_widget_existance(self, widget):
-        return widget and widget.winfo_exists
+        if widget:
+            return widget.winfo_exists()
+        else:
+            return False
 
     def activate_mainloop(self):
         self.root.mainloop()
