@@ -423,6 +423,7 @@ class GeodataGUI:
     def evs_go(self, event=None):
         lowest = self.evs_combobox.get() == 'lowest value'
 
+        # Add the empty string to items from these two dicts
         geofilter_comp_items = list(self.dp_fetch_one.rl.items())
         geofilter_comp_items.insert(0, ('', ''))
 
