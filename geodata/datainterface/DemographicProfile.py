@@ -24,6 +24,7 @@ class DemographicProfile:
         ct = CountyTools()
         # County GEOIDs
         if self.sumlevel == '160': # Place
+            print(self.geoid)
             self.counties = ct.place_to_counties[self.geoid[7:]]
             # County names (without the state)
             self.counties_display = list(map(lambda x: ct.county_geoid_to_name[x],
@@ -56,6 +57,7 @@ class DemographicProfile:
         self.rl['other_race']  = 'Other race'
         # Technically not a race, but included in the race category
         self.rl['hispanic_or_latino'] = 'Hispanic or Latino'
+        self.rl['italian_alone'] = 'Italian alone'
 
         # Education category
         self.rl['population_25_years_and_older'] = 'Total population 25 years and older'
@@ -94,6 +96,7 @@ class DemographicProfile:
         self.ind['other_race']  = 4
         # Technically not a race, but included in the race category
         self.ind['hispanic_or_latino'] = 4
+        self.ind['italian_alone'] = 0
 
         # Education category
         self.ind['population_25_years_and_older'] = 0
@@ -141,6 +144,9 @@ class DemographicProfile:
         # Technically not a race, but included in the race category
         self.rc['hispanic_or_latino'] = gdt(db_row['B03002_12'])
         self.rc['white_alone_not_hispanic_or_latino'] = gdt(db_row['B03002_3'])
+
+        # Italian
+        self.rc['italian_alone'] = gdt(db_row['B04004_51'])
 
         # Education category
         self.rc['population_25_years_and_older'] = gdt(db_row['B15003_1'])
@@ -206,6 +212,7 @@ class DemographicProfile:
             # Technically not a race, but included in the race category
             self.c['hispanic_or_latino'] = self.rc['hispanic_or_latino'] / self.rc['population'] * 100.0
             self.c['white_alone_not_hispanic_or_latino'] = self.rc['white_alone_not_hispanic_or_latino'] / self.rc['population'] * 100.0
+            self.c['italian_alone'] = self.rc['italian_alone'] / self.rc['population'] * 100.0
         else:
             # Race category - Percentages of the total population
             self.c['white_alone'] = 0.0
@@ -214,6 +221,7 @@ class DemographicProfile:
             self.c['other_race'] = 0.0          # Technically not a race, but included in the race category
             self.c['hispanic_or_latino'] = 0.0
             self.c['white_alone_not_hispanic_or_latino'] = 0.0
+            self.c['italian_alone'] = 0.0
 
         if self.rc['population_25_years_and_older'] != 0 and self.rc['population'] != 0:
             # Education category - Percentages of the population 25 years and older

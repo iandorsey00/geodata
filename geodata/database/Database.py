@@ -31,9 +31,9 @@ class Database:
 
         return columns
 
-    def get_gh_columns(self, path):
+    def get_gh_columns(self, gh_year, path):
         '''Obtain columns for the geoheaders table.'''
-        return list(pd.read_csv(path + '2019_Gaz_place_national.txt',
+        return list(pd.read_csv(path + gh_year + '_Gaz_place_national.txt',
             sep='\t', nrows=1, dtype='str').columns)
 
     def dbapi_qm_substr(self, columns_len):
@@ -91,12 +91,13 @@ class Database:
         rows = []
         # Get rows from CSV files for each state.
         for state in self.st.get_abbrevs(lowercase=True):
-            this_path = self.path + 'g20185' + state + '.csv'
+            this_path = self.path + 'g' + self.year + '5' + state + '.csv'
+            
             with open(this_path, 'rt', encoding='iso-8859-1') as f:
                 rows += list(csv.reader(f))
 
         # Also, get rows for the national file (for ZCTA support).
-        this_path = self.path + 'g20185us.csv'
+        this_path = self.path + 'g' + self.year + '5us.csv'
         with open(this_path, 'rt', encoding='iso-8859-1') as f:
             rows += list(csv.reader(f))
         
@@ -110,6 +111,8 @@ class Database:
         # Initialize ##########################################################
 
         self.path = path
+        self.year = '2020'
+        self.gh_year = '2023'
 
         self.st = StateTools()
 
@@ -202,21 +205,21 @@ class Database:
         # is that we need to get the land area so that we can calculate
         # population and housing unit densities.
 
-        columns = self.get_gh_columns(self.path)
+        columns = self.get_gh_columns(self.gh_year, self.path)
         columns[-1] = columns[-1].strip()
         self.geoheaders_columns = columns
         column_defs = list(map(lambda x: x + ' TEXT', columns))
         column_defs.insert(0, 'id INTEGER PRIMARY KEY')
 
         # Get rows for places (160) from CSV
-        this_path = self.path + '2019_Gaz_place_national.txt'
+        this_path = self.path + self.gh_year + '_Gaz_place_national.txt'
         rows = []
 
         with open(this_path, 'rt') as f:
             rows = list(csv.reader(f, delimiter='\t'))
 
         # Get rows for counties (050) from CSV
-        this_path = self.path + '2019_Gaz_counties_national.txt'
+        this_path = self.path + self.gh_year + '_Gaz_counties_national.txt'
 
         with open(this_path, 'rt') as f:
             c_rows = list(csv.reader(f, delimiter='\t'))
@@ -234,13 +237,13 @@ class Database:
             s_rows = list(csv.reader(f, delimiter='\t'))
 
         # Get rows for Metro/micro areas (310) from CSV
-        this_path = self.path + '2019_Gaz_cbsa_national.txt'
+        this_path = self.path + self.gh_year + '_Gaz_cbsa_national.txt'
 
         with open(this_path, 'rt') as f:
             cbsa_rows = list(csv.reader(f, delimiter='\t'))
 
         # Get rows for urban areas (400) from CSV
-        this_path = self.path + '2019_Gaz_ua_national.txt'
+        this_path = self.path + self.gh_year + '_Gaz_ua_national.txt'
 
         with open(this_path, 'rt') as f:
             ua_rows = list(csv.reader(f, delimiter='\t'))
@@ -252,7 +255,7 @@ class Database:
             ua_row.insert(5, '')
 
         # Get rows for ZCTAs (860) from CSV
-        this_path = self.path + '2019_Gaz_zcta_national.txt'
+        this_path = self.path + self.gh_year + '_Gaz_zcta_national.txt'
 
         with open(this_path, 'rt') as f:
             z_rows = list(csv.reader(f, delimiter='\t'))
@@ -305,30 +308,58 @@ class Database:
 
         # Specify table_ids and line numbers that have the data we need.
         # See data/ACS_5yr_Seq_Table_Number_Lookup.txt
-        self.line_numbers_dict = {
-            'B01003': ['1'],   # TOTAL POPULATION
-            'B19301': ['1'],   # PER CAPITA INCOME IN THE PAST 12 MONTHS (IN
-                               # 2018 INFLATION-ADJUSTED DOLLARS)
-            'B02001': ['2',    # RACE - White alone
-                       '3',    # RACE - Black or African American alone
-                       '5'],   # RACE - Asian alone
-            'B03002': ['3',    # HISPANIC OR LATINO ORIGIN BY RACE - Not
-                               # Hispanic or Latino - White alone
-                       '12'],  # ↑ - Hispanic or Latino
-            # EDUCATIONAL ATTAINMENT FOR THE POPULATION 25 YEARS AND OVER
-            'B15003': ['1',    # Total:
-                       '22',   # Bachelor's degree
-                       '23',   # Master's degree
-                       '24',   # Professional school degree
-                       '25'],  # Doctorate degree
-            # MEDIAN HOUSEHOLD INCOME IN THE PAST 12 MONTHS (IN 2018 INFLATION-ADJUSTED DOLLARS)
-            'B19013': ['1'],   # ↑
-            'B25035': ['1'],   # Median year structure built
-            'B25018': ['1'],   # Median number of rooms
-            'B25058': ['1'],   # Median contract rent (of renter-occupied
-                               # housing units)
-            'B25077': ['1'],   # Median value (of owner-occupied housing units)
-        }
+        if self.year == '2018':
+            self.line_numbers_dict = {
+                'B01003': ['1'],   # TOTAL POPULATION
+                'B19301': ['1'],   # PER CAPITA INCOME IN THE PAST 12 MONTHS (IN
+                                # 2018 INFLATION-ADJUSTED DOLLARS)
+                'B02001': ['2',    # RACE - White alone
+                        '3',    # RACE - Black or African American alone
+                        '5'],   # RACE - Asian alone
+                'B03002': ['3',    # HISPANIC OR LATINO ORIGIN BY RACE - Not
+                                # Hispanic or Latino - White alone
+                        '12'],  # ↑ - Hispanic or Latino
+                'B04004': ['51'],  # PEOPLE REPORTING SINGLE ANCESTRY - Italian
+                # EDUCATIONAL ATTAINMENT FOR THE POPULATION 25 YEARS AND OVER
+                'B15003': ['1',    # Total:
+                        '22',   # Bachelor's degree
+                        '23',   # Master's degree
+                        '24',   # Professional school degree
+                        '25'],  # Doctorate degree
+                # MEDIAN HOUSEHOLD INCOME IN THE PAST 12 MONTHS (IN 2018 INFLATION-ADJUSTED DOLLARS)
+                'B19013': ['1'],   # ↑
+                'B25035': ['1'],   # Median year structure built
+                'B25018': ['1'],   # Median number of rooms
+                'B25058': ['1'],   # Median contract rent (of renter-occupied
+                                # housing units)
+                'B25077': ['1'],   # Median value (of owner-occupied housing units)
+            }
+        elif self.year == '2020':
+            self.line_numbers_dict = {
+                'B01003': ['1'],   # TOTAL POPULATION
+                'B19301': ['1'],   # PER CAPITA INCOME IN THE PAST 12 MONTHS (IN
+                                # 2018 INFLATION-ADJUSTED DOLLARS)
+                'B02001': ['2',    # RACE - White alone
+                        '3',    # RACE - Black or African American alone
+                        '5'],   # RACE - Asian alone
+                'B03002': ['3',    # HISPANIC OR LATINO ORIGIN BY RACE - Not
+                                # Hispanic or Latino - White alone
+                        '12'],  # ↑ - Hispanic or Latino
+                'B04004': ['51'],  # PEOPLE REPORTING SINGLE ANCESTRY - Italian
+                # EDUCATIONAL ATTAINMENT FOR THE POPULATION 25 YEARS AND OVER
+                'B15003': ['1',    # Total:
+                        '22',   # Bachelor's degree
+                        '23',   # Master's degree
+                        '24',   # Professional school degree
+                        '25'],  # Doctorate degree
+                # MEDIAN HOUSEHOLD INCOME IN THE PAST 12 MONTHS (IN 2018 INFLATION-ADJUSTED DOLLARS)
+                'B19013': ['1'],   # ↑
+                'B25035': ['1'],   # Median year structure built
+                'B25018': ['1'],   # Median number of rooms
+                'B25058': ['1'],   # Median contract rent (of renter-occupied
+                                # housing units)
+                'B25077': ['1'],   # Median value (of owner-occupied housing units)
+            }
 
         # Get needed table metadata.
         self.table_metadata = []
@@ -369,7 +400,7 @@ class Database:
 
             for sequence_number in sequence_numbers:
                 for state in self.st.get_abbrevs(lowercase=True, inc_us=True):
-                    this_path = self.path + 'e20185' + state + sequence_number \
+                    this_path = self.path + 'e' + self.year + '5' + state + sequence_number \
                                 + '000.txt'
                     self.files[table_id].append(this_path)
         
@@ -593,6 +624,7 @@ class Database:
                             gdt(row['B02001_5']),
                             gdt(row['B03002_3']),
                             gdt(row['B03002_12']),
+                            gdt(row['B04004_51']),
                             gdt(row['B15003_1']),
                             gdt(row['B15003_22']),
                             gdt(row['B15003_23']),
