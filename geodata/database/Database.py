@@ -13,6 +13,7 @@ from tools.geodata_typecast import gdt, gdti, gdtf
 from tools.StateTools import StateTools
 
 from collections import defaultdict
+from pathlib import Path
 import sys
 
 class Database:
@@ -22,7 +23,7 @@ class Database:
 
     def get_tm_columns(self, path):
         '''Obtain columns for table_metadata'''
-        columns = list(pd.read_csv(path + 'ACS_5yr_Seq_Table_Number_Lookup.csv',
+        columns = list(pd.read_csv(path / 'ACS_5yr_Seq_Table_Number_Lookup.txt',
             nrows=1, dtype='str').columns)
 
         # Convert column headers to snake_case
@@ -33,7 +34,7 @@ class Database:
 
     def get_gh_columns(self, gh_year, path):
         '''Obtain columns for the geoheaders table.'''
-        return list(pd.read_csv(path + gh_year + '_Gaz_place_national.txt',
+        return list(pd.read_csv(path / f'{gh_year}_Gaz_place_national.txt',
             sep='\t', nrows=1, dtype='str').columns)
 
     def dbapi_qm_substr(self, columns_len):
@@ -91,13 +92,13 @@ class Database:
         rows = []
         # Get rows from CSV files for each state.
         for state in self.st.get_abbrevs(lowercase=True):
-            this_path = self.path + 'g' + self.year + '5' + state + '.csv'
+            this_path = self.data_dir / f'g{self.year}5{state}.csv'
             
             with open(this_path, 'rt', encoding='iso-8859-1') as f:
                 rows += list(csv.reader(f))
 
         # Also, get rows for the national file (for ZCTA support).
-        this_path = self.path + 'g' + self.year + '5us.csv'
+        this_path = self.data_dir / f'g{self.year}5us.csv'
         with open(this_path, 'rt', encoding='iso-8859-1') as f:
             rows += list(csv.reader(f))
         
@@ -110,7 +111,7 @@ class Database:
         '''Create the database'''
         # Initialize ##########################################################
 
-        self.path = path
+        self.data_dir = Path(path).expanduser().resolve()
         self.year = '2020'
         self.gh_year = '2023'
 
@@ -124,12 +125,12 @@ class Database:
         this_table_name = 'table_metadata'
 
         # Process column definitions
-        columns = self.get_tm_columns(self.path)
+        columns = self.get_tm_columns(self.data_dir)
         column_defs = list(map(lambda x: x + ' TEXT', columns))
         column_defs.insert(0, 'id INTEGER PRIMARY KEY')
 
         # Get rows from CSV
-        this_path = self.path + 'ACS_5yr_Seq_Table_Number_Lookup.csv'
+        this_path = self.data_dir / 'ACS_5yr_Seq_Table_Number_Lookup.txt'
         rows = []
 
         with open(this_path, 'rt') as f:
@@ -205,21 +206,21 @@ class Database:
         # is that we need to get the land area so that we can calculate
         # population and housing unit densities.
 
-        columns = self.get_gh_columns(self.gh_year, self.path)
+        columns = self.get_gh_columns(self.gh_year, self.data_dir)
         columns[-1] = columns[-1].strip()
         self.geoheaders_columns = columns
         column_defs = list(map(lambda x: x + ' TEXT', columns))
         column_defs.insert(0, 'id INTEGER PRIMARY KEY')
 
         # Get rows for places (160) from CSV
-        this_path = self.path + self.gh_year + '_Gaz_place_national.txt'
+        this_path = self.data_dir / f'{self.gh_year}_Gaz_place_national.txt'
         rows = []
 
         with open(this_path, 'rt') as f:
             rows = list(csv.reader(f, delimiter='\t'))
 
         # Get rows for counties (050) from CSV
-        this_path = self.path + self.gh_year + '_Gaz_counties_national.txt'
+        this_path = self.data_dir / f'{self.gh_year}_Gaz_counties_national.txt'
 
         with open(this_path, 'rt') as f:
             c_rows = list(csv.reader(f, delimiter='\t'))
@@ -231,19 +232,19 @@ class Database:
             c_row.insert(5, '')
         
         # Get rows for states (040) from CSV
-        this_path = self.path + '2019_Gaz_state_national.txt'
+        this_path = self.data_dir / '2019_Gaz_state_national.txt'
 
         with open(this_path, 'rt') as f:
             s_rows = list(csv.reader(f, delimiter='\t'))
 
         # Get rows for Metro/micro areas (310) from CSV
-        this_path = self.path + self.gh_year + '_Gaz_cbsa_national.txt'
+        this_path = self.data_dir / f'{self.gh_year}_Gaz_cbsa_national.txt'
 
         with open(this_path, 'rt') as f:
             cbsa_rows = list(csv.reader(f, delimiter='\t'))
 
         # Get rows for urban areas (400) from CSV
-        this_path = self.path + self.gh_year + '_Gaz_ua_national.txt'
+        this_path = self.data_dir / f'{self.gh_year}_Gaz_ua_national.txt'
 
         with open(this_path, 'rt') as f:
             ua_rows = list(csv.reader(f, delimiter='\t'))
@@ -255,7 +256,7 @@ class Database:
             ua_row.insert(5, '')
 
         # Get rows for ZCTAs (860) from CSV
-        this_path = self.path + self.gh_year + '_Gaz_zcta_national.txt'
+        this_path = self.data_dir / f'{self.gh_year}_Gaz_zcta_national.txt'
 
         with open(this_path, 'rt') as f:
             z_rows = list(csv.reader(f, delimiter='\t'))
@@ -400,8 +401,7 @@ class Database:
 
             for sequence_number in sequence_numbers:
                 for state in self.st.get_abbrevs(lowercase=True, inc_us=True):
-                    this_path = self.path + 'e' + self.year + '5' + state + sequence_number \
-                                + '000.txt'
+                    this_path = self.data_dir / f'e{self.year}5{state}{sequence_number}000.txt'
                     self.files[table_id].append(this_path)
         
         self.debug_output_dict('files')

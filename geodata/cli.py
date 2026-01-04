@@ -126,14 +126,7 @@ class GeodataCLI:
 
         # Parse arguments
         args = parser.parse_args()
-
-        # try/except is necessary here due to a bug in argparse -- an
-        # AttributeError may be invoked if the program is run with too few
-        # arguments.
-        try:
-            args.func(args)
-        except AttributeError:
-            parser.error("Too few arguments")
+        args.func(args)
 
     def create_data_products(self, args):
         self.engine.create_data_products(args.path)

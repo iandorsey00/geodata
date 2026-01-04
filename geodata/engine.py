@@ -1,4 +1,5 @@
 from database.Database import Database
+from pathlib import Path
 
 import argparse
 import copy
@@ -21,30 +22,50 @@ from rapidfuzz import fuzz
 
 class Engine:
     def __init__(self):
-        self.initialize_database()
-
         self.ct = CountyTools()
         self.st = StateTools()
         self.kt = KeyTools()
         self.slt = SummaryLevelTools()
+
+        self.PROJECT_ROOT = Path(__file__).resolve().parents[1]
             
-    def create_data_products(self, path):
+    def create_data_products(self, data_path):
         '''Generate and save data products.'''
-        d = Database(path)
-        pickle.dump(d.get_products(), open('./bin/default.geodata', 'wb'))
+        d = Database(data_path)
+        database_path = self.PROJECT_ROOT / 'bin' / 'default.geodata'
+
+        # Ensure the directory exists
+        database_path.parent.mkdir(parents=True, exist_ok=True)
+
+        with(database_path.open('wb')) as f:
+            pickle.dump(d.get_products(), f, protocol=pickle.HIGHEST_PROTOCOL)
+
+        print('Data product write completed.')
 
     def load_data_products(self):
         '''Load data products.'''
-        with open('./bin/default.geodata', 'rb') as f:
-            return pickle.load(f)
+        database_path = self.PROJECT_ROOT / 'bin' / 'default.geodata'
 
-    def initialize_database(self):
-        '''Load data products or create them if they don't exist.'''
-        # Try to open the default database, located at ../bin/default.db.
-        self.d = self.load_data_products()
+        error = '(unknown)' # In case an error doesn't get assigned.
+
+        try:
+            with database_path.open('rb') as f:
+                return pickle.load(f)
+            
+        except FileNotFoundError:
+            error = "file not found"
+
+        except EOFError:
+            error = "file is empty (EOF)"
+
+        except pickle.UnpicklingError:
+            error = "file is corrupted or incompatible"
+
+        except Exception as e:
+            error = f"unexpected error: {e!r}"
 
     def get_data_products(self):
-        return self.d
+        return self.load_data_products()
 
     def get_data_types(self, comp, data_type, fetch_one):
         '''
