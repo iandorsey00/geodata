@@ -274,7 +274,7 @@ class GeodataCLI:
             print("Sorry, no geographies match your criteria.")
         else:
             # Print the header and places with their information.
-            dpi = self.engine.d['demographicprofiles'][0]
+            dpi = self.engine.get_data_products()['demographicprofiles'][0]
             print(divider(dpi))
             print(ev_print_headers(args.comp, universe_sl, group_sl, group))
             print(divider(dpi))
